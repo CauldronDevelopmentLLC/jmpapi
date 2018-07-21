@@ -1,0 +1,48 @@
+//-/////////////////////////////////////////////////////////////////////////////
+//-                                                                           //
+//-               Copyright (c) 2018, Cauldron Development LLC                //
+//-                           All rights reserved.                            //
+//-                                                                           //
+//-   This file ("the software") is free software: you can redistribute it    //
+//-   and/or modify it under the terms of the GNU General Public License,     //
+//-    version 2 as published by the Free Software Foundation. You should     //
+//-    have received a copy of the GNU General Public License, version 2      //
+//-   along with the software. If not, see <http://www.gnu.org/licenses/>.    //
+//-                                                                           //
+//-   The software is distributed in the hope that it will be useful, but     //
+//-        WITHOUT ANY WARRANTY; without even the implied warranty of         //
+//-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU      //
+//-             Lesser General Public License for more details.               //
+//-                                                                           //
+//-     You should have received a copy of the GNU Lesser General Public      //
+//-              License along with the software.  If not, see                //
+//-                     <http://www.gnu.org/licenses/>.                       //
+//-                                                                           //
+//-              For information regarding this software email:               //
+//-            "Joseph Coffland" <joseph@cauldrondevelopment.com>             //
+//-                                                                           //
+//-/////////////////////////////////////////////////////////////////////////////
+
+script#api-docs-template(type="text/x-template")
+  .api-docs
+    .api-entrypoint(v-for="entrypoint, path in api", v-if="!entrypoint.hide")
+      .api-method(v-for="entry, method in entrypoint", v-if="!entry.hide")
+        .api-path {{method}} {{path}}
+
+        table.api-args(v-if="entry.args")
+          tr
+            th Argument
+            th Type
+            th Default
+            th Description
+          api-arg(v-for="config, name in entry.args", v-if="!config.hide",
+            :name="name", :config="config")
+
+        .api-help(v-if="entry.help") {{entry.help}}
+        .api-allow(v-if="entry.allow")
+          | <b>Allow:</b> {{auth_list(entry.allow)}}
+        .api-deny(v-if="entry.deny")
+          | <b>Deny:</b> {{auth_list(entry.deny)}}
+
+        .api-example
+          pre {{example(method, path, entry)}}

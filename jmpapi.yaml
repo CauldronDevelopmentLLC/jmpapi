@@ -1,0 +1,69 @@
+options:
+  http-addresses: [localhost:7000]
+  https-addresses: [localhost:7100]
+  http-root: ./http
+
+  google-client-id: >-
+    166210161088-pe535hdo4tnpvg3v3a9ciq1jnjtmn4m4.apps.googleusercontent.com
+  google-client-secret: _21OL66NT6x5V1hKoGzOMPw5
+  google-redirect-base: https://localhost:7100
+
+  db-name: jmpapi
+  db-user: jmpapi
+  db-pass: AgAgBim-knas6
+
+  sessions-sql: CALL GetSessions()
+
+api:
+  /api:
+    GET:
+      handler: api
+      help: Returns a description of this API.
+
+  /login:
+    GET|PUT:
+      handler: login
+      args:
+        provider:
+          default: google
+          enum: [google, facebook, github]
+          help: The OAuth2 login provider.
+      sql: >
+        CALL Login(%(id)s, %(provider)s, %(provider_id)s, %(user)s, %(name)s,
+          %(avatar)s)
+
+  /logout:
+    GET:
+      handler: logout
+      sql: CALL Logout(%(id)s)
+      help: Close the currently logged in session.
+
+  /users:
+    GET:
+      return: list
+      sql: >
+        SELECT provider, provider_id id, name, avatar, created, last_used
+          FROM users
+      help: Returns a list of all users.
+
+  /groups:
+    GET:
+      allow: [$authenticated]
+      return: list
+      sql: SELECT name FROM groups
+      help: Returns a list of all groups.
+
+  /groups/:group:
+    GET:
+      sql: SELECT * FROM groups WHERE name = %(group)s
+      args:
+        group:
+          help: An group name.
+
+    PUT:
+      allow: [$admin]
+      sql: INSERT INTO groups (name) VALUES (%(group)s)
+      help: Create a new group.
+      args:
+        group:
+          help: The name of the new group.

@@ -1,0 +1,19 @@
+# Backup files
+*~
+\#*
+
+# Scons
+.sconf_temp
+.sconsign.dblite
+/config.log
+
+# Misc
+/node_modules
+/http
+/build
+/jmpapi
+/package-description.txt
+/package.txt
+/certificate.pem
+/package-lock.json
+/private.pem
