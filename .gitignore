@@ -17,3 +17,4 @@
 /certificate.pem
 /package-lock.json
 /private.pem
+/secrets.yaml

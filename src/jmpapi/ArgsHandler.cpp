@@ -74,15 +74,14 @@ bool ArgsHandler::operator()(Event::Request &req) {
     found.insert(name);
 
     auto it = validators.find(name);
-    if (it == validators.end())
-      THROWXS("Unsupported argument '" << name << "'", HTTP_BAD_REQUEST);
+    if (it == validators.end()) continue; // Ignore unrecognized args
 
     try {
       (*it->second)(args.getString(i));
 
     } catch (const Exception &e) {
-      THROWXS("Invalid argument '" << name << "': " << e.getMessage(),
-              HTTP_BAD_REQUEST);
+      THROWXS("Invalid argument '" << name << "=" << args.getString(i)
+              << "': " << e.getMessage(), HTTP_BAD_REQUEST);
     }
   }
 

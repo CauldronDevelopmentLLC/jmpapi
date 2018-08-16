@@ -55,8 +55,16 @@ App::App() :
   ServerApplication("JmpAPI"), dns(base), client(base, dns, new SSLContext),
   googleAuth(options), githubAuth(options), facebookAuth(options),
   dbHost("localhost"), dbName("jmpapi"), dbPort(3306), dbTimeout(5),
-  server(*this), sessionManager(options),
-  config(JSON::YAMLReader::parse(string("jmpapi.yaml"))) {
+  server(*this), sessionManager(options) {
+
+  LOG_INFO(1, "Loading jmpapi.yaml");
+  config = JSON::YAMLReader::parse(string("jmpapi.yaml"));
+
+  if (SystemUtilities::exists("secrets.yaml")) {
+    LOG_INFO(1, "Loading secrets.yaml");
+    JSON::ValuePtr secrets = JSON::YAMLReader::parse(string("secrets.yaml"));
+    config->merge(*secrets);
+  }
 
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files.");

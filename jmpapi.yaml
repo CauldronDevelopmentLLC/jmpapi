@@ -5,12 +5,10 @@ options:
 
   google-client-id: >-
     355813468645-o1e45s6ehjbl1bfv78o6pm6a89e3tasg.apps.googleusercontent.com
-  google-client-secret: j4kljjWgk3Dazqqud87ckB1I
   google-redirect-base: https://localhost:7100
 
   db-name: jmpapi
   db-user: jmpapi
-  db-pass: AgAgBim-knas6
 
   session-sql: CALL GetSession(%(id)s)
 
