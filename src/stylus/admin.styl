@@ -22,3 +22,113 @@
         <http://www.gnu.org/licenses/>.
 
 \******************************************************************************/
+
+@import 'templates/common.styl'
+@import 'templates/user-login.styl'
+@import 'templates/modal.styl'
+
+[draggable]
+  -moz-user-select none
+  -khtml-user-select none
+  -webkit-user-select none
+  user-select none
+
+#content
+  .message
+    height 2em
+    line-height 2em
+    width 100%
+    font-size 120%
+    padding 0 0.5em
+    border-radius 3px
+    border 2px solid transparent
+
+    &.error
+      border 2px solid red
+
+    &.success
+      border 2px solid #666
+
+
+  .actions, .back
+    @import 'templates/fa-button.styl'
+
+  table
+    border-collapse collapse
+    width 100%
+
+    td, th
+      border 1px solid #eee
+      padding 4px
+      white-space nowrap
+      overflow hidden
+      text-overflow ellipsis
+
+    th
+      text-align center
+
+    td
+      text-align left
+
+    tbody tr:nth-child(even)
+      background #f7f7f7
+
+    thead tr
+      background #ddd
+
+    .actions, .groups, .users, .avatar
+      text-align center
+
+    .avatar img
+      width 32px
+      vertical-align middle
+      border-radius 3px
+
+  .back
+    display inline-block
+    margin-right 0.5em
+
+  .admin-users, .admin-groups
+    max-height 400px
+    overflow-y auto
+
+  .admin-users
+    .name, .email
+      max-width 12em
+
+    .created, .last
+      font-size 80%
+
+  .admin-groups
+    td.input
+      width 99%
+      padding 0
+
+      input
+        width 97%
+
+  .admin-user
+    > h2 img
+      margin 0 0.5em
+      width 40px
+      vertical-align middle
+      border-radius 3px
+
+    .user
+      margin-bottom 1em
+
+      td, th
+        border 0
+
+      th
+        text-align right
+
+      td
+        width 100%
+
+    td.status
+      width 100%
+
+  .admin-group
+    td.name
+      width 100%

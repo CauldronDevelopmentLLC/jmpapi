@@ -29,15 +29,30 @@ html(lang="en")
     title JmpAPI Admin Panel
     include templates/head.pug
     style: include:stylus ../stylus/admin.styl
-    script(src="js/admin.js")
+    script: include:browserify ../js/admin.js
 
   body
     #header
       h1 JmpAPI Admin Panel
 
-    #content
+    #content(v-cloak)
+      user-login(@login="login", @logout="logout")
+
+      modal(:show="showConfirm", @response="confirm")
+        template(slot="header") Please confirm.
+        template(slot="body") {{confirmMsg}}
+
+      .message(:class="{error: err, success: msg && !err}") {{msg}}
+
+      component(v-if="loggedin", :is="'admin-' + page", :user="user",
+        :group="group")
 
       include templates/incompatible.pug
       include templates/no-script.pug
 
     #templates
+      include templates/user-login.pug
+      include templates/admin-main.pug
+      include templates/admin-user.pug
+      include templates/admin-group.pug
+      include templates/modal.pug

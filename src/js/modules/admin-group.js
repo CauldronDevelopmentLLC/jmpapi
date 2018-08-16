@@ -23,12 +23,43 @@
 
 \******************************************************************************/
 
-#incompatible-browser
-  display none
+'use strict'
 
-#header
-  text-align center
 
-#content
-  margin auto
-  max-width 700px
+module.exports = {
+  template: '#admin-group-template',
+  props: ['group'],
+
+
+  data: function () {
+    return {
+      users: []
+    }
+  },
+
+
+  mounted: function () {
+    this.$root.api({url: '/groups/' + this.group + '/users'})
+      .done(function (users) {this.users = users}.bind(this))
+  },
+
+
+  methods: {
+    back: function () {this.$parent.page = 'main'},
+
+
+    remove_user: function (user) {
+      this.$root.api({
+        method: 'DELETE',
+        url: '/users/' + user.id + '/groups/' + this.group,
+        msgs: {
+          success:
+          'Removed user ' + user.name + ' from group ' + this.group + '.'
+        }
+
+      }).done(function () {
+        this.users.splice(this.users.indexOf(user), 1);
+      }.bind(this))
+    }
+  }
+}

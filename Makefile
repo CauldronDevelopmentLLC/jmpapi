@@ -26,7 +26,7 @@
 DEST := johndoe@example.org:
 
 DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-NODE_MODS  := $(DIR)/node_modules
+NODE_MODS  := $(DIR)node_modules
 PUG        := $(NODE_MODS)/.bin/pug
 JSHINT     := $(NODE_MODS)/.bin/jshint
 
@@ -41,11 +41,14 @@ publish: all
 	rsync -rv http/ $(DEST)
 
 http/%: src/static/%
-	mkdir -p $(shell dirname $@)
+	mkdir -p $(dir $@)
 	install -D $< $@
 
-http/%.html: src/pug/%.pug src/stylus/*.styl
+http/%.html: src/pug/%.pug
 	$(PUG) -O pug-opts.js $< --out $(dir $@) || (rm -f $@; exit 1)
+	@mkdir -p build/dep
+	@echo -n "$@: " > build/dep/$(shell basename $<)
+	@./pug-deps $< >> build/dep/$(shell basename $<)
 
 lint: node_modules
 	$(JSHINT) --config jshint.json src/js/*.js src/js/modules/*.js
@@ -73,3 +76,6 @@ dist-clean:
 	git clean -fxd -e /private.pem -e /certificate.pem
 
 .PHONY: all publish lint watch tidy clean dist-clean
+
+# Dependencies
+-include $(shell mkdir -p build/dep) $(wildcard build/dep/*)

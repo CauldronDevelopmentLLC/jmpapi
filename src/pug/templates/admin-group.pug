@@ -23,24 +23,27 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
+script#admin-group-template(type="text/x-template")
+  .admin-group
+    h2
+      .back
+        .fa.fa-arrow-left(@click="back", title="Return to main page")
+      | Editing Group {{group}}
 
-  body
-    #header
-      h1 API Docs
+    h2(v-if="!users.length") No members.
+    .members(v-if="users.length")
+      h2 Members
+      table
+        thead
+          tr
+            th Avatar
+            th User
+            th Actions
 
-    #content(v-cloak)
-      api-docs
-
-      include templates/incompatible.pug
-      include templates/no-script.pug
-
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
+        tbody
+          tr(v-for="user in users")
+            td.avatar: img(:src="user.avatar")
+            td.name {{user.name}}
+            td.actions
+              .fa.fa-minus(@click="remove_user(user)",
+                title="Remove user from group.")

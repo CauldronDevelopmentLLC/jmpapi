@@ -23,59 +23,53 @@
 
 \******************************************************************************/
 
-@import 'templates/common.styl'
+'use strict'
 
-.api-entrypoint
-  .api-method
-    color #444
-    margin-bottom 1.5em
-    border 1px solid #ddd
-    background #fff
-    border-radius 4px
 
-    > div
-      padding 0.25em
+module.exports = {
+  template: '#admin-user-template',
+  props: ['user'],
 
-    .api-path
-      border-top-left-radius 4px
-      border-top-right-radius 4px
-      background #f5f5f5
-      font-weight bold
-      font-size 110%
 
-    .api-args
-      width 100%
-      border-collapse collapse
+  data: function () {
+    return {
+      groups: []
+    }
+  },
 
-      th, td
-        padding 0.25em
-        border 1px solid #ddd
-        white-space nowrap
-        text-align left
 
-      th
-        font-size 90%
+  mounted: function () {
+    this.$root.api({
+      url: '/users/' + this.user.id + '/groups'
+    }).done(function (groups) {this.groups = groups}.bind(this))
+  },
 
-      td:first-child, th:first-child
-        border-left 0
 
-      td:last-child, th:last-child
-        border-right 0
+  methods: {
+    back: function () {this.$parent.page = 'main'},
 
-      .description
-        width 100%
 
-    .api-example
-      padding 0
+    remove_group: function (group) {
+      this.$root.api({
+        method: 'DELETE',
+        url: '/users/' + this.user.id + '/groups/' + group.name,
+        msgs: {
+          success:
+          'Removed user ' + this.user.name + ' from group ' + group.name + '.'
+        }
+      }).done(function () {group.member = 0})
+    },
 
-      pre
-        line-height 1.5em
-        background #f5f5f5
-        padding 0.25em
-        margin 0
-        font-family mono
-        border-bottom-left-radius 4px
-        border-bottom-right-radius 4px
-        width 100%
-        overflow-x auto
-        box-sizing border-box
+
+    add_group: function (group) {
+      this.$root.api({
+        method: 'PUT',
+        url: '/users/' + this.user.id + '/groups/' + group.name,
+        msgs: {
+          success:
+          'Added user ' + this.user.name + ' to group ' + group.name + '.'
+        }
+      }).done(function () {group.member = 1})
+    }
+  }
+}

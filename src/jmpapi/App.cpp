@@ -60,7 +60,7 @@ App::App() :
 
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files.");
-  options.add("sessions-sql", "A SQL statement to retrieve saved sessions.");
+  options.add("session-sql", "SQL statement for looking up a session.");
   options.popCategory();
 
   options.pushCategory("Debugging");
@@ -125,30 +125,6 @@ int App::init(int argc, char *argv[]) {
   MariaDB::DB::threadInit();
 
   server.init();
-
-  // Load saved Sessions
-  string sql = options["sessions-sql"].toString("");
-  if (!sql.empty()) {
-    unsigned count = 0;
-    SmartPointer<MariaDB::EventDB> db = getDBConnection(true);
-    db->query(sql);
-    db->storeResult();
-
-    while (db->fetchRow()) {
-      JSON::Builder builder;
-      db->writeRowDict(builder);
-
-      SmartPointer<Session> session = new Session(*builder.getRoot());
-      session->addGroup("authenticated");
-      sessionManager.addSession(session);
-
-      count++;
-    }
-
-    db->freeResult();
-
-    LOG_INFO(1, "Loaded " << count << " saved session(s)");
-  }
 
   // Handle exit signal
   base.newSignal(SIGINT, this, &App::signalEvent).add();

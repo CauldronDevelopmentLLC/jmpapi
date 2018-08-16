@@ -23,24 +23,49 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
+script#admin-main-template(type="text/x-template")
+  .admin-main-page
+    h2 Users
+    .admin-users
+      table
+        thead
+          tr
+            th Avatar
+            th Name
+            th Created
+            th Last Seen
+            th Actions
 
-  body
-    #header
-      h1 API Docs
+        tbody
+          tr(v-for="user in users")
+            td.avatar
+              img(:src="user.avatar", draggable="true",
+                @dragstart="dragstart($event, user)")
+            td.name(:title="user.name") {{user.name}}
+            td.created {{user.created}}
+            td.last {{user.last_used}}
+            td.actions
+              .fa.fa-cog(@click="edit_user(user)", title="Edit user.")
+              .fa.fa-trash(@click="delete_user(user)", title="Delete user.")
 
-    #content(v-cloak)
-      api-docs
+    h2 Groups
+    .admin-groups
+      table
+        thead
+          tr
+            th Name
+            th Actions
 
-      include templates/incompatible.pug
-      include templates/no-script.pug
+        tbody
+          tr
+            td.input: input(v-model="new_group", @keyup.enter="add_group")
+            td.actions
+              .fa.fa-plus(@click="add_group", title="Create new group.")
 
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
+          tr(v-for="group in groups", @drop="drop($event, group)",
+            @dragover="dragover")
+            td.name {{group}}
+            td.actions
+              .fa.fa-cog(@click="edit_group(group)", title="Edit group.")
+              .fa.fa-trash(@click="delete_group(group)",
+                v-if="group != 'admin'", title="Delete group.")

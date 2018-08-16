@@ -23,24 +23,14 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
-
-  body
-    #header
-      h1 API Docs
-
-    #content(v-cloak)
-      api-docs
-
-      include templates/incompatible.pug
-      include templates/no-script.pug
-
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
+script#modal-template(type="text/x-template")
+  .modal(v-if="show")
+    .modal-wrapper
+      .modal-header: slot(name="header")
+      .modal-body: slot(name="body")
+      .modal-footer
+        slot(name="footer")
+          button(v-for="b in bnts", @click="click(b)",
+            :title="b.title", :class="b.klass")
+            | {{b.label}}
+            .fa(v-if="typeof b.icon != 'undefined'", :class="'fa-' + b.icon")

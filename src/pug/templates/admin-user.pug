@@ -23,24 +23,45 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
+script#admin-user-template(type="text/x-template")
+  .admin-user
+    h2
+      .back
+        .fa.fa-arrow-left(@click="back", title="Return to main page")
+      | Editing User
+      img(:src="user.avatar")
+      | {{user.name}}
 
-  body
-    #header
-      h1 API Docs
+    table.user
+      tr
+        th Email
+        td: a(:href="'mailto:' + user.email") {{user.email}}
+      tr
+        th Created
+        td {{user.created}}
+      tr
+        th Last Seen
+        td {{user.last_used}}
+      tr
+        th Provider
+        td {{user.provider}}
+      tr
+        th Provider ID
+        td {{user.provider_id}}
 
-    #content(v-cloak)
-      api-docs
+    table
+      thead
+        tr
+          th Group
+          th Status
+          th Actions
 
-      include templates/incompatible.pug
-      include templates/no-script.pug
-
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
+      tbody
+        tr(v-for="group in groups")
+          td.group {{group.name}}
+          td.status {{group.member ? 'Member' : 'Nonmember'}}
+          td.actions
+            .fa.fa-minus(v-if="group.member", @click="remove_group(group)",
+              title="Remove user from group")
+            .fa.fa-plus(v-if="!group.member", @click="add_group(group)",
+              title="Add user to group")

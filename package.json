@@ -7,12 +7,16 @@
     "name": "Joseph Coffland",
     "email": "joseph@cauldrondevelopment.com"
   },
-  "bin": {"jsapi": "./jsapi"},
+  "bin": {
+    "jsapi": "./jsapi"
+  },
   "license": "GPL-3.0",
   "dependencies": {
     "pug-cli": "",
+    "pug-dependencies": "",
     "jstransformer-stylus": "",
     "browserify": "",
-    "jshint": ""
+    "jshint": "",
+    "dev-null": ""
   }
 }

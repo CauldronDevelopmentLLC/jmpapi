@@ -23,24 +23,13 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
+script#user-login-template(type="text/x-template")
+  .user-login
+    .login(v-if="!loggedin && providers.length")
+      | Login with:
+      .fa(v-for="provider in providers", :class="'fa-' + provider",
+        @click="login(provider)", :title="'Login with ' + provider + '.'")
 
-  body
-    #header
-      h1 API Docs
-
-    #content(v-cloak)
-      api-docs
-
-      include templates/incompatible.pug
-      include templates/no-script.pug
-
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
+    .login-menu(v-if="loggedin")
+      img.avatar(:src="user.avatar", :title="'Logged in as ' + user.name + '.'")
+      .fa.fa-sign-out(@click="logout", title="Sign out.")

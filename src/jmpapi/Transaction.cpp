@@ -34,6 +34,7 @@
 
 #include <cbang/event/Buffer.h>
 #include <cbang/event/Event.h>
+#include <cbang/event/HTTP.h>
 
 #include <cbang/json/JSON.h>
 #include <cbang/log/Logger.h>
@@ -49,22 +50,38 @@ using namespace JmpAPI;
 
 
 Transaction::Transaction(App &app, evhttp_request *req) :
-  Request(req), Event::OAuth2Login(app.getEventClient()), app(app),
-  jsonFields(0) {LOG_DEBUG(5, "Transaction()");}
-
-
-Transaction::~Transaction() {LOG_DEBUG(5, "~Transaction()");}
+  Request(req), Event::OAuth2Login(app.getEventClient()), app(app) {}
 
 
 void Transaction::setSessionCookie() {
-  string sid = getSession()->getID();
-  setCookie(app.getSessionCookieName(), sid, "", "/");
+  setCookie(app.getSessionCookieName(), getSession()->getID(), "", "/");
 }
 
 
-string Transaction::getUserID() const {
-  return getSession()->getString("provider") + ":" +
-    getSession()->getString("provider_id");
+bool Transaction::lookupSession() {
+  // Check if Session is already loaded
+  if (!getSession().isNull()) return false;
+
+  // Check if we have a session ID
+  string sid = getSessionID(app.getSessionManager().getSessionCookie());
+  if (sid.empty()) return false;
+
+  // Lookup Session in SessionManager
+  try {
+    setSession(app.getSessionManager().lookupSession(sid));
+    LOG_DEBUG(3, "User: " << getUser());
+
+    return false;
+  } catch (const Exception &) {}
+
+  // Lookup Session in DB
+  string sql = app.getOptions()["session-sql"].toString("");
+  if (sql.empty()) return false;
+
+  setSession(new Session(sid, getClientIP()));
+  query(&Transaction::session, sql, getSession());
+
+  return true;
 }
 
 
@@ -95,22 +112,29 @@ void Transaction::sendJSONError(int code, const std::string &msg) {
 
   resetOutput();
 
-  SmartPointer<JSON::Writer> writer = getJSONWriter();
-
   code = code ? code : HTTP_INTERNAL_SERVER_ERROR;
 
-  writer->beginDict();
+  getJSONWriter()->beginDict();
   writer->insert("error", msg.empty() ?
                  Event::HTTPStatus((HTTPStatus::enum_t)code).toString() : msg);
   writer->insert("status", code);
   writer->endDict();
-  writer->close();
 
   reply(code);
 }
 
 
-void Transaction::processProfile(const SmartPointer<JSON::Value> &profile) {
+void Transaction::finalize() {
+  if (!writer.isNull()) {
+    writer->close();
+    writer.release();
+  }
+
+  Request::finalize();
+}
+
+
+void Transaction::processProfile(const JSON::ValuePtr &profile) {
   if (!profile.isNull())
     try {
       string provider = profile->getString("provider");
@@ -144,74 +168,107 @@ void Transaction::processProfile(const SmartPointer<JSON::Value> &profile) {
       return;
     } CATCH_ERROR;
 
+  LOG_ERROR("Invalid login profile: " << *profile);
+
   sendJSONError(HTTP_UNAUTHORIZED);
 }
 
 
 bool Transaction::apiLogin(const JSON::ValuePtr &config) {
+  JSON::Dict &args = parseArgs();
   this->config = config;
-  const URI &uri = getURI();
 
-  // Check Session
-  if (getSession().isNull())
-    setSession(app.getSessionManager().openSession(getClientIP()));
+  string provider = args.getString("provider", "");
+  if (provider.empty()) {
+    if (getSession().isNull() || !getSession()->hasGroup("authenticated")) {
+      sendJSONError(HTTP_UNAUTHORIZED, "Not logged in");
+      return true;
+    }
 
-  else if (getSession()->hasGroup("authenticated")) {
-    if (!config->hasString("sql")) login();
-    else query(&Transaction::login, config->getString("sql"), getSession());
-    return true;
+    getSession()->write(*getJSONWriter()); // Respond with Session JSON
+
+  } else if (provider == "list") {
+    getJSONWriter()->beginList();
+    if (app.getGoogleAuth().isConfigured()) writer->append("google");
+    if (app.getGitHubAuth().isConfigured()) writer->append("github");
+    if (app.getFacebookAuth().isConfigured()) writer->append("facebook");
+    writer->endList();
+
+  } else {
+    // Open new Session, if necessary
+    if (getSession().isNull())
+      setSession(app.getSessionManager().openSession(getClientIP()));
+
+    // Get OAuth2 login provider
+    OAuth2 *auth = 0;
+    if (provider == "google") auth = &app.getGoogleAuth();
+    else if (provider == "github") auth = &app.getGitHubAuth();
+    else if (provider == "facebook") auth = &app.getFacebookAuth();
+
+    if (!auth || !auth->isConfigured()) {
+      sendJSONError(HTTP_BAD_REQUEST,
+                    SSTR("Unsupported login provider: " << provider));
+      return true;
+    }
+
+    const URI &uri = getURI();
+    string sid = getSession()->getID();
+    if (uri.has("state")) return OAuth2Login::requestToken(*this, *auth, sid);
+
+    setSessionCookie(); // Needed to pass anti-forgery
+
+    URI redirectURL = auth->getRedirectURL(uri.getPath(), sid);
+    if (args.hasString("redirect_uri"))
+      redirectURL.set("redirect_uri", args.getString("redirect_uri"));
+
+    getJSONWriter()->beginDict();
+    writer->insert("id", sid);
+    writer->insert("redirect", redirectURL);
+    writer->endDict();
   }
 
-  OAuth2 *auth;
-  JSON::Dict &args = parseArgs();
-  string provider = args.getString("provider", "google");
-
-  if (provider == "google") auth = &app.getGoogleAuth();
-  else if (provider == "github") auth = &app.getGitHubAuth();
-  else if (provider == "facebook") auth = &app.getFacebookAuth();
-  else THROWCS("Unsupported login provider: " << provider,
-               HTTP_INTERNAL_SERVER_ERROR);
-
-  string sid = getSession()->getID();
-  if (uri.has("state")) return OAuth2Login::requestToken(*this, *auth, sid);
-
-  setSessionCookie(); // Needed to pass anti-forgery
-
-  URI redirectURL = auth->getRedirectURL(uri.getPath(), sid);
-
-  if (args.hasString("redirect_uri"))
-    redirectURL.set("redirect_uri", args.getString("redirect_uri"));
-
-  getJSONWriter()->beginDict();
-  writer->insert("id", sid);
-  writer->insert("redirect", redirectURL);
-  writer->endDict();
-  writer.release();
   reply();
-
   return true;
 }
 
 
 bool Transaction::apiLogout(const JSON::ValuePtr &config) {
   // DB logout
-  if (!config->hasString("sql")) logout();
+  if (!config->hasString("sql") || getSession().isNull()) logout();
   else query(&Transaction::logout, config->getString("sql"), getSession());
 
   return true;
 }
 
 
-string Transaction::nextJSONField() {
-  if (!jsonFields) return "";
+void Transaction::session(MariaDB::EventDBCallback::state_t state) {
+  switch (state) {
+  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:
+  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+    break;
 
-  const char *start = jsonFields;
-  const char *end = jsonFields;
-  while (*end && *end != ' ') end++;
+  case MariaDB::EventDBCallback::EVENTDB_ROW: {
+    SmartPointer<Session> session = getSession();
+    if (!session->hasString("provider")) session->read(*db->getRowDict());
+    else session->addGroup(db->getString(0));
+    break;
+  }
 
-  jsonFields = *end ? end + 1 : 0;
+  case MariaDB::EventDBCallback::EVENTDB_DONE:
+    if (getSession()->hasString("provider")) {
+      // Session was found in DB
+      getSession()->addGroup("authenticated");
+      app.getSessionManager().addSession(getSession());
 
-  return string(start, end - start);
+    } else // Session not found in DB, open a new one
+      setSession(app.getSessionManager().openSession(getClientIP()));
+
+    // Restart request processing
+    Event::HTTP::dispatch(app.getServer(), *this);
+    break;
+
+  default: returnOk(state); return; // For error handling
+  }
 }
 
 
@@ -234,9 +291,8 @@ void Transaction::login(MariaDB::EventDBCallback::state_t state) {
     setSessionCookie();
 
     // Reply
-    getSession()->write(*getJSONWriter());
-    writer.release();
-    reply();
+    if (config->hasString("redirect")) redirect(config->getString("redirect"));
+    else reply();
     break;
 
   default: returnOk(state); return; // For error handling
@@ -346,55 +402,13 @@ void Transaction::returnJSON(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnJSONFields(MariaDB::EventDBCallback::state_t state) {
-  switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
-    if (writer->inDict()) db->insertRow(*writer, 0, -1, false);
-
-    else if (db->getFieldCount() == 1) {
-      writer->beginAppend();
-      db->writeField(*writer, 0);
-
-    } else {
-      writer->appendDict();
-      db->insertRow(*writer, 0, -1, false);
-      writer->endDict();
-    }
-    break;
-
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: {
-    if (writer.isNull()) getJSONWriter()->beginDict();
-
-    string field = nextJSONField();
-    if (field.empty()) THROW("Unexpected result set");
-    if (field[0] == '*') writer->insertDict(field.substr(1));
-    else writer->insertList(field);
-    break;
-  }
-
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
-    if (writer->inList()) writer->endList();
-    else writer->endDict();
-    break;
-
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
-    if (!writer.isNull()) writer->endDict();
-    // Fall through
-
-  default: return returnOk(state);
-  }
-}
-
-
 void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
   switch (state) {
   case MariaDB::EventDBCallback::EVENTDB_DONE:
-    writer.release();
     reply();
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_RETRY:
-    writer.release();
     resetOutput();
     break;
 
@@ -410,7 +424,7 @@ void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
 
     LOG_ERROR("DB:" << db->getErrorNumber() << ": " << db->getError());
     sendJSONError(error, db->getError());
-    THROWXS(db->getError(), error);
+    if (error == HTTP_INTERNAL_SERVER_ERROR) THROW(db->getError());
 
     break;
   }

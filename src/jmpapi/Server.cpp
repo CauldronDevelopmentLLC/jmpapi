@@ -36,6 +36,7 @@
 #include "StatusHandler.h"
 #include "QueryHandler.h"
 #include "APIHandler.h"
+#include "ArgsHandler.h"
 
 #include <cbang/event/Request.h>
 #include <cbang/event/ACLHandler.h>
@@ -43,7 +44,6 @@
 #include <cbang/event/HTTPURLPatternMatcher.h>
 #include <cbang/event/HTTPMethodMatcher.h>
 #include <cbang/event/HTTPAccessHandler.h>
-#include <cbang/event/HTTPSessionHandler.h>
 #include <cbang/event/FileHandler.h>
 #include <cbang/event/IndexHTMLHandler.h>
 
@@ -148,22 +148,25 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
   // Methods
   for (unsigned i = 0; i < api.size(); i++) {
     unsigned methods = parseMethods(api.keyAt(i));
-    SmartPointer<JSON::Value> config = api.get(i);
+    JSON::ValuePtr config = api.get(i);
     SmartPointer<Event::HTTPHandler> handler = createEndpoint(config);
 
     if (handler.isNull()) continue;
 
+    SmartPointer<Event::HTTPHandlerGroup> methodGroup =
+      new Event::HTTPHandlerGroup;
+
     // Auth
-    if (config->has("allow") || config->has("deny")) {
-      SmartPointer<Event::HTTPHandlerGroup> group =
-        new Event::HTTPHandlerGroup;
+    if (config->has("allow") || config->has("deny"))
+      methodGroup->addHandler(createAccessHandler(*config));
 
-      group->addHandler(createAccessHandler(*config));
-      group->addHandler(handler);
-      handler = group;
-    }
+    // Args
+    methodGroup->addHandler
+      (new ArgsHandler(matcher->getArgs(), api.get("args", new JSON::Dict),
+                       config->get("args", new JSON::Dict)));
 
-    group->addHandler(new Event::HTTPMethodMatcher(methods, handler));
+    methodGroup->addHandler(handler);
+    group->addHandler(new Event::HTTPMethodMatcher(methods, methodGroup));
   }
 
   return matcher;
@@ -176,8 +179,7 @@ void Server::init() {
   JSON::ValuePtr config = app.getConfig();
 
   // Load Sessions
-  addHandler(new Event::HTTPSessionHandler
-             (SmartPointer<SessionManager>::Phony(&app.getSessionManager())));
+  addMember<Transaction>(&Transaction::lookupSession);
 
   // API
   JSON::ValuePtr api = config->get("api");

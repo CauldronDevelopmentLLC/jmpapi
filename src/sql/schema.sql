@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS users (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   provider     VARCHAR(16) NOT NULL,
   provider_id  VARCHAR(64) NOT NULL,
-  user         VARCHAR(256) NOT NULL,
+  email        VARCHAR(256) NOT NULL,
   name         VARCHAR(256) NOT NULL,
   avatar       VARCHAR(256) NOT NULL,
   created      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -52,16 +52,12 @@ namespace JmpAPI {
     cb::JSON::ValuePtr config;
     cb::SmartPointer<cb::MariaDB::EventDB> db;
     cb::SmartPointer<cb::JSON::Writer> writer;
-    const char *jsonFields;
 
   public:
     Transaction(App &app, evhttp_request *req);
-    ~Transaction();
 
     void setSessionCookie();
-
     bool lookupSession();
-    std::string getUserID() const;
 
     typedef typename cb::MariaDB::EventDBMemberFunctor<Transaction>::member_t
     event_db_member_functor_t;
@@ -73,17 +69,17 @@ namespace JmpAPI {
     void sendError(int code, const std::string &msg);
     void sendJSONError(int code = HTTP_INTERNAL_SERVER_ERROR,
                        const std::string &msg = "");
+    void finalize();
 
     // From cb::Event::OAuth2Login
-    void processProfile(const cb::SmartPointer<cb::JSON::Value> &profile);
+    void processProfile(const cb::JSON::ValuePtr &profile);
 
     // Event::WebServer request callbacks
     bool apiLogin(const cb::JSON::ValuePtr &config);
     bool apiLogout(const cb::JSON::ValuePtr &config);
 
     // MariaDB::EventDB callbacks
-    std::string nextJSONField();
-
+    void session(cb::MariaDB::EventDBCallback::state_t state);
     void login(cb::MariaDB::EventDBCallback::state_t state =
                cb::MariaDB::EventDBCallback::EVENTDB_DONE);
     void logout(cb::MariaDB::EventDBCallback::state_t state =
@@ -94,7 +90,6 @@ namespace JmpAPI {
     void returnU64(cb::MariaDB::EventDBCallback::state_t state);
     void returnS64(cb::MariaDB::EventDBCallback::state_t state);
     void returnJSON(cb::MariaDB::EventDBCallback::state_t state);
-    void returnJSONFields(cb::MariaDB::EventDBCallback::state_t state);
     void returnOk(cb::MariaDB::EventDBCallback::state_t state);
   };
 }
