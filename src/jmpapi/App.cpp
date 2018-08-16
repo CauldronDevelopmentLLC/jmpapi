@@ -55,16 +55,9 @@ App::App() :
   ServerApplication("JmpAPI"), dns(base), client(base, dns, new SSLContext),
   googleAuth(options), githubAuth(options), facebookAuth(options),
   dbHost("localhost"), dbName("jmpapi"), dbPort(3306), dbTimeout(5),
-  server(*this), sessionManager(options) {
+  server(*this), sessionManager(options), config(new JSON::Dict) {
 
-  LOG_INFO(1, "Loading jmpapi.yaml");
-  config = JSON::YAMLReader::parse(string("jmpapi.yaml"));
-
-  if (SystemUtilities::exists("secrets.yaml")) {
-    LOG_INFO(1, "Loading secrets.yaml");
-    JSON::ValuePtr secrets = JSON::YAMLReader::parse(string("secrets.yaml"));
-    config->merge(*secrets);
-  }
+  cmdLine.setAllowPositionalArgs(true);
 
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files.");
@@ -119,9 +112,33 @@ SmartPointer<MariaDB::EventDB> App::getDBConnection(bool blocking) {
 }
 
 
-int App::init(int argc, char *argv[]) {
-  if (config->hasDict("options")) options.read(*config->get("options"));
+void App::loadConfig(const string &path) {
+  LOG_INFO(1, "Loading " << path);
+  config->merge(*JSON::YAMLReader::parse(path));
+}
 
+
+void App::loadConfigIfExists(const string &path) {
+  if (SystemUtilities::exists(path)) loadConfig(path);
+}
+
+
+void App::afterCommandLineParse() {
+  // Load config
+  const vector<string> &configs = cmdLine.getPositionalArgs();
+  for (unsigned i = 0; i < configs.size(); i++) loadConfig(configs[i]);
+
+  if (configs.empty()) {
+    loadConfigIfExists("/etc/jmpapi/jmpapi.yaml");
+    loadConfigIfExists("/etc/jmpapi/secrets.yaml");
+  }
+
+  // Apply options
+  if (config->hasDict("options")) options.read(*config->get("options"));
+}
+
+
+int App::init(int argc, char *argv[]) {
   int i = ServerApplication::init(argc, argv);
   if (i == -1) return -1;
 

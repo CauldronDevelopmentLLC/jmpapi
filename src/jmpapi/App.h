@@ -92,7 +92,11 @@ namespace JmpAPI {
     cb::SmartPointer<cb::MariaDB::EventDB>
     getDBConnection(bool blocking = false);
 
+    void loadConfig(const std::string &path);
+    void loadConfigIfExists(const std::string &path);
+
     // From cb::Application
+    void afterCommandLineParse();
     int init(int argc, char *argv[]);
     void run();
 
