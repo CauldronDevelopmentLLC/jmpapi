@@ -1,18 +1,7 @@
 options:
   http-addresses: [localhost:7000]
-  https-addresses: [localhost:7100]
   http-root: /usr/share/jmpapi/http
-
-  google-client-id: >-
-    355813468645-o1e45s6ehjbl1bfv78o6pm6a89e3tasg.apps.googleusercontent.com
-  google-redirect-base: https://localhost:7100
-
-  db-name: jmpapi
-  db-user: jmpapi
-
   session-sql: CALL GetSession(%(id)s)
-  certificate-file: /etc/jmpapi/certificate.pem
-  private-key-file: /etc/jmpapi/private.pem
 
 api:
   /api:
