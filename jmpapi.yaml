@@ -1,3 +1,5 @@
+title: JmpAPI Docs
+
 options:
   http-addresses: [127.0.0.1:7000]
   http-root: /usr/share/jmpapi/http
@@ -16,7 +18,7 @@ api:
       args:
         provider:
           optional: true
-          enum: [list, google, facebook, github]
+          enum: [google, facebook, github, list]
           help: The OAuth2 login provider.
       sql: >
         CALL Login(%(id)s, %(provider)s, %(provider_id)s, %(user)s, %(name)s,
@@ -82,21 +84,20 @@ api:
       help: Returns the list of groups.
 
   /groups/:group:
+    args:
+      group: {help: The group name.}
+
     PUT:
       allow: [$admin]
       return: ok
       sql: INSERT INTO jmpapi_groups (name) VALUES (%(group)s)
       help: Create a new group.
-      args:
-        group: {help: The name of the new group.}
 
     DELETE:
       allow: [$admin]
       return: ok
       sql: DELETE FROM jmpapi_groups WHERE name = %(group)s AND name != 'admin'
       help: Delete a group.
-      args:
-        group: {help: The name of the group.}
 
   /groups/:group/users:
     GET:

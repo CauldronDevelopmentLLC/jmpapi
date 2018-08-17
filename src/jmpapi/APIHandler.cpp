@@ -35,12 +35,51 @@
 #include <cbang/json/KeywordFilter.h>
 #include <cbang/json/KeywordsFilter.h>
 
-using namespace cb;
 using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
 
-APIHandler::APIHandler(const JSON::ValuePtr &api) :
-  api(JSON::KeywordFilter("sql").filter(*api)) {}
+APIHandler::APIHandler(const string &title, const JSON::ValuePtr &_api) :
+  api(new JSON::Dict) {
+
+  api->insert("title", title);
+  JSON::ValuePtr entrypoints = new JSON::Dict;
+  api->insert("api", entrypoints);
+
+  // Load entrypoints
+  for (unsigned i = 0; i < _api->size(); i++) {
+    const string &pattern = _api->keyAt(i);
+    JSON::ValuePtr _entrypoint = _api->get(i);
+    JSON::ValuePtr entrypointArgs = _entrypoint->get("args", new JSON::Dict);
+
+    JSON::ValuePtr entrypoint = new JSON::Dict;
+    entrypoints->insert(pattern, entrypoint);
+
+    // TODO Get implict args from entrypoint pattern
+
+    // Load methods
+    for (unsigned j = 0; j < _entrypoint->size(); j++) {
+      if (_entrypoint->keyAt(j) == "args") continue;
+      JSON::ValuePtr _method = _entrypoint->get(j);
+
+      JSON::ValuePtr method = new JSON::Dict;
+      entrypoint->insert(_entrypoint->keyAt(j), method);
+
+      // Load args
+      JSON::ValuePtr args = new JSON::Dict;
+      args->merge(*entrypointArgs);
+      if (_method->has("args")) args->merge(*_method->get("args"));
+      if (args->size()) method->insert("args", args);
+
+      // Copy other keys
+      const char *keys[] = {"allow", "deny", "handler", "help", 0};
+      for (unsigned k = 0; keys[k]; k++)
+        if (_method->has(keys[k]))
+          method->insert(keys[k], _method->get(keys[k]));
+    }
+  }
+}
 
 
 bool APIHandler::operator()(Event::Request &req) {

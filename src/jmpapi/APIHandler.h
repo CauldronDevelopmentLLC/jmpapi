@@ -40,7 +40,7 @@ namespace JmpAPI {
     cb::JSON::ValuePtr api;
 
   public:
-    APIHandler(const cb::JSON::ValuePtr &api);
+    APIHandler(const std::string &title, const cb::JSON::ValuePtr &api);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);

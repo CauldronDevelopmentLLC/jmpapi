@@ -133,7 +133,9 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
     return handler;
   }
 
-  if (type == "api") return new APIHandler(app.getConfig()->get("api"));
+  if (type == "api")
+    return new APIHandler(app.getConfig()->getString("title", "JmpAPI"),
+                          app.getConfig()->get("api"));
 
   THROWS("Unsupported handler '" << type << "'");
 }

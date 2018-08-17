@@ -42,6 +42,7 @@ module.exports = {
 
   data: function () {
     return {
+      title: '',
       api: {}
     }
   },
@@ -53,8 +54,10 @@ module.exports = {
 
 
   mounted: function () {
-    $.getJSON(location.pathname + 'api',
-              function (api) {this.api = api}.bind(this))
+    $.getJSON(location.pathname + 'api', function (data) {
+      document.title = this.title = data.title;
+      this.api = data.api;
+    }.bind(this))
   },
 
 
@@ -78,7 +81,7 @@ module.exports = {
         if (method != 'GET') s += ' -X ' + method;
         else if (entry.args) s += ' -G'
 
-        if (entry.allow || entry.deny) s += ' -H "Authorization: <token>"'
+        if (entry.allow || entry.deny) s += ' -H "Authorization: $TOKEN"'
 
         s += ' ' + this.api_path(path);
 
