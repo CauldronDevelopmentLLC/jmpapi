@@ -59,7 +59,8 @@ BEGIN
     SELECT u.provider, u.provider_id, u.email user, u.name, u.avatar,
       DATE_FORMAT(s.created, '%Y-%m-%dT%TZ') created,
       DATE_FORMAT(s.last_used, '%Y-%m-%dT%TZ') last_used
-      FROM jmpapi_sessions s JOIN users u ON s.id = _sid AND s.uid = u.id;
+      FROM jmpapi_sessions s
+      JOIN jmpapi_users u ON s.id = _sid AND s.uid = u.id;
 
     -- Update session last_used
     UPDATE jmpapi_sessions SET last_used = NOW() WHERE id = _sid;
