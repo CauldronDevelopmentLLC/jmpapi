@@ -414,7 +414,7 @@ void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_RETRY:
-    resetOutput();
+    if (!isFinalized()) resetOutput();
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_ERROR: {
@@ -436,7 +436,7 @@ void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
 
   default:
     sendJSONError();
-    THROWX("Unexpected DB response", HTTP_INTERNAL_SERVER_ERROR);
+    THROWXS("Unexpected DB response: " << state, HTTP_INTERNAL_SERVER_ERROR);
     return;
   }
 }
