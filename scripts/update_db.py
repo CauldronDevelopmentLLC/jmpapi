@@ -130,8 +130,8 @@ else:
 
 # Update version
 if version is None or version < latest or options.reset:
-    cur.execute('REPLACE INTO config (name, value) VALUES ("version", "%s")' %
-                version_to_str(latest))
+    sql = 'REPLACE INTO jmpapi_config (name, value) VALUES ("version", "%s")'
+    cur.execute(sql % version_to_str(latest))
 
 
 # Commit
