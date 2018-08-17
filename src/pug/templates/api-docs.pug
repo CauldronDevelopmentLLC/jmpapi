@@ -27,8 +27,8 @@ script#api-docs-template(type="text/x-template")
   .api-docs
     h1.api-title {{title}}
 
-    .api-entrypoint(v-for="entrypoint, path in api", v-if="!entrypoint.hide")
-      .api-method(v-for="entry, method in entrypoint", v-if="!entry.hide")
+    .api-entrypoint(v-for="entrypoint, path in api")
+      .api-method(v-for="entry, method in entrypoint")
         .api-path {{method}} {{path}}
 
         table.api-args(v-if="entry.args")
@@ -38,8 +38,8 @@ script#api-docs-template(type="text/x-template")
             th Default
             th Description
 
-          api-arg(v-for="config, name in entry.args", v-if="!config.hide",
-            :name="name", :config="config")
+          api-arg(v-for="config, name in entry.args", :name="name",
+            :config="config")
 
         .api-help(v-if="entry.help") {{entry.help}}
 

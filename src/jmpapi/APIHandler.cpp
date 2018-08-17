@@ -51,17 +51,19 @@ APIHandler::APIHandler(const string &title, const JSON::ValuePtr &_api) :
   for (unsigned i = 0; i < _api->size(); i++) {
     const string &pattern = _api->keyAt(i);
     JSON::ValuePtr _entrypoint = _api->get(i);
-    JSON::ValuePtr entrypointArgs = _entrypoint->get("args", new JSON::Dict);
+    if (_entrypoint->getBoolean("hide", false)) continue;
 
     JSON::ValuePtr entrypoint = new JSON::Dict;
     entrypoints->insert(pattern, entrypoint);
 
     // TODO Get implict args from entrypoint pattern
+    JSON::ValuePtr entrypointArgs = _entrypoint->get("args", new JSON::Dict);
 
     // Load methods
     for (unsigned j = 0; j < _entrypoint->size(); j++) {
       if (_entrypoint->keyAt(j) == "args") continue;
       JSON::ValuePtr _method = _entrypoint->get(j);
+      if (_method->getBoolean("hide", false)) continue;
 
       JSON::ValuePtr method = new JSON::Dict;
       entrypoint->insert(_entrypoint->keyAt(j), method);
