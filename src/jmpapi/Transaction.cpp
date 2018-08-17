@@ -110,6 +110,11 @@ void Transaction::sendJSONError(int code, const std::string &msg) {
   // Drop DB connection
   if (!db.isNull()) db->close();
 
+  if (isFinalized()) {
+    LOG_ERROR(msg);
+    return;
+  }
+
   resetOutput();
 
   code = code ? code : HTTP_INTERNAL_SERVER_ERROR;
