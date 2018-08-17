@@ -434,6 +434,11 @@ void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
     break;
   }
 
+  case MariaDB::EventDBCallback::EVENTDB_ROW:
+    LOG_ERROR("Unexpected DB row");
+    sendJSONError(HTTP_INTERNAL_SERVER_ERROR, "Unexpected DB row");
+    break;
+
   default:
     sendJSONError();
     THROWXS("Unexpected DB response: " << state, HTTP_INTERNAL_SERVER_ERROR);

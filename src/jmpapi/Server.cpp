@@ -150,7 +150,10 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
 
   // Methods
   for (unsigned i = 0; i < api.size(); i++) {
-    unsigned methods = parseMethods(api.keyAt(i));
+    const string &key = api.keyAt(i);
+    if (key == "args") continue;
+
+    unsigned methods = parseMethods(key);
     JSON::ValuePtr config = api.get(i);
     SmartPointer<Event::HTTPHandler> handler = createEndpoint(config);
 
