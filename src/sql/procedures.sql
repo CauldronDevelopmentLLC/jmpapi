@@ -1,5 +1,5 @@
 -- Delete all stored procedures on this DB
-DELETE FROM mysql.proc WHERE db = "jmpapi";
+SELECT CONCAT('DROP PROCEDURE ', name) FROM mysql.proc WHERE db = "jmpapi";
 
 
 CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
