@@ -30,10 +30,10 @@ NODE_MODS  := $(DIR)node_modules
 PUG        := $(NODE_MODS)/.bin/pug
 JSHINT     := $(NODE_MODS)/.bin/jshint
 
-HTML      := $(wildcard src/pug/*.pug)
-HTML      := $(patsubst src/pug/%.pug,http/%.html,$(HTML))
-STATIC    := $(shell find src/static -type f -not \( -name *~ -o -name \\\#* \))
-STATIC    := $(patsubst src/static/%,http/%,$(STATIC))
+HTML     := $(wildcard src/pug/*.pug)
+HTML     := $(patsubst src/pug/%.pug,http/%.html,$(HTML))
+STATIC   := $(shell find src/static -type f -not \( -name \*~ -o -name \\\#* \))
+STATIC   := $(patsubst src/static/%,http/%,$(STATIC))
 
 all: node_modules $(HTML) $(STATIC) lint
 

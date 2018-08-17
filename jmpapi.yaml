@@ -30,6 +30,7 @@ api:
 
   /users:
     GET:
+      allow: [$admin]
       return: list
       sql: >
         SELECT id, provider, provider_id, name, avatar, email, created,
