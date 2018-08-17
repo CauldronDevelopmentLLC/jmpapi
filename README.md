@@ -27,6 +27,7 @@ follows:
     mysql -u root -p
     CREATE DATABASE jmpapi;
     CREATE USER 'jmpapi'@'localhost' IDENTIFIED BY '<password>';
-    GRANT EXECUTE ON jmpapi.* TO 'jmpapi'@'localhost';
+    GRANT EXECUTE, SELECT, UPDATE, INSERT, DELETE ON jmpapi.* TO
+      'jmpapi'@'localhost';
     exit
     ./scripts/update_db.py
