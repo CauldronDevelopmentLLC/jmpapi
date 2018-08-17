@@ -19,19 +19,27 @@
 
 NAME=jmpapi
 EXEC=/usr/bin/$NAME
-CONFIG=/etc/$NAME/config.xml
 USER=$NAME
+GROUP=$NAME
 RUN=/var/run/$NAME
 PID_FILE=$RUN/$NAME.pid
+CONFIG=/etc/$NAME/$NAME.yaml
+SECRETS=/etc/$NAME/secrets.yaml
+LOG=/var/log/$NAME/log.txt
 
-START_STOP_OPTS="-x $EXEC -n $NAME -p $PID_FILE"
+START_STOP_OPTS="-x $EXEC -n $NAME -p $PID_FILE -d $RUN"
 
 
 start() {
+    CONFIGS=()
+    if [ -e $CONFIG ]; then CONFIGS+=($CONFIG); fi
+    if [ -e $SECRETS ]; then CONFIGS+=($SECRETS); fi
+
     mkdir -p $(dirname $PID_FILE)
-    start-stop-daemon --start $START_STOP_OPTS -- \
-      --config $CONFIG --daemon --run-as $USER --pid-file $PID_FILE \
-      --chdir $RUN
+    start-stop-daemon --start $START_STOP_OPTS -- --fork \
+      --set-group $GROUP --run-as $USER ${CONFIGS[*]} \
+      --log $LOG --log-rotate --log-rotate-dir=/var/log/$NAME \
+      --pid-file=$PID_FILE
 }
 
 

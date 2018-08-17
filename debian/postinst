@@ -4,9 +4,15 @@ NAME=jmpapi
 ETC=/etc/$NAME
 RUN=/var/run/$NAME
 LOG=/var/log/$NAME
+CONFIG=$ETC/$NAME.yaml
 
 case "$1" in
     reconfigure|configure)
+        # Install default config if one does not exist
+        if [ ! -e $CONFIG ]; then
+            install /usr/share/doc/$NAME/$NAME.yaml /etc/$NAME/
+        fi
+
         # Setup permissions
         chown -R $NAME:root $ETC $RUN $LOG
         chmod 755 $ETC $RUN $LOG
@@ -15,19 +21,15 @@ case "$1" in
             # Install the init.d script
             insserv -d $NAME
 
-            # Start the service
-            if [ -e $ETC/config.xml ]; then
-                service $NAME start || true
-            fi
+            # Restart the service
+            service $NAME start || true
 
         else
             # Install the init.d script
             update-rc.d $NAME defaults 95
 
             # Start the service
-            if [ -e $ETC/config.xml ]; then
-              invoke-rc.d $NAME start || true
-            fi
+            invoke-rc.d $NAME start || true
         fi
         ;;
 esac

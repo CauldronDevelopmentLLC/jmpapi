@@ -18,3 +18,4 @@
 /package-lock.json
 /private.pem
 /secrets.yaml
+/*.deb

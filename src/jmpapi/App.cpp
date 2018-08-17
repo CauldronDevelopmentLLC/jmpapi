@@ -52,7 +52,8 @@ using namespace std;
 
 
 App::App() :
-  ServerApplication("JmpAPI"), dns(base), client(base, dns, new SSLContext),
+  ServerApplication("JmpAPI", App::_hasFeature), dns(base),
+  client(base, dns, new SSLContext),
   googleAuth(options), githubAuth(options), facebookAuth(options),
   dbHost("localhost"), dbName("jmpapi"), dbPort(3306), dbTimeout(5),
   server(*this), sessionManager(options), config(new JSON::Dict) {
@@ -83,6 +84,16 @@ App::App() :
 
   // Enable libevent logging
   Event::Event::enableLogging(3);
+
+  // Handle exit signal
+  base.newSignal(SIGINT, this, &App::signalEvent).add();
+  base.newSignal(SIGTERM, this, &App::signalEvent).add();
+}
+
+
+bool App::_hasFeature(int feature) {
+  if (feature == FEATURE_SIGNAL_HANDLER) return false;
+  return ServerApplication::_hasFeature(feature);
 }
 
 
@@ -112,36 +123,7 @@ SmartPointer<MariaDB::EventDB> App::getDBConnection(bool blocking) {
 }
 
 
-void App::loadConfig(const string &path) {
-  LOG_INFO(1, "Loading " << path);
-  config->merge(*JSON::YAMLReader::parse(path));
-}
-
-
-void App::loadConfigIfExists(const string &path) {
-  if (SystemUtilities::exists(path)) loadConfig(path);
-}
-
-
-void App::afterCommandLineParse() {
-  // Load config
-  const vector<string> &configs = cmdLine.getPositionalArgs();
-  for (unsigned i = 0; i < configs.size(); i++) loadConfig(configs[i]);
-
-  if (configs.empty()) {
-    loadConfigIfExists("/etc/jmpapi/jmpapi.yaml");
-    loadConfigIfExists("/etc/jmpapi/secrets.yaml");
-  }
-
-  // Apply options
-  if (config->hasDict("options")) options.read(*config->get("options"));
-}
-
-
-int App::init(int argc, char *argv[]) {
-  int i = ServerApplication::init(argc, argv);
-  if (i == -1) return -1;
-
+void App::beforeDroppingPrivileges() {
   // Libevent debugging
   if (options["debug-libevent"].toBoolean()) Event::Event::enableDebugLogging();
 
@@ -150,12 +132,19 @@ int App::init(int argc, char *argv[]) {
   MariaDB::DB::threadInit();
 
   server.init();
+}
 
-  // Handle exit signal
-  base.newSignal(SIGINT, this, &App::signalEvent).add();
-  base.newSignal(SIGTERM, this, &App::signalEvent).add();
 
-  return 0;
+void App::afterCommandLineParse() {
+  // Load config
+  const vector<string> &configs = cmdLine.getPositionalArgs();
+  for (unsigned i = 0; i < configs.size(); i++) {
+    LOG_INFO(1, "Loading " << configs[i]);
+    config->merge(*JSON::YAMLReader::parse(configs[i]));
+  }
+
+  // Apply options
+  if (config->hasDict("options")) options.read(*config->get("options"));
 }
 
 

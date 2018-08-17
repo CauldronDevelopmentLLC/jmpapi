@@ -49,7 +49,7 @@ Default(prog)
 Clean(prog, ['build', 'config.log'])
 
 # Dist
-docs = ['README.md']
+docs = ['README.md', 'jmpapi.yaml']
 tar = env.TarBZ2Dist(name, docs + [prog])
 Alias('dist', tar)
 AlwaysBuild(tar)
@@ -72,6 +72,7 @@ if 'package' in COMMAND_LINE_TARGETS:
         programs = [str(prog[0])],
         init_d = [['scripts/' + name + '.init.d', name]],
         changelog = 'ChangeLog',
+        platform_independent = ['http'],
 
         deb_directory = 'debian',
         deb_section = 'science',

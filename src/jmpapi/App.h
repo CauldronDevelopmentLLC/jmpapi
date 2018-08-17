@@ -76,6 +76,8 @@ namespace JmpAPI {
   public:
     App();
 
+    static bool _hasFeature(int feature);
+
     cb::Event::Base &getEventBase() {return base;}
     cb::Event::DNSBase &getEventDNS() {return dns;}
     cb::Event::Client &getEventClient() {return client;}
@@ -92,12 +94,11 @@ namespace JmpAPI {
     cb::SmartPointer<cb::MariaDB::EventDB>
     getDBConnection(bool blocking = false);
 
-    void loadConfig(const std::string &path);
-    void loadConfigIfExists(const std::string &path);
+    // From cb::ServerApplication
+    void beforeDroppingPrivileges();
 
     // From cb::Application
     void afterCommandLineParse();
-    int init(int argc, char *argv[]);
     void run();
 
     void signalEvent(cb::Event::Event &e, int signal, unsigned flags);
