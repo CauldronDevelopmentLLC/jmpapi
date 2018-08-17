@@ -25,6 +25,8 @@
 
 'use strict'
 
+var base = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
+
 
 var __app = {
   el: '#content',
@@ -91,6 +93,8 @@ var __app = {
 
 
     _api: function (config) {
+      config.url = base + config.url;
+
       var d = $.ajax(config);
 
       if (typeof config.msgs == 'undefined') return d;

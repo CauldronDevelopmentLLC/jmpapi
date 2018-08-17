@@ -53,7 +53,8 @@ module.exports = {
 
 
   mounted: function () {
-    $.getJSON('/api', function (api) {this.api = api}.bind(this))
+    $.getJSON(location.pathname + 'api',
+              function (api) {this.api = api}.bind(this))
   },
 
 
