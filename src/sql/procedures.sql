@@ -1,7 +1,4 @@
--- Delete all stored procedures on this DB
-SELECT CONCAT('DROP PROCEDURE ', name) FROM mysql.proc WHERE db = "jmpapi";
-
-
+DROP PROCEDURE IF EXISTS Login;
 CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
   IN _provider_id VARCHAR(64), IN _email VARCHAR(256), IN _name VARCHAR(256),
   IN _avatar VARCHAR(256))
@@ -25,6 +22,7 @@ BEGIN
 END;
 
 
+DROP PROCEDURE IF EXISTS Logout;
 CREATE PROCEDURE Logout(IN _sid VARCHAR(48))
 BEGIN
     UPDATE users u
@@ -33,18 +31,21 @@ BEGIN
 END;
 
 
+DROP PROCEDURE IF EXISTS UpdateSession;
 CREATE PROCEDURE UpdateSession(IN _sid VARCHAR(48), IN _ts TIMESTAMP)
 BEGIN
     UPDATE users u INNER JOIN sessions s ON u.id = s.uid SET u.last_used = _ts;
 END;
 
 
+DROP PROCEDURE IF EXISTS CleanSessions;
 CREATE PROCEDURE CleanSessions()
 BEGIN
     DELETE FROM sessions WHERE last_used + INTERVAL 1 DAY < NOW();
 END;
 
 
+DROP PROCEDURE IF EXISTS GetSession;
 CREATE PROCEDURE GetSession(IN _sid VARCHAR(48))
 BEGIN
     SET @@session.time_zone = "+00:00";
