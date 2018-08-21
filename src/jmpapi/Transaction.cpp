@@ -332,9 +332,12 @@ void Transaction::returnHeadList(MariaDB::EventDBCallback::state_t state) {
   } else returnList(state);
 
   // Write list header
-  if (state == MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT)
+  if (state == MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT) {
+    writer->appendList();
     for (unsigned i = 0; i < db->getFieldCount(); i++)
       writer->append(db->getField(i).getName());
+    writer->endList();
+  }
 }
 
 
