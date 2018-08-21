@@ -324,6 +324,21 @@ void Transaction::logout(MariaDB::EventDBCallback::state_t state) {
 }
 
 
+void Transaction::returnHeadList(MariaDB::EventDBCallback::state_t state) {
+  if (state == MariaDB::EventDBCallback::EVENTDB_ROW) {
+    writer->beginAppend();
+    db->writeRowList(*writer);
+
+  } else returnList(state);
+
+  // Write list header
+  if (state == MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT)
+    for (unsigned i = 0; i < db->getFieldCount(); i++)
+      writer->append(db->getField(i).getName());
+}
+
+
+
 void Transaction::returnList(MariaDB::EventDBCallback::state_t state) {
   if (state != MariaDB::EventDBCallback::EVENTDB_ROW) returnJSON(state);
 

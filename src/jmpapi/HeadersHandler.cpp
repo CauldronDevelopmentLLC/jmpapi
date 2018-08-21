@@ -29,25 +29,25 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "HeadersHandler.h"
 
-#include "ArgValidator.h"
+#include <cbang/String.h>
+#include <cbang/event/Request.h>
 
-#include <cbang/event/HTTPHandler.h>
-#include <cbang/json/Value.h>
-
-#include <set>
-#include <map>
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
 
-namespace JmpAPI {
-  class ArgsHandler : public cb::Event::HTTPHandler {
-    std::map<std::string, cb::SmartPointer<ArgValidator> > validators;
+HeadersHandler::HeadersHandler(const JSON::ValuePtr &hdrs) {
+  for (unsigned i = 0; i < hdrs->size(); i++)
+    headers.push_back(header_t(String::trim(hdrs->keyAt(i)),
+                               String::trim(hdrs->getString(i))));
+}
 
-  public:
-    ArgsHandler(const cb::JSON::ValuePtr &args);
 
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req);
-  };
+bool HeadersHandler::operator()(Event::Request &req) {
+  for (unsigned i = 0; i < headers.size(); i++)
+    req.outSet(headers[i].first, headers[i].second);
+  return false;
 }

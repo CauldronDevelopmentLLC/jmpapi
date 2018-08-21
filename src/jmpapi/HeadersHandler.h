@@ -31,21 +31,21 @@
 
 #pragma once
 
-#include "ArgValidator.h"
-
 #include <cbang/event/HTTPHandler.h>
 #include <cbang/json/Value.h>
 
-#include <set>
-#include <map>
+#include <vector>
+#include <algorithm>
+#include <string>
 
 
 namespace JmpAPI {
-  class ArgsHandler : public cb::Event::HTTPHandler {
-    std::map<std::string, cb::SmartPointer<ArgValidator> > validators;
+  class HeadersHandler : public cb::Event::HTTPHandler {
+    typedef std::pair<std::string, std::string> header_t;
+    std::vector<header_t> headers;
 
   public:
-    ArgsHandler(const cb::JSON::ValuePtr &args);
+    HeadersHandler(const cb::JSON::ValuePtr &hdrs);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);

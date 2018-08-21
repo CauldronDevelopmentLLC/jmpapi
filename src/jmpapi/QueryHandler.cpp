@@ -41,12 +41,13 @@ QueryHandler::QueryHandler(const JSON::ValuePtr &config) :
 
   string ret = config->getString("return", "json");
 
-  if      (ret == "ok")   replyCB = &Transaction::returnOk;
-  else if (ret == "list") replyCB = &Transaction::returnList;
-  else if (ret == "json") replyCB = &Transaction::returnJSON;
-  else if (ret == "bool") replyCB = &Transaction::returnBool;
-  else if (ret == "u64")  replyCB = &Transaction::returnU64;
-  else if (ret == "s64")  replyCB = &Transaction::returnS64;
+  if      (ret == "ok")    replyCB = &Transaction::returnOk;
+  else if (ret == "hlist") replyCB = &Transaction::returnHeadList;
+  else if (ret == "list")  replyCB = &Transaction::returnList;
+  else if (ret == "json")  replyCB = &Transaction::returnJSON;
+  else if (ret == "bool")  replyCB = &Transaction::returnBool;
+  else if (ret == "u64")   replyCB = &Transaction::returnU64;
+  else if (ret == "s64")   replyCB = &Transaction::returnS64;
   else THROWS("Unsupported query return type '" << ret << "'");
 }
 

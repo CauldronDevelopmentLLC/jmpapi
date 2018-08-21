@@ -85,6 +85,7 @@ namespace JmpAPI {
     void logout(cb::MariaDB::EventDBCallback::state_t state =
                 cb::MariaDB::EventDBCallback::EVENTDB_DONE);
 
+    void returnHeadList(cb::MariaDB::EventDBCallback::state_t state);
     void returnList(cb::MariaDB::EventDBCallback::state_t state);
     void returnBool(cb::MariaDB::EventDBCallback::state_t state);
     void returnU64(cb::MariaDB::EventDBCallback::state_t state);

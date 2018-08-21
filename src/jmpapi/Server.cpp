@@ -37,6 +37,8 @@
 #include "QueryHandler.h"
 #include "APIHandler.h"
 #include "ArgsHandler.h"
+#include "PassHandler.h"
+#include "HeadersHandler.h"
 
 #include <cbang/event/Request.h>
 #include <cbang/event/ACLHandler.h>
@@ -115,7 +117,7 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
 
   if (type.empty() && config->has("sql")) type = "query";
 
-  if (type.empty()) return 0;
+  if (type.empty() || type == "pass") return new PassHandler;
 
   if (type == "query") return new QueryHandler(config);
 
@@ -169,10 +171,21 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
       methodGroup->addHandler(createAccessHandler(*config));
 
     // Args
-    methodGroup->addHandler
-      (new ArgsHandler(matcher->getArgs(), api.get("args", new JSON::Dict),
-                       config->get("args", new JSON::Dict)));
+    JSON::ValuePtr args = new JSON::Dict;
+    if (api.has("args")) args->merge(*api.get("args"));
+    if (config->has("args")) args->merge(*config->get("args"));
 
+    const set<string> &implicitArgs = matcher->getArgs();
+    for (auto it = implicitArgs.begin(); it != implicitArgs.end(); it++)
+      if (!args->has(*it)) args->insertDict(*it);
+
+    if (args->size()) methodGroup->addHandler(new ArgsHandler(args));
+
+    // Headers
+    if (config->has("headers"))
+      methodGroup->addHandler(new HeadersHandler(config->get("headers")));
+
+    // Method(s)
     methodGroup->addHandler(handler);
     group->addHandler(new Event::HTTPMethodMatcher(methods, methodGroup));
   }

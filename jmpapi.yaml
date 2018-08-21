@@ -6,6 +6,16 @@ options:
   session-sql: CALL GetSession(%(id)s)
 
 api:
+  /.*:
+    ANY:
+      handler: pass
+      headers:
+        Access-Control-Allow-Origin: "*"
+        Access-Control-Allow-Methods: POST,PUT,GET,OPTIONS,DELETE
+        Access-Control-Allow-Headers: >
+          DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,
+          Content-Type,Range
+
   /api:
     GET:
       handler: api

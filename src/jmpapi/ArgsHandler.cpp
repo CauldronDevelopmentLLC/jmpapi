@@ -38,29 +38,9 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-ArgsHandler::ArgsHandler(const set<string> &implicitArgs,
-                         const JSON::ValuePtr &primary,
-                         const JSON::ValuePtr &secondary) {
-  // Load configured arg validators
-  load(primary);
-  load(secondary);
-
-  // Load implicit arg validators
-  for (auto it = implicitArgs.begin(); it != implicitArgs.end(); it++)
-    if (validators.find(*it) == validators.end())
-      validators[*it] = new ArgValidator;
-}
-
-
-void ArgsHandler::load(const JSON::ValuePtr &config) {
-  for (unsigned i = 0; i < config->size(); i++) {
-    const string arg = config->keyAt(i);
-
-    if (validators.find(arg) == validators.end())
-      validators[arg] = new ArgValidator(config->get(i));
-
-    else THROWS("Already have configuration for argument '" << arg << "'");
-  }
+ArgsHandler::ArgsHandler(const JSON::ValuePtr &args) {
+  for (unsigned i = 0; i < args->size(); i++)
+    validators[args->keyAt(i)] = new ArgValidator(args->get(i));
 }
 
 
