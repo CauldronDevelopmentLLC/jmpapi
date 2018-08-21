@@ -32,6 +32,7 @@
 #include "APIHandler.h"
 
 #include <cbang/event/Request.h>
+#include <cbang/event/HTTPURLPatternMatcher.h>
 #include <cbang/json/KeywordFilter.h>
 #include <cbang/json/KeywordsFilter.h>
 
@@ -56,7 +57,10 @@ APIHandler::APIHandler(const string &title, const JSON::ValuePtr &_api) :
     JSON::ValuePtr entrypoint = new JSON::Dict;
     entrypoints->insert(pattern, entrypoint);
 
-    // TODO Get implict args from entrypoint pattern
+    // Get URL args from entrypoint pattern
+    Event::HTTPURLPatternMatcher matcher(pattern, 0);
+    const set<string> &urlArgs = matcher.getArgs();
+
     JSON::ValuePtr entrypointArgs = _entrypoint->get("args", new JSON::Dict);
 
     // Load methods
@@ -72,7 +76,14 @@ APIHandler::APIHandler(const string &title, const JSON::ValuePtr &_api) :
       JSON::ValuePtr args = new JSON::Dict;
       args->merge(*entrypointArgs);
       if (_method->has("args")) args->merge(*_method->get("args"));
-      if (args->size()) method->insert("args", args);
+      if (args->size()) {
+        // Mark URL args
+        for (unsigned i = 0; i < args->size(); i++)
+          if (urlArgs.find(args->keyAt(i)) != urlArgs.end())
+            args->get(i)->insertBoolean("url", true);
+
+        method->insert("args", args);
+      }
 
       // Copy other keys
       const char *keys[] = {"allow", "deny", "handler", "help", 0};

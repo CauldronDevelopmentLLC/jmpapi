@@ -87,7 +87,8 @@ module.exports = {
 
         if (entry.args)
           for (var name in entry.args)
-            s += ' -d ' + name + '=' + get_arg_example(entry.args[name]);
+            if (!entry.args[name].url)
+              s += ' -d ' + name + '=' + get_arg_example(entry.args[name]);
 
         return s;
       }
