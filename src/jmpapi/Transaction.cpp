@@ -93,7 +93,16 @@ void Transaction::query(event_db_member_functor_t member, const string &sql,
 
 
 SmartPointer<JSON::Writer> Transaction::getJSONWriter() {
-  if (writer.isNull()) writer = Request::getJSONWriter();
+  if (writer.isNull()) {
+    if (app.getOptions()["jsonp"].hasValue()) {
+      string callback = app.getOptions()["jsonp"];
+      if (getArgs().hasString(callback))
+        return writer = Request::getJSONPWriter(getArg(callback));
+    }
+
+    writer = Request::getJSONWriter();
+  }
+
   return writer;
 }
 

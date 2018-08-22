@@ -63,6 +63,8 @@ App::App() :
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files.");
   options.add("session-sql", "SQL statement for looking up a session.");
+  options.add("jsonp", "Respond with JSONP format data if this argument is "
+              "present in an API call.");
   options.popCategory();
 
   options.pushCategory("Debugging");

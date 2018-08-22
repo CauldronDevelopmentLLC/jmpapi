@@ -4,6 +4,7 @@ options:
   http-addresses: [127.0.0.1:7000]
   http-root: /usr/share/jmpapi/http
   session-sql: CALL GetSession(%(id)s)
+  jsonp: callback
 
 api:
   /.*:
