@@ -65,11 +65,16 @@ bool ArgsHandler::operator()(Event::Request &req) {
     }
   }
 
-  // Make sure all required arguments were found
+  // Make sure all required arguments were found and handle defaults
   vector<string> missing;
   for (auto it = validators.begin(); it != validators.end(); it++)
-    if (found.find(it->first) == found.end() && !it->second->isOptional())
-      missing.push_back(it->first);
+    if (found.find(it->first) == found.end()) {
+      const ArgValidator &av = *it->second;
+
+      if (av.hasDefault())
+        req.insertArg(it->first, av.getDefault()->toString());
+      else if (!av.isOptional()) missing.push_back(it->first);
+    }
 
   if (!missing.empty())
     THROWXS("Missing argument" << (1 < missing.size() ? "s" : "") << ": "

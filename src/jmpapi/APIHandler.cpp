@@ -67,7 +67,8 @@ APIHandler::APIHandler(const string &title, const JSON::ValuePtr &_api) :
     for (unsigned j = 0; j < _entrypoint->size(); j++) {
       if (_entrypoint->keyAt(j) == "args") continue;
       JSON::ValuePtr _method = _entrypoint->get(j);
-      if (_method->getBoolean("hide", false)) continue;
+      if (_method->getBoolean("hide", false) ||
+          _method->getString("handler", "") == "pass") continue;
 
       JSON::ValuePtr method = new JSON::Dict;
       entrypoint->insert(_entrypoint->keyAt(j), method);

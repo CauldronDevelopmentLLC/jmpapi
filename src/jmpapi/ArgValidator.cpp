@@ -44,6 +44,8 @@ using namespace std;
 ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   optional(config->getBoolean("optional", false)) {
 
+  if (config->has("default")) defaultValue = config->get("default");
+
   string type = config->getString("type", "");
 
   // Implicit type

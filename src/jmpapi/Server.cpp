@@ -116,8 +116,9 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
   string type = config->getString("handler", "");
 
   if (type.empty() && config->has("sql")) type = "query";
+  if (type.empty()) type == "pass";
 
-  if (type.empty() || type == "pass") return new PassHandler;
+  if (type == "pass") return new PassHandler;
 
   if (type == "query") return new QueryHandler(config);
 
