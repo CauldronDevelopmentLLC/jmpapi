@@ -42,9 +42,10 @@ using namespace std;
 
 
 ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
-  optional(config->getBoolean("optional", false)) {
+  optional(config->getBoolean("optional", false)),
+  defaultSet(config->hasString("default")) {
 
-  if (config->has("default")) defaultValue = config->get("default");
+  if (defaultSet) defaultValue = config->getString("default");
 
   string type = config->getString("type", "");
 

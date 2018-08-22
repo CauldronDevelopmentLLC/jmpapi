@@ -41,16 +41,17 @@
 namespace JmpAPI {
   class ArgValidator {
     bool optional;
-    cb::JSON::ValuePtr defaultValue;
+    bool defaultSet;
+    std::string defaultValue;
     std::vector<cb::SmartPointer<ArgConstraint> > constraints;
 
   public:
-    ArgValidator() : optional(false) {}
+    ArgValidator() : optional(false), defaultSet(false) {}
     ArgValidator(const cb::JSON::ValuePtr &config);
 
     bool isOptional() const {return optional;}
-    bool hasDefault() const {return !defaultValue.isNull();}
-    const cb::JSON::ValuePtr &getDefault() const {return defaultValue;}
+    bool hasDefault() const {return defaultSet;}
+    const std::string &getDefault() const {return defaultValue;}
 
     void operator()(const std::string &value) const;
   };

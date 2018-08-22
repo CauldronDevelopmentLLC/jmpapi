@@ -71,8 +71,7 @@ bool ArgsHandler::operator()(Event::Request &req) {
     if (found.find(it->first) == found.end()) {
       const ArgValidator &av = *it->second;
 
-      if (av.hasDefault())
-        req.insertArg(it->first, av.getDefault()->toString());
+      if (av.hasDefault()) req.insertArg(it->first, av.getDefault());
       else if (!av.isOptional()) missing.push_back(it->first);
     }
 
