@@ -343,25 +343,26 @@ void Transaction::returnHeadList(MariaDB::EventDBCallback::state_t state) {
 
 
 void Transaction::returnList(MariaDB::EventDBCallback::state_t state) {
-  if (state != MariaDB::EventDBCallback::EVENTDB_ROW) returnJSON(state);
-
   switch (state) {
   case MariaDB::EventDBCallback::EVENTDB_ROW:
+    if (writer.isNull()) getJSONWriter()->beginList();
+
     writer->beginAppend();
 
     if (db->getFieldCount() == 1) db->writeField(*writer, 0);
     else db->writeRowDict(*writer);
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:
-    getJSONWriter()->beginList();
-    break;
+  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: break;
+  case MariaDB::EventDBCallback::EVENTDB_END_RESULT: break;
 
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+  case MariaDB::EventDBCallback::EVENTDB_DONE:
+    if (writer.isNull()) getJSONWriter()->beginList(); // Empty list
     writer->endList();
+    returnOk(state);
     break;
 
-  default: break;
+  default: returnOk(state); break;
   }
 }
 

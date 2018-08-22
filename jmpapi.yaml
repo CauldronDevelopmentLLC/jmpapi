@@ -46,14 +46,14 @@ api:
       return: list
       sql: >
         SELECT id, provider, provider_id, name, avatar, email, created,
-          last_used FROM jmpapi_users
+          last_used FROM jmpapi.users
       help: Returns a list of all users.
 
   /users/:id:
     DELETE:
       allow: [$admin]
       return: ok
-      sql: DELETE FROM jmpapi_users WHERE id = %(id)s
+      sql: DELETE FROM jmpapi.users WHERE id = %(id)s
       help: Delete an existing user.
       args:
         id: {help: User ID}
@@ -63,8 +63,8 @@ api:
       allow: [$admin]
       return: list
       sql: >
-        SELECT g.name, COUNT(ug.uid) member FROM jmpapi_groups g
-          LEFT JOIN jmpapi_user_groups ug ON ug.gid = g.id AND ug.uid = %(id)s
+        SELECT g.name, COUNT(ug.uid) member FROM jmpapi.groups g
+          LEFT JOIN jmpapi.user_groups ug ON ug.gid = g.id AND ug.uid = %(id)s
           GROUP BY g.name
       help: Get the list of groups with user membership.
 
@@ -73,24 +73,24 @@ api:
       allow: [$admin]
       return: ok
       sql: >
-        INSERT INTO jmpapi_user_groups (uid, gid)
-          SELECT %(id)s, id FROM jmpapi_groups WHERE name = %(group)s
+        INSERT INTO jmpapi.user_groups (uid, gid)
+          SELECT %(id)s, id FROM jmpapi.groups WHERE name = %(group)s
       help: Add a user to a group.
 
     DELETE:
       allow: [$admin]
       return: ok
       sql: >
-        DELETE FROM jmpapi_user_groups
+        DELETE FROM jmpapi.user_groups
           WHERE uid = %(id)s AND gid IN
-            (SELECT id FROM jmpapi_groups WHERE name = %(group)s)
+            (SELECT id FROM jmpapi.groups WHERE name = %(group)s)
       help: Remove a user from a group.
 
   /groups:
     GET:
       allow: [$admin]
       return: list
-      sql: SELECT name FROM jmpapi_groups
+      sql: SELECT name FROM jmpapi.groups
       help: Returns the list of groups.
 
   /groups/:group:
@@ -100,13 +100,13 @@ api:
     PUT:
       allow: [$admin]
       return: ok
-      sql: INSERT INTO jmpapi_groups (name) VALUES (%(group)s)
+      sql: INSERT INTO jmpapi.groups (name) VALUES (%(group)s)
       help: Create a new group.
 
     DELETE:
       allow: [$admin]
       return: ok
-      sql: DELETE FROM jmpapi_groups WHERE name = %(group)s AND name != 'admin'
+      sql: DELETE FROM jmpapi.groups WHERE name = %(group)s AND name != 'admin'
       help: Delete a group.
 
   /groups/:group/users:
@@ -115,7 +115,7 @@ api:
       return: list
       sql: >
         SELECT uid id, provider, provider_id, u.name, avatar, created, last_used
-          FROM jmpapi_user_groups ug
-          JOIN jmpapi_groups g ON g.id = ug.gid AND g.name = %(group)s
-          JOIN jmpapi_users u ON u.id = ug.uid
+          FROM jmpapi.user_groups ug
+          JOIN jmpapi.groups g ON g.id = ug.gid AND g.name = %(group)s
+          JOIN jmpapi.users u ON u.id = ug.uid
       help: Returns a list of users in a group.
