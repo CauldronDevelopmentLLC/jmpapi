@@ -72,7 +72,7 @@ if 'package' in COMMAND_LINE_TARGETS:
         programs = [str(prog[0])],
         init_d = [['scripts/' + name + '.init.d', name]],
         changelog = 'ChangeLog',
-        platform_independent = ['http'],
+        platform_independent = ['http'] + map(str, Glob('src/sql/*.sql')),
 
         deb_directory = 'debian',
         deb_section = 'science',
