@@ -1,3 +1,5 @@
+DELIMITER \\
+
 DROP PROCEDURE IF EXISTS Login;
 CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
   IN _provider_id VARCHAR(64), IN _email VARCHAR(256), IN _name VARCHAR(256),
@@ -23,7 +25,7 @@ BEGIN
   -- List user's groups
   SELECT g.name 'group' FROM user_groups ug
     JOIN groups g ON ug.gid = g.id AND ug.uid = @uid;
-END;
+END \\
 
 
 DROP PROCEDURE IF EXISTS Logout;
@@ -32,7 +34,7 @@ BEGIN
     UPDATE users u
       INNER JOIN sessions s ON u.id = s.uid SET u.last_used = NOW();
     DELETE FROM sessions WHERE id = _sid;
-END;
+END \\
 
 
 DROP PROCEDURE IF EXISTS UpdateSession;
@@ -40,14 +42,14 @@ CREATE PROCEDURE UpdateSession(IN _sid VARCHAR(48), IN _ts TIMESTAMP)
 BEGIN
     UPDATE users u
       INNER JOIN sessions s ON u.id = s.uid SET u.last_used = _ts;
-END;
+END \\
 
 
 DROP PROCEDURE IF EXISTS CleanSessions;
 CREATE PROCEDURE CleanSessions()
 BEGIN
     DELETE FROM sessions WHERE last_used + INTERVAL 1 DAY < NOW();
-END;
+END \\
 
 
 DROP PROCEDURE IF EXISTS GetSession;
@@ -70,4 +72,6 @@ BEGIN
       JOIN user_groups ug ON ug.gid = g.id
       JOIN users u ON u.id = ug.uid
       JOIN sessions s ON s.id = _sid AND s.uid = u.id;
-END;
+END \\
+
+DELIMITER ;
