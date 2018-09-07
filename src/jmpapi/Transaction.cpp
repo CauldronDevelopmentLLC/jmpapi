@@ -149,7 +149,7 @@ void Transaction::finalize() {
 
 
 void Transaction::processProfile(const JSON::ValuePtr &profile) {
-  if (!profile.isNull())
+  if (!profile.isNull()) {
     try {
       string provider = profile->getString("provider");
       string provider_id = profile->getString("id");
@@ -182,7 +182,8 @@ void Transaction::processProfile(const JSON::ValuePtr &profile) {
       return;
     } CATCH_ERROR;
 
-  LOG_ERROR("Invalid login profile: " << *profile);
+    LOG_ERROR("Invalid login profile: " << *profile);
+  }
 
   sendJSONError(HTTP_UNAUTHORIZED);
 }
