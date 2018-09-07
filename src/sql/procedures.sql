@@ -16,7 +16,8 @@ BEGIN
 
   -- Automatically make the first use an admin
   INSERT INTO user_groups SELECT @uid, id FROM groups
-    WHERE name = 'admin' AND @uid = 1;
+    WHERE name = 'admin' AND @uid = 1
+    ON DUPLICATE KEY uid = 1;
 
   -- Create or update session
   INSERT INTO sessions (id, uid) VALUES (_sid, @uid)
