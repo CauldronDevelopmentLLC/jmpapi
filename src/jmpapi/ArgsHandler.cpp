@@ -57,10 +57,11 @@ bool ArgsHandler::operator()(Event::Request &req) {
     if (it == validators.end()) continue; // Ignore unrecognized args
 
     try {
-      (*it->second)(args.getString(i));
+      // TODO ArgConstraint should take a JSON::Value not a std::string.
+      (*it->second)(args.getAsString(i));
 
     } catch (const Exception &e) {
-      THROWXS("Invalid argument '" << name << "=" << args.getString(i)
+      THROWXS("Invalid argument '" << name << "=" << args.getAsString(i)
               << "': " << e.getMessage(), HTTP_BAD_REQUEST);
     }
   }

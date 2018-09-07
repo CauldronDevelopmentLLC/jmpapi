@@ -132,7 +132,7 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
   if (type == "status") {
     if (config->hasNumber("code"))
       return new StatusHandler(config->getU8("code"));
-    else return new StatusHandler(config->getString("code"));
+    return new StatusHandler(config->getString("code"));
   }
 
   if (type == "redirect")
