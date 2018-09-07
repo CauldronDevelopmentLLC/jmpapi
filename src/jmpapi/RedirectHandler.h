@@ -31,17 +31,15 @@
 
 #pragma once
 
-#include <cbang/event/HTTPHandler.h>
-#include <cbang/json/Value.h>
+#include "StatusHandler.h"
 
 
 namespace JmpAPI {
-  class StatusHandler : public cb::Event::HTTPHandler {
-    int code;
+  class RedirectHandler : public StatusHandler {
+    std::string location;
 
   public:
-    StatusHandler(int code);
-    StatusHandler(const std::string &code);
+    RedirectHandler(int code, const std::string &location);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);

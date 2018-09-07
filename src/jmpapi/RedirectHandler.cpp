@@ -29,21 +29,20 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "RedirectHandler.h"
 
-#include <cbang/event/HTTPHandler.h>
-#include <cbang/json/Value.h>
+#include <cbang/event/Request.h>
+
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
 
-namespace JmpAPI {
-  class StatusHandler : public cb::Event::HTTPHandler {
-    int code;
+RedirectHandler::RedirectHandler(int code, const string &location) :
+  StatusHandler(code), location(location) {}
 
-  public:
-    StatusHandler(int code);
-    StatusHandler(const std::string &code);
 
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req);
-  };
+bool RedirectHandler::operator()(Event::Request &req) {
+  req.outSet("Location", location);
+  return StatusHandler::operator()(req);
 }

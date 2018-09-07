@@ -45,7 +45,10 @@ namespace JmpAPI {
     std::vector<header_t> headers;
 
   public:
+    HeadersHandler() {}
     HeadersHandler(const cb::JSON::ValuePtr &hdrs);
+
+    void add(const std::string &key, const std::string &value);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);

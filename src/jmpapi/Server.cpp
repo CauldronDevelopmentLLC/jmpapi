@@ -39,6 +39,7 @@
 #include "ArgsHandler.h"
 #include "PassHandler.h"
 #include "HeadersHandler.h"
+#include "RedirectHandler.h"
 
 #include <cbang/event/Request.h>
 #include <cbang/event/ACLHandler.h>
@@ -128,13 +129,15 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
   if (type == "logout")
     return new EndpointHandler(&Transaction::apiLogout, config);
 
-  if (type == "status") return new StatusHandler(0, config);
-
-  if (type == "redirect") {
-    SmartPointer<StatusHandler> handler = new StatusHandler(301, config);
-    handler->addHeader("Location", config->getString("location"));
-    return handler;
+  if (type == "status") {
+    if (config->hasNumber("code"))
+      return new StatusHandler(config->getU8("code"));
+    else return new StatusHandler(config->getString("code"));
   }
+
+  if (type == "redirect")
+    return new RedirectHandler(config->getNumber("code", 301),
+                               config->getString("location"));
 
   if (type == "api")
     return new APIHandler(app.getConfig()->getString("title", "JmpAPI"),

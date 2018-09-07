@@ -39,37 +39,14 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-StatusHandler::StatusHandler(int code, const JSON::ValuePtr &config) :
-  code(code) {
-  if (config.isNull()) return;
-
-  if (config->hasNumber("code")) code = config->getU8("code");
-  else if (config->hasString("code"))
-    code = HTTPStatus::parse(config->getString("code"));
-  else if (!code) THROW("Missing HTTP reponse code");
-
-  addHeaders(config);
-}
+StatusHandler::StatusHandler(int code) : code(code) {}
 
 
-void StatusHandler::addHeaders(const JSON::ValuePtr &config) {
-  if (config->hasDict("headers")) {
-    JSON::ValuePtr dict = config->get("headers");
-    for (unsigned i = 0; i < dict->size(); i++)
-      addHeader(dict->keyAt(i), dict->getString(i));
-  }
-}
-
-
-void StatusHandler::addHeader(const string &name, const string &value) {
-  headers.push_back(pair<string, string>(name, value));
-}
+StatusHandler::StatusHandler(const std::string &code) :
+  code(HTTPStatus::parse(code)) {}
 
 
 bool StatusHandler::operator()(Event::Request &req) {
-  for (unsigned i = 0; i < headers.size(); i++)
-    req.outSet(headers[i].first, headers[i].second);
-
   req.send(Event::HTTPStatus((HTTPStatus::enum_t)code).toString());
   req.reply(code);
 

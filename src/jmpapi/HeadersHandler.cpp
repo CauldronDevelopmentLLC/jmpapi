@@ -41,8 +41,12 @@ using namespace std;
 
 HeadersHandler::HeadersHandler(const JSON::ValuePtr &hdrs) {
   for (unsigned i = 0; i < hdrs->size(); i++)
-    headers.push_back(header_t(String::trim(hdrs->keyAt(i)),
-                               String::trim(hdrs->getString(i))));
+    add(hdrs->keyAt(i), hdrs->getString(i));
+}
+
+
+void HeadersHandler::add(const string &key, const string &value) {
+  headers.push_back(header_t(String::trim(key), String::trim(value)));
 }
 
 
