@@ -228,13 +228,18 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
 
     const URI &uri = getURI();
     string sid = getSession()->getID();
-    if (uri.has("state")) return OAuth2Login::requestToken(*this, *auth, sid);
+    if (uri.has("state"))
+      return OAuth2Login::requestToken
+        (*this, *auth, sid, getSession()->getString("redirect_uri", ""));
 
     setSessionCookie(); // Needed to pass anti-forgery
 
     URI redirectURL = auth->getRedirectURL(uri.getPath(), sid);
-    if (args.hasString("redirect_uri"))
-      redirectURL.set("redirect_uri", args.getString("redirect_uri"));
+    if (args.hasString("redirect_uri")) {
+      string uri = args.getString("redirect_uri");
+      redirectURL.set("redirect_uri", uri);
+      getSession()->insert("redirect_uri", uri);
+    }
 
     getJSONWriter()->beginDict();
     writer->insert("id", sid);
