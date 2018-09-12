@@ -103,7 +103,10 @@ module.exports = {
           conflict: 'User ' + this.new_user_email + ' already exists.'
         }
 
-      }).done(this.update)
+      }).done(function () {
+        this.new_user_email = '';
+        this.update();
+      })
     },
 
 

@@ -32,12 +32,13 @@ api:
           enum: [google, facebook, github, providers]
           help: The OAuth2 login provider.
 
-      sql: CALL Login(%(id)s, %(provider)s, %(user)s, %(name)s, %(avatar)s)
+      sql: >
+        CALL jmpapi.Login(%(id)s, %(provider)s, %(user)s, %(name)s, %(avatar)s)
 
   /logout:
     PUT:
       handler: logout
-      sql: CALL Logout(%(id)s)
+      sql: CALL jmpapi.Logout(%(id)s)
       help: Close the currently logged in session.
 
   /users:
@@ -62,7 +63,7 @@ api:
         name:
           help: "The user's name."
 
-      sql: CALL AddUser(%(provider)s, %(email)s, %(name)s)
+      sql: CALL jmpapi.AddUser(%(provider)s, %(email)s, %(name)s)
 
   /users/:id:
     DELETE:
