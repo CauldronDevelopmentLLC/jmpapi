@@ -1,14 +1,30 @@
 DELIMITER //
 
+DROP PROCEDURE IF EXISTS AddUser;
+CREATE PROCEDURE AddUser(IN _provider VARCHAR(16), IN _email VARCHAR(256))
+BEGIN
+  -- Insert user
+  INSERT INTO users (provider, email, last_used) VALUES (_provider, _email, 0);
+
+  -- Save user ID
+  SET @uid = LAST_INSERT_ID();
+
+  -- Automatically make the first user an admin
+  INSERT INTO user_groups SELECT @uid, id FROM groups
+    WHERE name = 'admin' AND @uid = 1
+    ON DUPLICATE KEY UPDATE uid = 1;
+
+  SELECT @uid id;
+END //
+
+
 DROP PROCEDURE IF EXISTS Login;
 CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
-  IN _email VARCHAR(256), IN _name VARCHAR(256), IN _avatar VARCHAR(256))
+  IN _email VARCHAR(128), IN _name VARCHAR(128), IN _avatar VARCHAR(256))
 BEGIN
-  -- Create or update user
-  INSERT INTO users (provider, email, name, avatar)
-    VALUES (_provider, _email, _name, _avatar)
-    ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id),
-      email = _email, name = _name, avatar = _avatar, last_used = NOW();
+  -- Update user
+  UPDATE users SET name = _name, avatar = _avater, last_used = NOW()
+      WHERE provider = _provider AND email = _email;
 
   -- Save user ID
   SET @uid = LAST_INSERT_ID();

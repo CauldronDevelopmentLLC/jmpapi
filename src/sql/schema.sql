@@ -31,9 +31,9 @@ INSERT INTO groups (name) VALUES ('admin')
 CREATE TABLE IF NOT EXISTS users (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   provider     VARCHAR(16) NOT NULL,
-  email        VARCHAR(256) NOT NULL,
-  name         VARCHAR(256) NOT NULL,
-  avatar       VARCHAR(256) NOT NULL,
+  email        VARCHAR(128) NOT NULL,
+  name         VARCHAR(128),
+  avatar       VARCHAR(256),
   created      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_used    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
