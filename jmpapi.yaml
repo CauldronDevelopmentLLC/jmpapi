@@ -32,8 +32,7 @@ api:
           enum: [google, facebook, github, list]
           help: The OAuth2 login provider.
       sql: >
-        CALL Login(%(id)s, %(provider)s, %(provider_id)s, %(user)s, %(name)s,
-          %(avatar)s)
+        CALL Login(%(id)s, %(provider)s, %(user)s, %(name)s, %(avatar)s)
 
   /logout:
     PUT:
@@ -46,8 +45,8 @@ api:
       allow: [$admin]
       return: list
       sql: >
-        SELECT id, provider, provider_id, name, avatar, email, created,
-          last_used FROM jmpapi.users
+        SELECT id, provider, name, avatar, email, created, last_used
+          FROM jmpapi.users
       help: Returns a list of all users.
 
   /users/:id:
@@ -115,7 +114,7 @@ api:
       allow: [$admin]
       return: list
       sql: >
-        SELECT uid id, provider, provider_id, u.name, avatar, created, last_used
+        SELECT uid id, provider, u.name, avatar, created, last_used
           FROM jmpapi.user_groups ug
           JOIN jmpapi.groups g ON g.id = ug.gid AND g.name = %(group)s
           JOIN jmpapi.users u ON u.id = ug.uid

@@ -31,14 +31,13 @@ INSERT INTO groups (name) VALUES ('admin')
 CREATE TABLE IF NOT EXISTS users (
   id           INT AUTO_INCREMENT PRIMARY KEY,
   provider     VARCHAR(16) NOT NULL,
-  provider_id  VARCHAR(64) NOT NULL,
   email        VARCHAR(256) NOT NULL,
   name         VARCHAR(256) NOT NULL,
   avatar       VARCHAR(256) NOT NULL,
   created      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_used    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-  UNIQUE KEY (provider, provider_id),
+  UNIQUE KEY (provider, email),
   FOREIGN KEY (provider) REFERENCES providers(name) ON DELETE CASCADE
 );
 

@@ -2,19 +2,18 @@ DELIMITER //
 
 DROP PROCEDURE IF EXISTS Login;
 CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
-  IN _provider_id VARCHAR(64), IN _email VARCHAR(256), IN _name VARCHAR(256),
-  IN _avatar VARCHAR(256))
+  IN _email VARCHAR(256), IN _name VARCHAR(256), IN _avatar VARCHAR(256))
 BEGIN
   -- Create or update user
-  INSERT INTO users (provider, provider_id, email, name, avatar)
-    VALUES (_provider, _provider_id, _email, _name, _avatar)
+  INSERT INTO users (provider, email, name, avatar)
+    VALUES (_provider, _email, _name, _avatar)
     ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id),
       email = _email, name = _name, avatar = _avatar, last_used = NOW();
 
   -- Save user ID
   SET @uid = LAST_INSERT_ID();
 
-  -- Automatically make the first use an admin
+  -- Automatically make the first user an admin
   INSERT INTO user_groups SELECT @uid, id FROM groups
     WHERE name = 'admin' AND @uid = 1
     ON DUPLICATE KEY UPDATE uid = 1;
@@ -59,7 +58,7 @@ BEGIN
     SET @@session.time_zone = "+00:00";
 
     -- Get session, if it exists
-    SELECT u.provider, u.provider_id, u.email user, u.name, u.avatar,
+    SELECT u.provider, u.email user, u.name, u.avatar,
       DATE_FORMAT(s.created, '%Y-%m-%dT%TZ') created,
       DATE_FORMAT(s.last_used, '%Y-%m-%dT%TZ') last_used
       FROM sessions s

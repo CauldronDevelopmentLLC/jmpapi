@@ -152,12 +152,11 @@ void Transaction::processProfile(const JSON::ValuePtr &profile) {
   if (!profile.isNull()) {
     try {
       string provider = profile->getString("provider");
-      string provider_id = profile->getString("id");
 
       // Fix up Facebook avatar
       if (provider == "facebook")
         profile->insert("avatar", "http://graph.facebook.com/" +
-                        provider_id + "/picture?type=small");
+                        profile->getString("id") + "/picture?type=small");
 
       // Fix up for GitHub name
       if ((!profile->hasString("name") ||
@@ -171,7 +170,6 @@ void Transaction::processProfile(const JSON::ValuePtr &profile) {
       Session &session = *getSession();
       session.setUser(profile->getString("email"));
       session.insert("provider",    provider);
-      session.insert("provider_id", provider_id);
       session.insert("name",        profile->getString("name"));
       session.insert("avatar",      profile->getString("avatar"));
 
