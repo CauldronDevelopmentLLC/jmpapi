@@ -106,7 +106,7 @@ module.exports = {
       }).done(function () {
         this.new_user_email = '';
         this.update();
-      })
+      }.bind(this))
     },
 
 
