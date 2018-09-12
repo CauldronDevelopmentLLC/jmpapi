@@ -200,7 +200,7 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
 
     getSession()->write(*getJSONWriter()); // Respond with Session JSON
 
-  } else if (provider == "list") {
+  } else if (provider == "providers") {
     getJSONWriter()->beginList();
     if (app.getGoogleAuth().isConfigured()) writer->append("google");
     if (app.getGitHubAuth().isConfigured()) writer->append("github");

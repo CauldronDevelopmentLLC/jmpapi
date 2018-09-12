@@ -1,10 +1,14 @@
 DELIMITER //
 
 DROP PROCEDURE IF EXISTS AddUser;
-CREATE PROCEDURE AddUser(IN _provider VARCHAR(16), IN _email VARCHAR(256))
+CREATE PROCEDURE AddUser(
+  IN _provider VARCHAR(16),
+  IN _email VARCHAR(256),
+  IN _name VARCHAR(128))
 BEGIN
   -- Insert user
-  INSERT INTO users (provider, email, last_used) VALUES (_provider, _email, 0);
+  INSERT INTO users (provider, email, name, last_used)
+    VALUES (_provider, _email, _name, 0);
 
   -- Save user ID
   SET @uid = LAST_INSERT_ID();
@@ -23,11 +27,15 @@ CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
   IN _email VARCHAR(128), IN _name VARCHAR(128), IN _avatar VARCHAR(256))
 BEGIN
   -- Update user
-  UPDATE users SET name = _name, avatar = _avater, last_used = NOW()
+  UPDATE users SET name = _name, avatar = _avatar, last_used = NOW()
       WHERE provider = _provider AND email = _email;
 
+  IF ROW_COUNT() != 1 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User not found.';
+  END IF;
+
   -- Save user ID
-  SET @uid = LAST_INSERT_ID();
+  SELECT id INTO @uid FROM users WHERE provider = _provider AND email = _email;
 
   -- Automatically make the first user an admin
   INSERT INTO user_groups SELECT @uid, id FROM groups

@@ -34,6 +34,9 @@ module.exports = {
     return {
       users: {},
       groups: [],
+      providers: [],
+      new_user_email: '',
+      new_user_provider: '',
       new_group: ''
     }
   },
@@ -48,6 +51,12 @@ module.exports = {
         .done(function (groups) {this.groups = groups}.bind(this))
       this.$root.api({url: '/users'})
         .done(function (users) {this.users = users}.bind(this))
+
+      this.$root.api({url: '/login/providers'})
+        .done(function (providers) {
+          this.providers = providers
+          this.new_user_provider = providers[0]
+        }.bind(this))
     },
 
 
@@ -76,6 +85,25 @@ module.exports = {
           conflict: 'User ' + user.name + ' already in group ' + group + '.'
         }
       })
+    },
+
+
+    add_user: function () {
+      this.$root.api({
+        method: 'POST',
+        url: '/users',
+        data: JSON.stringify({
+          provider: this.new_user_provider,
+          email: this.new_user_email,
+          name: this.new_user_email.replace(/@.*$/, '')
+        }),
+        contentType: 'application/json',
+        msgs: {
+          success: 'Added user ' + this.new_user_email + '.',
+          conflict: 'User ' + this.new_user_email + ' already exists.'
+        }
+
+      }).done(this.update)
     },
 
 

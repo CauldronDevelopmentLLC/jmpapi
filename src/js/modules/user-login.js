@@ -41,7 +41,7 @@ module.exports = {
 
   mounted: function () {
     // Get list of login providers
-    this.$root.api({url: '/login/list'}).done(function (providers) {
+    this.$root.api({url: '/login/providers'}).done(function (providers) {
       this.providers = providers;
     }.bind(this))
 
