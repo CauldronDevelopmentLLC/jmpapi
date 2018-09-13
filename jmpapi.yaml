@@ -2,9 +2,6 @@ title: JmpAPI Docs
 
 options:
   http-addresses: [127.0.0.1:7000]
-  http-root: /usr/share/jmpapi/http
-  session-sql: CALL GetSession(%(id)s)
-  jsonp: callback
 
 api:
   /.*:
@@ -33,21 +30,20 @@ api:
           help: The OAuth2 login provider.
 
       sql: >
-        CALL jmpapi.Login(%(id)s, %(provider)s, %(user)s, %(name)s, %(avatar)s)
+        CALL jmpapi.AuthLogin(%(id)s, %(provider)s, %(user)s, %(name)s,
+          %(avatar)s)
 
   /logout:
     PUT:
       handler: logout
-      sql: CALL jmpapi.Logout(%(id)s)
+      sql: CALL jmpapi.AuthLogout(%(id)s)
       help: Close the currently logged in session.
 
   /users:
     GET:
       allow: [$admin]
       return: list
-      sql: >
-        SELECT id, provider, name, avatar, email, created, last_used
-          FROM jmpapi.users
+      sql: CALL jmpapi.UserList()
       help: Returns a list of all users.
 
     POST:
@@ -63,13 +59,13 @@ api:
         name:
           help: "The user's name."
 
-      sql: CALL jmpapi.AddUser(%(provider)s, %(email)s, %(name)s)
+      sql: CALL jmpapi.UserAdd(%(provider)s, %(email)s, %(name)s)
 
   /users/:id:
     DELETE:
       allow: [$admin]
       return: ok
-      sql: DELETE FROM jmpapi.users WHERE id = %(id)s
+      sql: CALL jmpapi.UserDelete(%(id)u)
       help: Delete an existing user.
       args:
         id: {help: User ID}
@@ -78,35 +74,27 @@ api:
     GET:
       allow: [$admin]
       return: list
-      sql: >
-        SELECT g.name, COUNT(ug.uid) member FROM jmpapi.groups g
-          LEFT JOIN jmpapi.user_groups ug ON ug.gid = g.id AND ug.uid = %(id)s
-          GROUP BY g.name
+      sql: CALL jmpapi.UserGroupList(%(id)u)
       help: Get the list of groups with user membership.
 
   /users/:id/groups/:group:
     PUT:
       allow: [$admin]
       return: ok
-      sql: >
-        INSERT INTO jmpapi.user_groups (uid, gid)
-          SELECT %(id)s, id FROM jmpapi.groups WHERE name = %(group)s
+      sql: CALL jmpapi.UserGroupAdd(%(id)u, %(group)s)
       help: Add a user to a group.
 
     DELETE:
       allow: [$admin]
       return: ok
-      sql: >
-        DELETE FROM jmpapi.user_groups
-          WHERE uid = %(id)s AND gid IN
-            (SELECT id FROM jmpapi.groups WHERE name = %(group)s)
+      sql: CALL jmpapi.UserGroupDelete(%(id)u, %(group)s)
       help: Remove a user from a group.
 
   /groups:
     GET:
       allow: [$admin]
       return: list
-      sql: SELECT name FROM jmpapi.groups
+      sql: CALL jmpapi.GroupList()
       help: Returns the list of groups.
 
   /groups/:group:
@@ -116,25 +104,25 @@ api:
     PUT:
       allow: [$admin]
       return: ok
-      sql: INSERT INTO jmpapi.groups (name) VALUES (%(group)s)
+      sql: CALL jmpapi.GroupAdd(%(group)s)
       help: Create a new group.
 
     DELETE:
       allow: [$admin]
       return: ok
-      sql: DELETE FROM jmpapi.groups WHERE name = %(group)s AND name != 'admin'
+      sql: CALL jmpapi.GroupDelete(%(group)s)
       help: Delete a group.
 
   /groups/:group/members:
     GET:
       allow: [$admin]
       return: list
-      sql: CALL GetGroupMembers(%(group)s)
+      sql: CALL jmpapi.GroupMemberList(%(group)s)
       help: Returns a list of members of a group.
 
   /groups/:group/nonmembers:
     GET:
       allow: [$admin]
       return: list
-      sql: CALL GetGroupNonmembers(%(group)s)
+      sql: CALL jmpapi.GroupNonmemberList(%(group)s)
       help: Returns a list of nonmembers of a group.

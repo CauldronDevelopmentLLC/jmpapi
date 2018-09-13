@@ -1,29 +1,11 @@
+-- Remove all stored procedures & functions
+DELETE FROM mysql.proc WHERE db = DATABASE();
+
 DELIMITER //
 
-DROP PROCEDURE IF EXISTS AddUser;
-CREATE PROCEDURE AddUser(
-  IN _provider VARCHAR(16),
-  IN _email VARCHAR(256),
-  IN _name VARCHAR(128))
-BEGIN
-  -- Insert user
-  INSERT INTO users (provider, email, name, last_used)
-    VALUES (_provider, _email, _name, 0);
 
-  -- Save user ID
-  SET @uid = LAST_INSERT_ID();
-
-  -- Automatically make the first user an admin
-  INSERT INTO user_groups SELECT @uid, id FROM groups
-    WHERE name = 'admin' AND @uid = 1
-    ON DUPLICATE KEY UPDATE uid = 1;
-
-  SELECT @uid id;
-END //
-
-
-DROP PROCEDURE IF EXISTS Login;
-CREATE PROCEDURE Login(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
+-- Auth
+CREATE PROCEDURE AuthLogin(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
   IN _email VARCHAR(128), IN _name VARCHAR(128), IN _avatar VARCHAR(256))
 BEGIN
   -- Update user
@@ -52,8 +34,7 @@ BEGIN
 END //
 
 
-DROP PROCEDURE IF EXISTS Logout;
-CREATE PROCEDURE Logout(IN _sid VARCHAR(48))
+CREATE PROCEDURE AuthLogout(IN _sid VARCHAR(48))
 BEGIN
     UPDATE users u
       INNER JOIN sessions s ON u.id = s.uid SET u.last_used = NOW();
@@ -61,25 +42,13 @@ BEGIN
 END //
 
 
-DROP PROCEDURE IF EXISTS UpdateSession;
-CREATE PROCEDURE UpdateSession(IN _sid VARCHAR(48), IN _ts TIMESTAMP)
-BEGIN
-    UPDATE users u
-      INNER JOIN sessions s ON u.id = s.uid SET u.last_used = _ts;
-END //
-
-
-DROP PROCEDURE IF EXISTS CleanSessions;
-CREATE PROCEDURE CleanSessions()
-BEGIN
-    DELETE FROM sessions WHERE last_used + INTERVAL 1 DAY < NOW();
-END //
-
-
-DROP PROCEDURE IF EXISTS GetSession;
-CREATE PROCEDURE GetSession(IN _sid VARCHAR(48))
+-- Sessions
+CREATE PROCEDURE AuthSession(IN _sid VARCHAR(48))
 BEGIN
     SET @@session.time_zone = "+00:00";
+
+    -- Delete old sessions
+    DELETE FROM sessions WHERE last_used + INTERVAL 1 DAY < NOW();
 
     -- Get session, if it exists
     SELECT u.provider, u.email user, u.name, u.avatar,
@@ -99,8 +68,83 @@ BEGIN
 END //
 
 
-DROP PROCEDURE IF EXISTS GetGroupMembers;
-CREATE PROCEDURE GetGroupMembers(IN _group VARCHAR(64))
+-- Users
+CREATE PROCEDURE UserList()
+BEGIN
+  SELECT id, provider, name, avatar, email, created, last_used FROM users;
+END //
+
+
+CREATE PROCEDURE UserAdd(
+  IN _provider VARCHAR(16),
+  IN _email VARCHAR(256),
+  IN _name VARCHAR(128))
+BEGIN
+  -- Insert user
+  INSERT INTO users (provider, email, name, last_used)
+    VALUES (_provider, _email, _name, 0);
+
+  -- Save user ID
+  SET @uid = LAST_INSERT_ID();
+
+  -- Automatically make the first user an admin
+  INSERT INTO user_groups SELECT @uid, id FROM groups
+    WHERE name = 'admin' AND @uid = 1
+    ON DUPLICATE KEY UPDATE uid = 1;
+
+  SELECT @uid id;
+END //
+
+
+CREATE PROCEDURE UserDelete(IN _id INT)
+BEGIN
+  DELETE FROM users WHERE id = _id;
+END //
+
+
+-- User Groups
+CREATE PROCEDURE UserGroupList(IN _id INT)
+BEGIN
+  SELECT g.name, COUNT(ug.uid) member FROM jmpapi.groups g
+    LEFT JOIN user_groups ug ON ug.gid = g.id AND ug.uid = _id
+    GROUP BY g.name;
+END //
+
+
+CREATE PROCEDURE UserGroupAdd(IN _id INT, IN _group VARCHAR(64))
+BEGIN
+  INSERT INTO user_groups (uid, gid)
+    SELECT _id, g.id FROM groups g WHERE g.name = _group;
+END //
+
+
+CREATE PROCEDURE UserGroupDelete(IN _id INT, IN _group VARCHAR(64))
+BEGIN
+  DELETE FROM user_groups WHERE uid = _id AND gid IN
+    (SELECT id FROM groups WHERE name = _group);
+END //
+
+
+-- Groups
+CREATE PROCEDURE GroupList()
+BEGIN
+  SELECT name FROM groups;
+END //
+
+
+CREATE PROCEDURE GroupAdd(IN _group VARCHAR(64))
+BEGIN
+  INSERT INTO groups (name) VALUES (_group);
+END //
+
+
+CREATE PROCEDURE GroupDelete(IN _group VARCHAR(64))
+BEGIN
+  DELETE FROM groups WHERE name = _group AND name != 'admin';
+END //
+
+
+CREATE PROCEDURE GroupMemberList(IN _group VARCHAR(64))
 BEGIN
   SELECT uid id, provider, u.name, avatar, created, last_used
     FROM user_groups ug
@@ -109,8 +153,7 @@ BEGIN
 END //
 
 
-DROP PROCEDURE IF EXISTS GetGroupNonmembers;
-CREATE PROCEDURE GetGroupNonmembers(IN _group VARCHAR(64))
+CREATE PROCEDURE GroupNonmemberList(IN _group VARCHAR(64))
 BEGIN
   SELECT u.id, u.provider, u.name, u.avatar, u.created, u.last_used FROM users u
     JOIN groups g ON g.name = _group

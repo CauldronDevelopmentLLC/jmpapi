@@ -94,6 +94,8 @@ namespace JmpAPI {
     cb::SmartPointer<cb::MariaDB::EventDB>
     getDBConnection(bool blocking = false);
 
+    void loadConfig(const std::string &path);
+
     // From cb::ServerApplication
     void beforeDroppingPrivileges();
 
