@@ -1,24 +1,5 @@
-title: JmpAPI Docs
-
-options:
-  http-addresses: [127.0.0.1:7000]
-
+---
 api:
-  /.*:
-    ANY:
-      handler: pass
-      headers:
-        Access-Control-Allow-Origin: "*"
-        Access-Control-Allow-Methods: POST,PUT,GET,OPTIONS,DELETE
-        Access-Control-Allow-Headers: >
-          DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,
-          Content-Type,Range
-
-  /api:
-    GET:
-      handler: api
-      help: Returns a description of this API.
-
   /login/:provider:
     GET:
       handler: login

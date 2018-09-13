@@ -2,7 +2,6 @@
 
 NAME=jmpapi
 ETC=/etc/$NAME
-CFG=/etc/$NAME/config.d
 RUN=/var/run/$NAME
 LOG=/var/log/$NAME
 
@@ -19,7 +18,6 @@ case "$1" in
 
         # Create directories
         test -d $ETC || mkdir -m 755 $ETC
-        test -d $CFG || mkdir -m 755 $CFG
         test -d $RUN || mkdir -m 755 $RUN
         test -d $LOG || mkdir -m 755 $LOG
 

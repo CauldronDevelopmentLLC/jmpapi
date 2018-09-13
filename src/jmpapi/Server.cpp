@@ -77,6 +77,7 @@ Server::Server(App &app) :
   Event::WebServer(app.getOptions(), app.getEventBase(), new SSLContext,
                    SmartPointer<HTTPHandlerFactory>::Phony(this)),
   Event::HTTPHandlerFactory(false), app(app) {
+  app.getOptions()["http-addresses"].setDefault("");
   app.getOptions()["https-addresses"].setDefault("");
   app.getOptions()["certificate-file"].clearDefault();
   app.getOptions()["private-key-file"].clearDefault();

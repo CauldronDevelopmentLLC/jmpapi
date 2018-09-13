@@ -1,0 +1,4 @@
+# Add local configuration options here.
+---
+options:
+  http-addresses: ["127.0.0.1:7000"]

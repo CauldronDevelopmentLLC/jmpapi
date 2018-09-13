@@ -4,18 +4,23 @@ NAME=jmpapi
 ETC=/etc/$NAME
 RUN=/var/run/$NAME
 LOG=/var/log/$NAME
-CONFIG=$ETC/config.d/00-jmpapi
+CONFIG=$ETC/config.d
+DOC=/usr/share/doc/$NAME
 
 case "$1" in
     reconfigure|configure)
         # Install default config if one does not exist
-        if [ ! -e $CONFIG ]; then
-            ln -s /usr/share/doc/$NAME/$NAME.yaml $CONFIG
+        if [ ! -d $CONFIG ]; then
+            mkdir -m 755 $CONFIG
+
+            ln -s $DOC/config.d/jmpapi-auth.yaml $CONFIG/30-jmpapi-auth.yaml
+            ln -s $DOC/config.d/jmpapi-docs.yaml $CONFIG/40-jmpapi-docs.yaml
+            ln -s $DOC/config.d/local.yaml $CONFIG/50-local.yaml
         fi
 
         # Setup permissions
         chown -R $NAME:root $ETC $RUN $LOG
-        chmod u+rx,a-w $ETC $RUN $LOG
+        chmod -R u+rx,a-w $ETC $RUN $LOG
 
         if [ -x insserv ]; then
             # Install the init.d script

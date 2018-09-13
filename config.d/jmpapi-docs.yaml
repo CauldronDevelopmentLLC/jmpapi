@@ -1,0 +1,8 @@
+---
+title: JmpAPI Docs
+
+api:
+  /api:
+    GET:
+      handler: api
+      help: Returns a description of this API.
