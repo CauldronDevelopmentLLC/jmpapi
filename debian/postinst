@@ -22,7 +22,7 @@ case "$1" in
 
         # Setup permissions
         chown -R $NAME:root $ETC $RUN $LOG
-        chmod -R u+rx,a-w $ETC $RUN $LOG
+        chmod -R u+r,a-w $ETC $RUN $LOG
 
         if [ -x insserv ]; then
             # Install the init.d script
