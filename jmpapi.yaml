@@ -125,13 +125,16 @@ api:
       sql: DELETE FROM jmpapi.groups WHERE name = %(group)s AND name != 'admin'
       help: Delete a group.
 
-  /groups/:group/users:
+  /groups/:group/members:
     GET:
       allow: [$admin]
       return: list
-      sql: >
-        SELECT uid id, provider, u.name, avatar, created, last_used
-          FROM jmpapi.user_groups ug
-          JOIN jmpapi.groups g ON g.id = ug.gid AND g.name = %(group)s
-          JOIN jmpapi.users u ON u.id = ug.uid
-      help: Returns a list of users in a group.
+      sql: CALL GetGroupMembers(%(group)s)
+      help: Returns a list of members of a group.
+
+  /groups/:group/nonmembers:
+    GET:
+      allow: [$admin]
+      return: list
+      sql: CALL GetGroupNonmembers(%(group)s)
+      help: Returns a list of nonmembers of a group.

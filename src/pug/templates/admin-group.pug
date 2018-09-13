@@ -30,20 +30,41 @@ script#admin-group-template(type="text/x-template")
         .fa.fa-arrow-left(@click="back", title="Return to main page")
       | Editing Group {{group}}
 
-    h2(v-if="!users.length") No members.
-    .members(v-if="users.length")
-      h2 Members
-      table
-        thead
-          tr
-            th Avatar
-            th User
-            th Actions
+    h2(v-if="loading") Loading...
 
-        tbody
-          tr(v-for="user in users")
-            td.avatar: img(:src="user.avatar")
-            td.name {{user.name}}
-            td.actions
-              .fa.fa-minus(@click="remove_user(user)",
-                title="Remove user from group.")
+    template(v-if="!loading")
+      h2(v-if="!members.length") No members.
+      .members(v-if="members.length")
+        h2 Members
+        table
+          thead
+            tr
+              th Avatar
+              th User
+              th Actions
+
+          tbody
+            tr(v-for="user in members")
+              td.avatar: img(:src="user.avatar")
+              td.name {{user.name}}
+              td.actions
+                .fa.fa-minus(@click="remove_user(user)",
+                  title="Remove user from group.")
+
+      h2(v-if="!nonmembers.length") No nonmembers.
+      .nonmembers(v-if="nonmembers.length")
+        h2 Nonmembers
+        table
+          thead
+            tr
+              th Avatar
+              th User
+              th Actions
+
+          tbody
+            tr(v-for="user in nonmembers")
+              td.avatar: img(:src="user.avatar")
+              td.name {{user.name}}
+              td.actions
+                .fa.fa-plus(@click="add_user(user)",
+                  title="Add user to group.")

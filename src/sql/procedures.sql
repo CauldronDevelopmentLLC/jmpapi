@@ -98,4 +98,24 @@ BEGIN
       JOIN sessions s ON s.id = _sid AND s.uid = u.id;
 END //
 
+
+DROP PROCEDURE IF EXISTS GetGroupMembers;
+CREATE PROCEDURE GetGroupMembers(IN _group VARCHAR(64))
+BEGIN
+  SELECT uid id, provider, u.name, avatar, created, last_used
+    FROM user_groups ug
+    JOIN groups g ON g.id = ug.gid AND g.name = _group
+    JOIN users u ON u.id = ug.uid;
+END //
+
+
+DROP PROCEDURE IF EXISTS GetGroupNonmembers;
+CREATE PROCEDURE GetGroupNonmembers(IN _group VARCHAR(64))
+BEGIN
+  SELECT u.id, u.provider, u.name, u.avatar, u.created, u.last_used FROM users u
+    JOIN groups g ON g.name = _group
+    LEFT JOIN user_groups ug ON ug.uid = u.id AND ug.gid = g.id
+    WHERE ug.uid IS NULL;
+END //
+
 DELIMITER ;
