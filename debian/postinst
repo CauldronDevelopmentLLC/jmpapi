@@ -16,6 +16,8 @@ case "$1" in
             ln -s $DOC/config.d/jmpapi-auth.yaml $CONFIG/30-jmpapi-auth.yaml
             ln -s $DOC/config.d/jmpapi-docs.yaml $CONFIG/40-jmpapi-docs.yaml
             ln -s $DOC/config.d/local.yaml $CONFIG/50-local.yaml
+
+            chmod a-r $CONFIG/50-local.yaml # May contain secrets
         fi
 
         # Setup permissions
