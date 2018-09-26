@@ -29,50 +29,25 @@
 
 \******************************************************************************/
 
-#include "ArgValidator.h"
+#pragma once
 
-#include "ArgPattern.h"
-#include "ArgEnum.h"
-#include "ArgNumber.h"
-#include "ArgMinLength.h"
-#include "ArgMaxLength.h"
+#include "ArgConstraint.h"
+
+#include <cbang/json/Value.h>
 
 
-using namespace JmpAPI;
-using namespace cb;
-using namespace std;
+namespace JmpAPI {
+  class ArgMaxLength : public ArgConstraint {
+    unsigned max;
 
+  public:
+    ArgMaxLength(const cb::JSON::ValuePtr &config) :
+      max(config->getU32("max")) {}
 
-ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
-  optional(config->getBoolean("optional", false)),
-  defaultSet(config->hasString("default")) {
-
-  if (defaultSet) defaultValue = config->getString("default");
-
-  string type = config->getString("type", "");
-
-  // Implicit type
-  if (type.empty()) {
-    if (config->has("enum")) type = "enum";
-    else type = "string";
-  }
-
-  if (type == "enum") constraints.push_back(new ArgEnum(config->get("enum")));
-  else if (type == "number") constraints.push_back(new ArgNumber(config));
-
-  else if (type == "string") {
-    if (config->hasNumber("min"))
-      constraints.push_back(new ArgMinLength(config));
-    if (config->hasNumber("max"))
-      constraints.push_back(new ArgMaxLength(config));
-  }
-
-  if (config->has("pattern"))
-    constraints.push_back(new ArgPattern(config->getString("pattern")));
-}
-
-
-void ArgValidator::operator()(const string &value) const {
-  for (unsigned i = 0; i < constraints.size(); i++)
-    (*constraints[i])(value);
+    // From ArgConstraint
+    void operator()(const std::string &value) const {
+      if (max < value.length())
+        THROWS("Must be no more than " << max << " chars long");
+    }
+  };
 }
