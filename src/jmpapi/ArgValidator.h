@@ -33,9 +33,8 @@
 
 #include "ArgConstraint.h"
 
+#include <cbang/Math.h>
 #include <cbang/json/Value.h>
-
-#include <string>
 
 
 namespace JmpAPI {
@@ -52,6 +51,8 @@ namespace JmpAPI {
     bool isOptional() const {return optional;}
     bool hasDefault() const {return defaultSet;}
     const std::string &getDefault() const {return defaultValue;}
+
+    void add(const cb::SmartPointer<ArgConstraint> &constraint);
 
     void operator()(const std::string &value) const;
   };

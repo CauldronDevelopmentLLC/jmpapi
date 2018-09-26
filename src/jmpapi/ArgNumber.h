@@ -33,18 +33,25 @@
 
 #include "ArgConstraint.h"
 
+#include <cbang/String.h>
 #include <cbang/json/Value.h>
 
 
 namespace JmpAPI {
+  template<typename T>
   class ArgNumber : public ArgConstraint {
-    double min;
-    double max;
+    T min;
+    T max;
 
   public:
-    ArgNumber(const cb::JSON::ValuePtr &config);
+    ArgNumber(const cb::JSON::ValuePtr &config) :
+      min(config->getNumber("min", NAN)), max(config->getNumber("max", NAN)) {}
 
     // From ArgConstraint
-    void operator()(const std::string &value) const;
+    void operator()(const std::string &value) const {
+      T n = cb::String::parse<T>(value);
+      if (!isnan(min) && n < (T)min) THROWS("Must be greater than " << (T)min);
+      if (!isnan(max) && (T)max < n) THROWS("Must be less than " << (T)max);
+    }
   };
 }

@@ -52,23 +52,32 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   string type = config->getString("type", "");
 
   // Implicit type
-  if (type.empty()) {
-    if (config->has("enum")) type = "enum";
-    else type = "string";
-  }
+  if (type.empty()) type = config->has("enum") ? "enum" : "string";
 
-  if (type == "enum") constraints.push_back(new ArgEnum(config->get("enum")));
-  else if (type == "number") constraints.push_back(new ArgNumber(config));
+  if      (type == "enum")   add(new ArgEnum(config->get("enum")));
+  else if (type == "number") add(new ArgNumber<double>(config));
+  else if (type == "int")    add(new ArgNumber<int64_t>(config));
+  else if (type == "s64")    add(new ArgNumber<int64_t>(config));
+  else if (type == "u64")    add(new ArgNumber<uint64_t>(config));
+  else if (type == "s32")    add(new ArgNumber<int32_t>(config));
+  else if (type == "u32")    add(new ArgNumber<uint32_t>(config));
+  else if (type == "s16")    add(new ArgNumber<int16_t>(config));
+  else if (type == "u16")    add(new ArgNumber<uint16_t>(config));
+  else if (type == "s8")     add(new ArgNumber<int8_t>(config));
+  else if (type == "u8")     add(new ArgNumber<uint8_t>(config));
+  else if (type == "float")  add(new ArgNumber<float>(config));
 
   else if (type == "string") {
-    if (config->hasNumber("min"))
-      constraints.push_back(new ArgMinLength(config));
-    if (config->hasNumber("max"))
-      constraints.push_back(new ArgMaxLength(config));
+    if (config->hasNumber("min")) add(new ArgMinLength(config));
+    if (config->hasNumber("max")) add(new ArgMaxLength(config));
   }
 
-  if (config->has("pattern"))
-    constraints.push_back(new ArgPattern(config->getString("pattern")));
+  if (config->has("pattern")) add(new ArgPattern(config->getString("pattern")));
+}
+
+
+void ArgValidator::add(const SmartPointer<ArgConstraint> &constraint) {
+  constraints.push_back(constraint);
 }
 
 
