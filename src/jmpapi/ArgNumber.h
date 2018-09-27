@@ -40,8 +40,8 @@
 namespace JmpAPI {
   template<typename T>
   class ArgNumber : public ArgConstraint {
-    T min;
-    T max;
+    double min;
+    double max;
 
   public:
     ArgNumber(const cb::JSON::ValuePtr &config) :
