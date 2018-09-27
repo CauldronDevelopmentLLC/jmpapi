@@ -70,7 +70,8 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   else if (type == "string") {
     if (config->hasNumber("min")) add(new ArgMinLength(config));
     if (config->hasNumber("max")) add(new ArgMaxLength(config));
-  }
+
+  } else THROWS("Unknown argument type '" << type << "'");
 
   if (config->has("pattern")) add(new ArgPattern(config->getString("pattern")));
 }
