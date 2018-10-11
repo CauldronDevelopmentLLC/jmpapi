@@ -28,6 +28,7 @@ DEST := johndoe@example.org:
 DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 NODE_MODS  := $(DIR)node_modules
 PUG        := $(NODE_MODS)/.bin/pug
+PUGDEPS    := $(dir)scripts/pug-deps
 JSHINT     := $(NODE_MODS)/.bin/jshint
 
 HTML     := $(wildcard src/pug/*.pug)
@@ -48,7 +49,7 @@ http/%.html: src/pug/%.pug
 	$(PUG) -O pug-opts.js $< --out $(dir $@) || (rm -f $@; exit 1)
 	@mkdir -p build/dep
 	@echo -n "$@: " > build/dep/$(shell basename $<)
-	@./pug-deps $< >> build/dep/$(shell basename $<)
+	@$(PUGDEPS) $< >> build/dep/$(shell basename $<)
 
 lint: node_modules
 	$(JSHINT) --config jshint.json src/js/*.js src/js/modules/*.js
