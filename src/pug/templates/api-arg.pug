@@ -27,5 +27,5 @@ script#api-arg-template(type="text/x-template")
   tr.api-arg
     td.name {{name}}
     td.type {{type}}
-    td.default {{config.default}}
+    td.default {{config.default || (config.optional ? 'null' : '')}}
     td.description {{config.help}}
