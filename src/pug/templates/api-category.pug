@@ -34,9 +34,8 @@ script#api-category-template(type="text/x-template")
         @click.stop="")
         .fa.fa-link
 
-      .fa.fa-compress(@click.stop="collapse", title="Collapse all endpoints.")
-
-      .fa.fa-expand(@click.stop="expand", title="Expand all endpoints.")
+      .fa(@click.stop="toggle", :class="expand ? 'fa-expand' : 'fa-compress'",
+        :title="(expand ? 'Expand' : 'Collapse') + ' all endpoints.'")
 
       .fa(:class="'fa-caret-' + (open ? 'down' : 'right')")
       span(v-html="config.title || name")

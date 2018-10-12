@@ -33,7 +33,8 @@ module.exports = {
 
   data: function () {
     return {
-      open: true
+      open: true,
+      expand: true
     }
   },
 
@@ -44,15 +45,11 @@ module.exports = {
 
 
   methods: {
-    expand: function () {
+    toggle: function () {
       for (var i = 0; i < this.$children.length; i++)
-        this.$children[i].open = true;
-    },
+        this.$children[i].open = this.expand;
 
-
-    collapse: function () {
-      for (var i = 0; i < this.$children.length; i++)
-        this.$children[i].open = false;
+      this.expand = !this.expand;
     },
 
 

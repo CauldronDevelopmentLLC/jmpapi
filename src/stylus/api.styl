@@ -38,6 +38,16 @@ body
   &:visited, &:link
     color #aaa
 
+.api-category .api-category-title, .api-endpoint .api-method .api-path
+  border-top-left-radius 4px
+  border-top-right-radius 4px
+  cursor pointer
+  font-weight bold
+
+  &:hover
+    background #fff
+    color #000
+
 .api-category
   border-radius 4px
   border 1px solid #ddd
@@ -60,11 +70,7 @@ body
     width 1em
 
   .api-category-title
-    font-weight bold
     font-size 150%
-    cursor pointer
-    border-top-left-radius 4px
-    border-top-right-radius 4px
     border-bottom 1px solid #ddd
     margin 0
     padding 4px
@@ -100,12 +106,8 @@ body
       padding 0.25em
 
     .api-path
-      border-top-left-radius 4px
-      border-top-right-radius 4px
       background #f5f5f5
-      font-weight bold
       font-size 110%
-      cursor pointer
 
     &.closed .api-path
       border-radius 4px
