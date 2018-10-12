@@ -24,6 +24,7 @@ GROUP=$NAME
 RUN=/var/run/$NAME
 PID_FILE=$RUN/$NAME.pid
 CONFIG=/etc/$NAME/jmpapi.yaml
+LOCAL=/etc/$NAME/local.yaml
 LOG=/var/log/$NAME/log.txt
 
 START_STOP_OPTS="-x $EXEC -n $NAME -p $PID_FILE -d $RUN"
@@ -31,10 +32,14 @@ START_STOP_OPTS="-x $EXEC -n $NAME -p $PID_FILE -d $RUN"
 
 start() {
     mkdir -p $(dirname $PID_FILE)
-    start-stop-daemon --start $START_STOP_OPTS -- --fork \
-      --set-group $GROUP --run-as $USER $CONFIG \
-      --log $LOG --log-rotate --log-rotate-dir=/var/log/$NAME \
-      --pid-file=$PID_FILE
+
+    ARGS="--fork --set-group $GROUP --run-as $USER $CONFIG"
+    ARGS+=" --log $LOG --log-rotate --log-rotate-dir=/var/log/$NAME"
+    ARGS+=" --pid-file=$PID_FILE"
+
+    if [ -f "$LOCAL" ]; then ARGS+=" $LOCAL"; fi
+
+    start-stop-daemon --start $START_STOP_OPTS -- $ARGS
 }
 
 
