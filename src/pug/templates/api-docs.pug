@@ -25,9 +25,8 @@
 
 script#api-docs-template(type="text/x-template")
   .api-docs
-    h1.api-title {{data.title}}
-
-    p.api-help(v-if="data.help") {{data.help}}
+    h1.api-title: span(v-html="data.header || data.title")
+    p.api-help(v-if="data.help"): span(v-html="data.help")
 
     api-category(v-for="config, name in data.categories", :name="name",
       :config="config")

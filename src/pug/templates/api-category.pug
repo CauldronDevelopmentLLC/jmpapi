@@ -26,18 +26,23 @@
 script#api-category-template(type="text/x-template")
   .api-category(:class="open ? 'opened' : 'closed'")
     a(:name="name")
+
     .api-category-title(@click="open = !open",
       :title="'Click to ' + (open ? 'collapase.' : 'expand.')")
+
       a.api-link(:href="'#' + name", title="Direct link to API category.",
         @click.stop="")
         .fa.fa-link
+
       .fa.fa-compress(@click.stop="collapse", title="Collapse all endpoints.")
+
       .fa.fa-expand(@click.stop="expand", title="Expand all endpoints.")
+
       .fa(:class="'fa-caret-' + (open ? 'down' : 'right')")
-      | {{config.title || name}}
+      span(v-html="config.title || name")
 
     template(v-if="open")
-      p.api-help(v-if="config.help") {{config.help}}
+      p.api-help(v-if="config.help"): span(v-html="config.help")
 
       .api-allow(v-if="config.allow") #[b Allow:] {{auth_list(config.allow)}}
       .api-deny(v-if="config.deny") #[b Deny:] {{auth_list(config.deny)}}

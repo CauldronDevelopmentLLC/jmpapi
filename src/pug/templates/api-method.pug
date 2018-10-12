@@ -45,7 +45,7 @@ script#api-method-template(type="text/x-template")
         api-arg(v-for="config, name in config.args", :name="name",
           :config="config")
 
-      .api-help(v-if="config.help") {{config.help}}
+      .api-help(v-if="config.help"): span(v-html="config.help")
       .api-allow(v-if="config.allow")
         | #[b Allow:] {{auth_list(config.allow)}}
       .api-deny(v-if="config.deny") #[b Deny:] {{auth_list(config.deny)}}
