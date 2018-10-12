@@ -142,7 +142,7 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
                                config->getString("location"));
 
   if (type == "api")
-    return new APIHandler(*config, *app.getConfig()->get("api"));
+    return new APIHandler(*app.getConfig(), *app.getConfig()->get("api"));
 
   THROWS("Unsupported handler '" << type << "'");
 }

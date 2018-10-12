@@ -74,9 +74,7 @@ APIHandler::APIHandler(const JSON::Value &config, const JSON::Value &_api) :
   api(new JSON::Dict) {
 
   api->insert("title", config.getString("title", "JmpAPI Docs"));
-  if (config.hasString("doc-help"))
-    api->insert("help", config.getString("doc-help"));
-
+  copyExistingKey("help", config, *api);
   api->insert("categories", loadCategories(_api));
 }
 

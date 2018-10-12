@@ -9,8 +9,4 @@ endpoints:
   /api:
     GET:
       handler: api
-      title: JmpAPI Docs
       help: Returns a description of this API.
-      doc-help: >
-        This page describes the JSON over HTTP API endpoints supported by this
-        server.
