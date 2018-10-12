@@ -34,15 +34,26 @@
 #include <cbang/event/HTTPHandler.h>
 #include <cbang/json/Value.h>
 
+#include <set>
+
 
 namespace JmpAPI {
   class APIHandler : public cb::Event::HTTPHandler {
     cb::JSON::ValuePtr api;
 
   public:
-    APIHandler(const std::string &title, const cb::JSON::ValuePtr &api);
+    APIHandler(const cb::JSON::Value &config, const cb::JSON::Value &api);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);
+
+  protected:
+    cb::JSON::ValuePtr loadCategories(const cb::JSON::Value &cats);
+    cb::JSON::ValuePtr loadCategory(const cb::JSON::Value &cat);
+    cb::JSON::ValuePtr loadEndpoint(const std::string &pattern,
+                                    const cb::JSON::Value &endpoint);
+    cb::JSON::ValuePtr loadMethod(const cb::JSON::Value &method,
+                                  const std::set<std::string> &urlArgs,
+                                  const cb::JSON::Value &endpointArgs);
   };
 }

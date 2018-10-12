@@ -1,0 +1,8 @@
+options:
+  google-client-secret: <Replace with Google Secret>
+  db-pass: <Replace with DB password>
+  http-root: ./http
+
+api:
+  docs: !include jmpapi-docs.yaml
+  auth: !include jmpapi-auth.yaml

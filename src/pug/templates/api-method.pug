@@ -23,23 +23,27 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
+script#api-method-template(type="text/x-template")
+  .api-method(:title="'Click to ' + (open ? 'collapase.' : 'expand.')",
+    :class="open ? 'opened' : 'closed'")
+    a(:name="name")
+    .api-path(@click="toggle")
+      .fa(:class="open ? 'fa-minus' : 'fa-plus'")
+      | {{method}} {{path}}
 
-  body
-    #content(v-cloak)
-      api-docs
+    template(v-if="open")
+      table.api-args(v-if="config.args")
+        tr
+          th Argument
+          th Type
+          th Default
+          th Description
 
-      include templates/incompatible.pug
-      include templates/no-script.pug
+        api-arg(v-for="config, name in config.args", :name="name",
+          :config="config")
 
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
-      include templates/api-method.pug
-      include templates/api-category.pug
+      .api-help(v-if="config.help") {{config.help}}
+      .api-allow(v-if="config.allow")
+        | #[b Allow:] {{auth_list(config.allow)}}
+      .api-deny(v-if="config.deny") #[b Deny:] {{auth_list(config.deny)}}
+      .api-example: pre {{example(method, path, config)}}

@@ -27,25 +27,30 @@
 
 
 module.exports = {
-  template: '#api-docs-template',
+  template: '#api-category-template',
+  props: ['name', 'config'],
 
 
   data: function () {
     return {
-      data: {}
+      open: true
     }
   },
 
 
   components: {
-    'api-category': require('./api-category')
+    'api-method': require('./api-method')
   },
 
 
-  mounted: function () {
-    $.getJSON(location.pathname + 'api', function (data) {
-      document.title = data.title;
-      this.data = data;
-    }.bind(this))
+  methods: {
+    auth_list: function (list) {
+      function auth_entry(entry) {
+        if (entry[0] == '$') return 'group:' + entry.substr(1);
+        return 'user:' + entry;
+      }
+
+      return list.map(auth_entry).join(', ');
+    }
   }
 }

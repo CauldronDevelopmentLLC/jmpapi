@@ -50,9 +50,11 @@ namespace JmpAPI {
     cb::SmartPointer<cb::Event::HTTPHandler>
     createAccessHandler(const cb::JSON::Value &config);
     cb::SmartPointer<cb::Event::HTTPHandler>
-    createEndpoint(const cb::SmartPointer<cb::JSON::Value> &config);
+    createEndpoint(const cb::JSON::ValuePtr &config);
     cb::SmartPointer<cb::Event::HTTPHandler>
     createAPIHandler(const std::string &pattern, const cb::JSON::Value &config);
+    void loadCategory(const std::string &name, const cb::JSON::Value &cat);
+    void loadCategories(const cb::JSON::Value &cats);
 
     void init();
 

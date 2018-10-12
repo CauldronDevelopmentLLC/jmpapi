@@ -1,5 +1,12 @@
 ---
-api:
+title: Authorization
+
+help: >
+  API Authorization endpoints allow for creating, modifying or deleting users
+  and groups.  The login system uses OAuth2 and can support Google, Facebook,
+  or GitHub as login providers.
+
+endpoints:
   /login/:provider:
     GET:
       handler: login

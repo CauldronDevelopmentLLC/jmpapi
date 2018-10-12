@@ -49,7 +49,7 @@ Default(prog)
 Clean(prog, ['build', 'config.log'])
 
 # Dist
-docs = ['README.md'] + map(lambda x: (str(x), str(x)), Glob('config.d/*.yaml'))
+docs = ['README.md'] + map(lambda x: (str(x), str(x)), Glob('api/*.yaml'))
 tar = env.TarBZ2Dist(name, docs + [prog])
 Alias('dist', tar)
 AlwaysBuild(tar)

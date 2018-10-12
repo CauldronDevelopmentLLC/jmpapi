@@ -23,7 +23,7 @@ USER=$NAME
 GROUP=$NAME
 RUN=/var/run/$NAME
 PID_FILE=$RUN/$NAME.pid
-CONFIG=/etc/$NAME/config.d
+CONFIG=/etc/$NAME/jmpapi.yaml
 LOG=/var/log/$NAME/log.txt
 
 START_STOP_OPTS="-x $EXEC -n $NAME -p $PID_FILE -d $RUN"

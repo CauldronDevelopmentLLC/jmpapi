@@ -36,10 +36,10 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-QueryHandler::QueryHandler(const JSON::ValuePtr &config) :
-  sql(config->getString("sql")), pass(config->getBoolean("pass", false)) {
+QueryHandler::QueryHandler(const JSON::Value &config) :
+  sql(config.getString("sql")), pass(config.getBoolean("pass", false)) {
 
-  string ret = config->getString("return", "json");
+  string ret = config.getString("return", "json");
 
   if      (ret == "ok")    replyCB = &Transaction::returnOk;
   else if (ret == "hlist") replyCB = &Transaction::returnHeadList;

@@ -44,7 +44,7 @@ namespace JmpAPI {
     Transaction::event_db_member_functor_t replyCB;
 
   public:
-    QueryHandler(const cb::JSON::ValuePtr &config);
+    QueryHandler(const cb::JSON::Value &config);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);

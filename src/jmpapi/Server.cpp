@@ -61,12 +61,13 @@ using namespace JmpAPI;
 
 namespace {
   unsigned parseMethods(const std::string &s) {
-    unsigned methods = 0;
+    unsigned methods = Event::RequestMethod::HTTP_UNKNOWN;
     vector<string> tokens;
 
     String::tokenize(String::toUpper(s), tokens, "| \n\r\t");
     for (unsigned i = 0; i < tokens.size(); i++)
-      methods |= HTTP::RequestMethod::parse(tokens[i]);
+      methods |= HTTP::RequestMethod::parse
+        (tokens[i], Event::RequestMethod::HTTP_UNKNOWN);
 
     return methods;
   }
@@ -114,7 +115,7 @@ Server::createAccessHandler(const JSON::Value &config) {
 
 
 SmartPointer<Event::HTTPHandler>
-Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
+Server::createEndpoint(const JSON::ValuePtr &config) {
   string type = config->getString("handler", "");
 
   if (type.empty() && config->has("sql")) type = "query";
@@ -122,7 +123,7 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
 
   if (type == "pass") return new PassHandler;
 
-  if (type == "query") return new QueryHandler(config);
+  if (type == "query") return new QueryHandler(*config);
 
   if (type == "login")
     return new EndpointHandler(&Transaction::apiLogin, config);
@@ -141,8 +142,7 @@ Server::createEndpoint(const SmartPointer<JSON::Value> &config) {
                                config->getString("location"));
 
   if (type == "api")
-    return new APIHandler(app.getConfig()->getString("title", "JmpAPI"),
-                          app.getConfig()->get("api"));
+    return new APIHandler(*config, *app.getConfig()->get("api"));
 
   THROWS("Unsupported handler '" << type << "'");
 }
@@ -157,13 +157,17 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
   SmartPointer<Event::HTTPURLPatternMatcher> matcher =
     new Event::HTTPURLPatternMatcher(pattern, group);
 
+  // Endpoint Auth
+  if (api.has("allow") || api.has("deny"))
+    group->addHandler(createAccessHandler(api));
+
   // Methods
   for (unsigned i = 0; i < api.size(); i++) {
     const string &key = api.keyAt(i);
-    if (key == "args") continue;
-
     unsigned methods = parseMethods(key);
-    JSON::ValuePtr config = api.get(i);
+    if (!methods) continue; // Ignore non-methods
+
+    const JSON::ValuePtr config = api.get(i);
     SmartPointer<Event::HTTPHandler> handler = createEndpoint(config);
 
     if (handler.isNull()) continue;
@@ -199,18 +203,43 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
 }
 
 
+void Server::loadCategory(const string &name, const JSON::Value &cat) {
+  SmartPointer<Event::HTTPHandlerGroup> group = new Event::HTTPHandlerGroup;
+  string base = cat.getString("base", "");
+
+  // Category Auth
+  if (cat.has("allow") || cat.has("deny"))
+    group->addHandler(createAccessHandler(cat));
+
+  // Endpoints
+  if (cat.hasDict("endpoints")) {
+    const JSON::Value &endpoints = *cat.get("endpoints");
+
+    for (unsigned i = 0; i < endpoints.size(); i++)
+      group->addHandler
+        (createAPIHandler(base + endpoints.keyAt(i), *endpoints.get(i)));
+  }
+
+  addHandler(group);
+}
+
+
+void Server::loadCategories(const JSON::Value &cats) {
+  for (unsigned i = 0; i < cats.size(); i++)
+    loadCategory(cats.keyAt(i), *cats.get(i));
+}
+
+
 void Server::init() {
   Event::WebServer::init();
 
-  JSON::ValuePtr config = app.getConfig();
+  const JSON::Value &config = *app.getConfig();
 
   // Load Sessions
   addMember<Transaction>(&Transaction::lookupSession);
 
-  // API
-  JSON::ValuePtr api = config->get("api");
-  for (unsigned i = 0; i < api->size(); i++)
-    addHandler(createAPIHandler(api->keyAt(i), *api->get(i)));
+  // API Categories
+  loadCategories(*config.get("api"));
 
   // Root
   string root = app.getOptions()["http-root"].toString("");

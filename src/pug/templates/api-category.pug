@@ -23,23 +23,19 @@
 //-                                                                           //
 //-/////////////////////////////////////////////////////////////////////////////
 
-doctype html
-html(lang="en")
-  head
-    title API Docs
-    include templates/head.pug
-    style: include:stylus ../stylus/api.styl
-    script: include:browserify ../js/api.js
+script#api-category-template(type="text/x-template")
+  .api-category(:title="'Click to ' + (open ? 'collapase.' : 'expand.')",
+    :class="open ? 'opened' : 'closed'")
+    .api-category-title(@click="open = !open")
+      .fa(:class="open ? 'fa-minus' : 'fa-plus'")
+      | {{config.title || name}}
 
-  body
-    #content(v-cloak)
-      api-docs
+    template(v-if="open")
+      p.api-help(v-if="config.help") {{config.help}}
 
-      include templates/incompatible.pug
-      include templates/no-script.pug
+      .api-allow(v-if="config.allow") #[b Allow:] {{auth_list(config.allow)}}
+      .api-deny(v-if="config.deny") #[b Deny:] {{auth_list(config.deny)}}
 
-    #templates
-      include templates/api-docs.pug
-      include templates/api-arg.pug
-      include templates/api-method.pug
-      include templates/api-category.pug
+      .api-endpoint(v-for="endpoint, path in config.endpoints")
+        api-method(v-for="_config, method in endpoint", :method="method",
+          :path="path", :config="_config")

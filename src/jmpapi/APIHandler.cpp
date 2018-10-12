@@ -31,8 +31,10 @@
 
 #include "APIHandler.h"
 
+#include <cbang/String.h>
 #include <cbang/event/Request.h>
 #include <cbang/event/HTTPURLPatternMatcher.h>
+#include <cbang/event/RequestMethod.h>
 #include <cbang/json/KeywordFilter.h>
 #include <cbang/json/KeywordsFilter.h>
 
@@ -41,58 +43,41 @@ using namespace cb;
 using namespace std;
 
 
-APIHandler::APIHandler(const string &title, const JSON::ValuePtr &_api) :
+namespace {
+  void copyExistingKey(const string &key, const JSON::Value &src,
+                       JSON::Value &dst) {
+    if (src.has(key)) dst.insert(key, src.get(key));
+  }
+
+
+  void copyExistingKeys(const char *keys[], const JSON::Value &src,
+                       JSON::Value &dst) {
+    for (int i = 0; keys[i]; i++) copyExistingKey(keys[i], src, dst);
+  }
+
+
+  bool isMethod(const std::string &s) {
+    vector<string> tokens;
+
+    String::tokenize(String::toUpper(s), tokens, "| \n\r\t");
+    for (unsigned i = 0; i < tokens.size(); i++)
+      if (Event::RequestMethod::parse
+          (tokens[i], Event::RequestMethod::HTTP_UNKNOWN) ==
+          Event::RequestMethod::HTTP_UNKNOWN) return false;
+
+    return !tokens.empty();
+  }
+}
+
+
+APIHandler::APIHandler(const JSON::Value &config, const JSON::Value &_api) :
   api(new JSON::Dict) {
 
-  api->insert("title", title);
-  JSON::ValuePtr entrypoints = new JSON::Dict;
-  api->insert("api", entrypoints);
+  api->insert("title", config.getString("title", "JmpAPI Docs"));
+  if (config.hasString("doc-help"))
+    api->insert("help", config.getString("doc-help"));
 
-  // Load entrypoints
-  for (unsigned i = 0; i < _api->size(); i++) {
-    const string &pattern = _api->keyAt(i);
-    JSON::ValuePtr _entrypoint = _api->get(i);
-    if (_entrypoint->getBoolean("hide", false)) continue;
-
-    JSON::ValuePtr entrypoint = new JSON::Dict;
-    entrypoints->insert(pattern, entrypoint);
-
-    // Get URL args from entrypoint pattern
-    Event::HTTPURLPatternMatcher matcher(pattern, 0);
-    const set<string> &urlArgs = matcher.getArgs();
-
-    JSON::ValuePtr entrypointArgs = _entrypoint->get("args", new JSON::Dict);
-
-    // Load methods
-    for (unsigned j = 0; j < _entrypoint->size(); j++) {
-      if (_entrypoint->keyAt(j) == "args") continue;
-      JSON::ValuePtr _method = _entrypoint->get(j);
-      if (_method->getBoolean("hide", false) ||
-          _method->getString("handler", "") == "pass") continue;
-
-      JSON::ValuePtr method = new JSON::Dict;
-      entrypoint->insert(_entrypoint->keyAt(j), method);
-
-      // Load args
-      JSON::ValuePtr args = new JSON::Dict;
-      args->merge(*entrypointArgs);
-      if (_method->has("args")) args->merge(*_method->get("args"));
-      if (args->size()) {
-        // Mark URL args
-        for (unsigned i = 0; i < args->size(); i++)
-          if (urlArgs.find(args->keyAt(i)) != urlArgs.end())
-            args->get(i)->insertBoolean("url", true);
-
-        method->insert("args", args);
-      }
-
-      // Copy other keys
-      const char *keys[] = {"allow", "deny", "handler", "help", 0};
-      for (unsigned k = 0; keys[k]; k++)
-        if (_method->has(keys[k]))
-          method->insert(keys[k], _method->get(keys[k]));
-    }
-  }
+  api->insert("categories", loadCategories(_api));
 }
 
 
@@ -102,4 +87,100 @@ bool APIHandler::operator()(Event::Request &req) {
   writer->close();
   req.reply();
   return true;
+}
+
+
+JSON::ValuePtr APIHandler::loadCategories(const JSON::Value &_cats) {
+  JSON::ValuePtr cats = new JSON::Dict;
+
+  for (unsigned i = 0; i < _cats.size(); i++) {
+    JSON::Value &cat = *_cats.get(i);
+    if (!cat.getBoolean("hide", false))
+      cats->insert(_cats.keyAt(i), loadCategory(cat));
+  }
+
+  return cats;
+}
+
+
+JSON::ValuePtr APIHandler::loadCategory(const JSON::Value &_cat) {
+  JSON::ValuePtr cat = new JSON::Dict;
+
+  string base = _cat.getString("base", "");
+  const char *keys[] = {"base", "title", "help", "allow", "deny", 0};
+  copyExistingKeys(keys, _cat, *cat);
+
+  if (_cat.hasDict("endpoints")) {
+    const JSON::Value &_endpoints = *_cat.get("endpoints");
+    JSON::ValuePtr endpoints = new JSON::Dict;
+
+    cat->insert("endpoints", endpoints);
+
+    for (unsigned i = 0; i < _endpoints.size(); i++) {
+      string pattern = base + _endpoints.keyAt(i);
+      const JSON::Value &_endpoint = *_endpoints.get(i);
+      if (_endpoint.getBoolean("hide", false)) continue;
+
+      endpoints->insert(pattern, loadEndpoint(pattern, _endpoint));
+    }
+  }
+
+  return cat;
+}
+
+
+JSON::ValuePtr APIHandler::loadEndpoint(const string &pattern,
+                                        const JSON::Value &_endpoint) {
+  JSON::ValuePtr endpoint = new JSON::Dict;
+
+  // Copy keys
+  const char *keys[] = {"help", "allow", "deny", 0};
+  copyExistingKeys(keys, _endpoint, *endpoint);
+
+  // Get URL args from endpoint pattern
+  Event::HTTPURLPatternMatcher matcher(pattern, 0);
+  const set<string> &urlArgs = matcher.getArgs();
+  JSON::ValuePtr endpointArgs = _endpoint.get("args", new JSON::Dict);
+
+  // Load methods
+  for (unsigned i = 0; i < _endpoint.size(); i++) {
+    const string &key = _endpoint.keyAt(i);
+
+    // Ignore non-methods
+    if (!isMethod(key)) continue;
+
+    const JSON::Value &_method = *_endpoint.get(i);
+    if (_method.getBoolean("hide", false) ||
+        _method.getString("handler", "") == "pass") continue;
+
+    endpoint->insert(key, loadMethod(_method, urlArgs, *endpointArgs));
+  }
+
+  return endpoint;
+}
+
+
+JSON::ValuePtr APIHandler::loadMethod(const JSON::Value &_method,
+                                      const set<string> &urlArgs,
+                                      const JSON::Value &endpointArgs) {
+  JSON::ValuePtr method = new JSON::Dict;
+
+  // Load args
+  JSON::ValuePtr args = new JSON::Dict;
+  args->merge(endpointArgs);
+  if (_method.has("args")) args->merge(*_method.get("args"));
+  if (args->size()) {
+    // Mark URL args
+    for (unsigned i = 0; i < args->size(); i++)
+      if (urlArgs.find(args->keyAt(i)) != urlArgs.end())
+        args->get(i)->insertBoolean("url", true);
+
+    method->insert("args", args);
+  }
+
+  // Copy other keys
+  const char *keys[] = {"help", "handler", "allow", "deny", 0};
+  copyExistingKeys(keys, _method, *method);
+
+  return method;
 }

@@ -4,20 +4,18 @@ NAME=jmpapi
 ETC=/etc/$NAME
 RUN=/var/run/$NAME
 LOG=/var/log/$NAME
-CONFIG=$ETC/config.d
+CONFIG=$ETC/jmpapi.yaml
 DOC=/usr/share/doc/$NAME
 
 case "$1" in
     reconfigure|configure)
         # Install default config if one does not exist
-        if [ ! -d $CONFIG ]; then
-            mkdir -m 755 $CONFIG
+        if [ ! -f $CONFIG ]; then
+            ln -s $DOC/api/jmpapi-auth.yaml $ETC/
+            ln -s $DOC/api/jmpapi-docs.yaml $ETC/
 
-            ln -s $DOC/config.d/jmpapi-auth.yaml $CONFIG/30-jmpapi-auth.yaml
-            ln -s $DOC/config.d/jmpapi-docs.yaml $CONFIG/40-jmpapi-docs.yaml
-            ln -s $DOC/config.d/local.yaml $CONFIG/50-local.yaml
-
-            chmod a-r $CONFIG/50-local.yaml # May contain secrets
+            cp $DOC/api/jmpapi-example.yaml $CONFIG
+            chmod a-r $CONFIG # May contain secrets
         fi
 
         # Setup permissions

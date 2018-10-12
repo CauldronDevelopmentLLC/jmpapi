@@ -25,29 +25,9 @@
 
 script#api-docs-template(type="text/x-template")
   .api-docs
-    h1.api-title {{title}}
+    h1.api-title {{data.title}}
 
-    .api-entrypoint(v-for="entrypoint, path in api")
-      .api-method(v-for="entry, method in entrypoint")
-        .api-path {{method}} {{path}}
+    p.api-help(v-if="data.help") {{data.help}}
 
-        table.api-args(v-if="entry.args")
-          tr
-            th Argument
-            th Type
-            th Default
-            th Description
-
-          api-arg(v-for="config, name in entry.args", :name="name",
-            :config="config")
-
-        .api-help(v-if="entry.help") {{entry.help}}
-
-        .api-allow(v-if="entry.allow")
-          | <b>Allow:</b> {{auth_list(entry.allow)}}
-
-        .api-deny(v-if="entry.deny")
-          | <b>Deny:</b> {{auth_list(entry.deny)}}
-
-        .api-example
-          pre {{example(method, path, entry)}}
+    api-category(v-for="config, name in data.categories", :name="name",
+      :config="config")
