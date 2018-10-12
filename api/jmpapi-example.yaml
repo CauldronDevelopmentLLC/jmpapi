@@ -4,6 +4,7 @@ options:
   http-root: ./http
 
 title: JmpAPI Docs
+
 help: >
   This page describes the JSON over HTTP API endpoints supported by this server.
 
