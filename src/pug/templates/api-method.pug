@@ -27,8 +27,11 @@ script#api-method-template(type="text/x-template")
   .api-method(:title="'Click to ' + (open ? 'collapase.' : 'expand.')",
     :class="open ? 'opened' : 'closed'")
     a(:name="name")
-    .api-path(@click="toggle")
-      .fa(:class="open ? 'fa-minus' : 'fa-plus'")
+    .api-path(@click="open = !open")
+      a.api-link(:href="'#' + name", title="Direct link to endpoint.",
+        @click.stop="")
+        .fa.fa-link
+      .fa(:class="'fa-caret-' + (open ? 'down' : 'right')")
       | {{method}} {{path}}
 
     template(v-if="open")

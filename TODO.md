@@ -14,6 +14,4 @@
 # API Docs
  * Autogenerate API forms.
  * Show which arguments are optional in API docs.
- * Show top-level API help.
  * Show API example response.
- * Categories.

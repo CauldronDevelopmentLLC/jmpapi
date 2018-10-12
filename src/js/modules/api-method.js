@@ -67,12 +67,6 @@ module.exports = {
 
 
   methods: {
-    toggle: function (path) {
-      this.open = !this.open;
-      if (this.open) location.hash = this.name;
-    },
-
-
     api_path: function (path) {
       var base = location.protocol + '//' + location.hostname;
       if (location.port) base += ':' + location.port;

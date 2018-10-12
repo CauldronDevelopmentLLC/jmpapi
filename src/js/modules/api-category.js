@@ -44,6 +44,18 @@ module.exports = {
 
 
   methods: {
+    expand: function () {
+      for (var i = 0; i < this.$children.length; i++)
+        this.$children[i].open = true;
+    },
+
+
+    collapse: function () {
+      for (var i = 0; i < this.$children.length; i++)
+        this.$children[i].open = false;
+    },
+
+
     auth_list: function (list) {
       function auth_entry(entry) {
         if (entry[0] == '$') return 'group:' + entry.substr(1);

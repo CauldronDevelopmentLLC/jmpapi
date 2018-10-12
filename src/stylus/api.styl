@@ -31,18 +31,62 @@ body
 .api-title
   text-align center
 
+.api-link
+  float right
+  display block
+  height 32px
+  width 32px
+  text-align center
+
+  &:visited, &:link
+    color #aaa
+
 .api-category
+  border-radius 4px
+  border 1px solid #ddd
+
   &.opened
-    margin-bottom 3em
+    margin-bottom 2em
+
+  &.closed
+    margin-bottom 4px
+
+  > div, > p
+    margin-left 4px
+    margin-right 4px
 
   .fa
+    color #aaa
     margin-right 0.5em
+    font-size 12pt
+    font-weight normal
+    width 1em
 
   .api-category-title
     font-weight bold
     font-size 150%
     cursor pointer
+    border-top-left-radius 4px
+    border-top-right-radius 4px
     border-bottom 1px solid #ddd
+    margin 0
+    padding 4px
+    background #eee
+    color #444
+
+    .fa-expand, .fa-compress
+      float right
+      cursor pointer
+      text-align center
+      line-height 32px
+      width 32px
+      margin-right 0
+
+  &.closed .api-category-title
+    border 0
+
+    .fa-expand, .fa-compress
+      display none
 
 .api-endpoint
   .api-method
@@ -65,6 +109,9 @@ body
       font-weight bold
       font-size 110%
       cursor pointer
+
+    &.closed .api-path
+      border-radius 4px
 
     .api-args
       width 100%
