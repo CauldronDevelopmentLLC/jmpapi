@@ -24,10 +24,10 @@
 //-/////////////////////////////////////////////////////////////////////////////
 
 script#api-category-template(type="text/x-template")
-  .api-category(:title="'Click to ' + (open ? 'collapase.' : 'expand.')",
-    :class="open ? 'opened' : 'closed'")
+  .api-category(:class="open ? 'opened' : 'closed'")
     a(:name="name")
-    .api-category-title(@click="open = !open")
+    .api-category-title(@click="open = !open",
+      :title="'Click to ' + (open ? 'collapase.' : 'expand.')")
       a.api-link(:href="'#' + name", title="Direct link to API category.",
         @click.stop="")
         .fa.fa-link
