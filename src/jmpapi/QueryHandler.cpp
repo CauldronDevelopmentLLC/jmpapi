@@ -53,11 +53,24 @@ QueryHandler::QueryHandler(const JSON::Value &config) :
 
 
 bool QueryHandler::operator()(Event::Request &req) {
-  const JSON::Dict &args = req.parseArgs();
+  class FormatCB : public String::FormatCB {
+    SmartPointer<Session> session;
 
-  // TODO validate args
+  public:
+    FormatCB(Event::Request &req) : session(req.getSession()) {}
 
-  req.cast<Transaction>().query(replyCB, sql,
-                                SmartPointer<const JSON::Value>::Phony(&args));
+
+    string operator()(char type, unsigned index, const string &name) const {
+      if (String::startsWith(name, "group."))
+        return String(!session.isNull() && session->hasGroup(name.substr(6)));
+      return "null";
+    }
+  };
+
+
+  const JSON::Dict &args = req.getArgs();
+  if (args.empty()) req.parseArgs();
+
+  req.cast<Transaction>().query(replyCB, args.format(sql, FormatCB(req)));
   return !pass;
 }

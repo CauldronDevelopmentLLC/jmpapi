@@ -16,6 +16,7 @@
 # API Docs
  * Autogenerate API forms.
  * Show API example response.
+ * Describe error responses.
 
 # Error Handling
  * Better error reporting when DB return type does not match.
