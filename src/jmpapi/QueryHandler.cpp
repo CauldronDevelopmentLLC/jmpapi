@@ -31,6 +31,8 @@
 
 #include "QueryHandler.h"
 
+#include <cbang/log/Logger.h>
+
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
@@ -53,24 +55,11 @@ QueryHandler::QueryHandler(const JSON::Value &config) :
 
 
 bool QueryHandler::operator()(Event::Request &req) {
-  class FormatCB : public String::FormatCB {
-    SmartPointer<Session> session;
-
-  public:
-    FormatCB(Event::Request &req) : session(req.getSession()) {}
-
-
-    string operator()(char type, unsigned index, const string &name) const {
-      if (String::startsWith(name, "group."))
-        return String(!session.isNull() && session->hasGroup(name.substr(6)));
-      return "null";
-    }
-  };
-
-
   const JSON::Dict &args = req.getArgs();
   if (args.empty()) req.parseArgs();
 
-  req.cast<Transaction>().query(replyCB, args.format(sql, FormatCB(req)));
+  req.cast<Transaction>().query
+    (replyCB, sql, SmartPointer<const JSON::Value>::Phony(&args));
+
   return !pass;
 }

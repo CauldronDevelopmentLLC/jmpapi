@@ -85,10 +85,29 @@ bool Transaction::lookupSession() {
 }
 
 
-void Transaction::query(event_db_member_functor_t member, const string &sql,
+void Transaction::query(event_db_member_functor_t member, const string &_sql,
                         const SmartPointer<const JSON::Value> &dict) {
   if (db.isNull()) db = app.getDBConnection();
-  db->query(this, member, sql, dict);
+
+  class FormatCB : public String::FormatCB {
+    SmartPointer<Session> session;
+
+  public:
+    FormatCB(Event::Request &req) : session(req.getSession()) {}
+
+
+    string operator()(char type, unsigned index, const string &name) const {
+      if (String::startsWith(name, "group."))
+        return String(!session.isNull() && session->hasGroup(name.substr(6)));
+      return "null";
+    }
+  };
+
+  string sql;
+  if (!dict.isNull()) sql = dict->format(_sql, FormatCB(*this));
+  else sql = String(_sql).format(FormatCB(*this));
+
+  db->query(this, member, sql);
 }
 
 

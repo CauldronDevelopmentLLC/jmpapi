@@ -8,12 +8,17 @@ DELIMITER //
 CREATE PROCEDURE AuthLogin(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
   IN _email VARCHAR(128), IN _name VARCHAR(128), IN _avatar VARCHAR(256))
 BEGIN
+  IF ISNULL(_name) THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User name cannot be NULL';
+  END IF;
+
   -- Update user
   UPDATE users SET name = _name, avatar = _avatar, last_used = NOW()
       WHERE provider = _provider AND email = _email;
 
   IF ROW_COUNT() != 1 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User not found.';
+    SET @msg = CONCAT('User "', _name, '" not found.');
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @msg;
   END IF;
 
   -- Save user ID
