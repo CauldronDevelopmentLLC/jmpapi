@@ -96,7 +96,7 @@ void Transaction::query(event_db_member_functor_t member, const string &_sql,
     FormatCB(Event::Request &req) : session(req.getSession()) {}
 
 
-    string operator()(char type, unsigned index, const string &name) const {
+    string operator()(char type, int index, const string &name) const {
       if (String::startsWith(name, "group."))
         return String(!session.isNull() && session->hasGroup(name.substr(6)));
       return "null";
