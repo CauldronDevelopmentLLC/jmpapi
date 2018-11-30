@@ -8,8 +8,8 @@ DELIMITER //
 CREATE PROCEDURE AuthLogin(IN _sid VARCHAR(48), IN _provider VARCHAR(16),
   IN _email VARCHAR(128), IN _name VARCHAR(128), IN _avatar VARCHAR(256))
 BEGIN
-  IF ISNULL(_name) THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User name cannot be NULL';
+  IF ISNULL(_name) OR LENGTH(_name) = 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User name cannot be empty';
   END IF;
 
   -- Update user
@@ -18,7 +18,7 @@ BEGIN
 
   IF ROW_COUNT() != 1 THEN
     SET @msg = CONCAT('User "', _name, '" not found.');
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @msg;
+    SIGNAL SQLSTATE '02000' SET MESSAGE_TEXT = @msg;
   END IF;
 
   -- Save user ID
@@ -85,6 +85,10 @@ CREATE PROCEDURE UserAdd(
   IN _email VARCHAR(256),
   IN _name VARCHAR(128))
 BEGIN
+  IF ISNULL(_name) OR LENGTH(_name) = 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User name cannot be empty';
+  END IF;
+
   -- Insert user
   INSERT INTO users (provider, email, name, last_used)
     VALUES (_provider, _email, _name, 0);
@@ -139,6 +143,10 @@ END //
 
 CREATE PROCEDURE GroupAdd(IN _group VARCHAR(64))
 BEGIN
+  IF ISNULL(_group) OR LENGTH(_group) = 0 THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Group name cannot be empty';
+  END IF;
+
   INSERT INTO groups (name) VALUES (_group);
 END //
 
