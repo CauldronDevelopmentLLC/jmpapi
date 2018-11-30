@@ -79,14 +79,14 @@ bool Transaction::lookupSession() {
   if (sql.empty()) return false;
 
   setSession(new Session(sid, getClientIP()));
-  query(&Transaction::session, sql, getSession());
+  query(&Transaction::session, sql, *getSession());
 
   return true;
 }
 
 
 void Transaction::query(event_db_member_functor_t member, const string &_sql,
-                        const SmartPointer<const JSON::Value> &dict) {
+                        const JSON::Value &dict) {
   if (db.isNull()) db = app.getDBConnection();
 
   class FormatCB : public String::FormatCB {
@@ -103,11 +103,7 @@ void Transaction::query(event_db_member_functor_t member, const string &_sql,
     }
   };
 
-  string sql;
-  if (!dict.isNull()) sql = dict->format(_sql, FormatCB(*this));
-  else sql = String(_sql).format(FormatCB(*this));
-
-  db->query(this, member, sql);
+  db->query(this, member, dict.format(_sql, FormatCB(*this)));
 }
 
 
@@ -194,7 +190,7 @@ void Transaction::processProfile(const JSON::ValuePtr &profile) {
 
       // DB login
       if (!config->hasString("sql")) login();
-      else query(&Transaction::login, config->getString("sql"), getSession());
+      else query(&Transaction::login, config->getString("sql"), *getSession());
 
       return;
     } CATCH_ERROR;
@@ -227,10 +223,6 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
     writer->endList();
 
   } else {
-    // Open new Session, if necessary
-    if (getSession().isNull())
-      setSession(app.getSessionManager().openSession(getClientIP()));
-
     // Get OAuth2 login provider
     OAuth2 *auth = 0;
     if (provider == "google") auth = &app.getGoogleAuth();
@@ -244,13 +236,16 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
     }
 
     const URI &uri = getURI();
-    string sid = getSession()->getID();
-    if (uri.has("state"))
+    if (uri.has("state") && !getSession().isNull())
       return OAuth2Login::requestToken
-        (*this, *auth, sid, getSession()->getString("redirect_uri", ""));
+        (*this, *auth, getSession()->getID(),
+         getSession()->getString("redirect_uri", ""));
 
+    // Open new Session
+    setSession(app.getSessionManager().openSession(getClientIP()));
     setSessionCookie(); // Needed to pass anti-forgery
 
+    string sid = getSession()->getID();
     URI redirectURL = auth->getRedirectURL(uri.getPath(), sid);
     if (args.hasString("redirect_uri")) {
       string uri = args.getString("redirect_uri");
@@ -272,7 +267,7 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
 bool Transaction::apiLogout(const JSON::ValuePtr &config) {
   // DB logout
   if (!config->hasString("sql") || getSession().isNull()) logout();
-  else query(&Transaction::logout, config->getString("sql"), getSession());
+  else query(&Transaction::logout, config->getString("sql"), *getSession());
 
   return true;
 }
@@ -296,9 +291,7 @@ void Transaction::session(MariaDB::EventDBCallback::state_t state) {
       // Session was found in DB
       getSession()->addGroup("authenticated");
       app.getSessionManager().addSession(getSession());
-
-    } else // Session not found in DB, open a new one
-      setSession(app.getSessionManager().openSession(getClientIP()));
+    }
 
     // Restart request processing
     Event::HTTP::dispatch(app.getServer(), *this);

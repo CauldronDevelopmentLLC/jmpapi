@@ -31,8 +31,6 @@
 
 #include "QueryHandler.h"
 
-#include <cbang/log/Logger.h>
-
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
@@ -58,8 +56,7 @@ bool QueryHandler::operator()(Event::Request &req) {
   const JSON::Dict &args = req.getArgs();
   if (args.empty()) req.parseArgs();
 
-  req.cast<Transaction>().query
-    (replyCB, sql, SmartPointer<const JSON::Value>::Phony(&args));
+  req.cast<Transaction>().query(replyCB, sql, args);
 
   return !pass;
 }

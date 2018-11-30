@@ -62,7 +62,7 @@ namespace JmpAPI {
     typedef typename cb::MariaDB::EventDBMemberFunctor<Transaction>::member_t
     event_db_member_functor_t;
     void query(event_db_member_functor_t member, const std::string &s,
-               const cb::SmartPointer<const cb::JSON::Value> &dict = 0);
+               const cb::JSON::Value &dict);
 
     // From cb::Event::Request
     cb::SmartPointer<cb::JSON::Writer> getJSONWriter();
