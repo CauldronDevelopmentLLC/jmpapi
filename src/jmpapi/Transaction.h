@@ -50,6 +50,8 @@ namespace JmpAPI {
   class Transaction : public cb::Event::Request, public cb::Event::OAuth2Login {
     App &app;
     cb::JSON::ValuePtr config;
+    cb::JSON::ValuePtr fields;
+    unsigned currentField;
     cb::SmartPointer<cb::MariaDB::EventDB> db;
     cb::SmartPointer<cb::JSON::Writer> writer;
 
@@ -58,6 +60,8 @@ namespace JmpAPI {
 
     void setSessionCookie();
     bool lookupSession();
+
+    void setFields(const cb::JSON::ValuePtr &fields);
 
     typedef typename cb::MariaDB::EventDBMemberFunctor<Transaction>::member_t
     event_db_member_functor_t;
@@ -90,6 +94,7 @@ namespace JmpAPI {
     void returnBool(cb::MariaDB::EventDBCallback::state_t state);
     void returnU64(cb::MariaDB::EventDBCallback::state_t state);
     void returnS64(cb::MariaDB::EventDBCallback::state_t state);
+    void returnFields(cb::MariaDB::EventDBCallback::state_t state);
     void returnJSON(cb::MariaDB::EventDBCallback::state_t state);
     void returnOk(cb::MariaDB::EventDBCallback::state_t state);
   };

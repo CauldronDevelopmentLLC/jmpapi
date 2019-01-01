@@ -39,15 +39,18 @@ using namespace JmpAPI;
 QueryHandler::QueryHandler(const JSON::Value &config) :
   sql(config.getString("sql")), pass(config.getBoolean("pass", false)) {
 
-  string ret = config.getString("return", "json");
+  if (config.hasList("fields")) fields = config.get("fields");
 
-  if      (ret == "ok")    replyCB = &Transaction::returnOk;
-  else if (ret == "hlist") replyCB = &Transaction::returnHeadList;
-  else if (ret == "list")  replyCB = &Transaction::returnList;
-  else if (ret == "json")  replyCB = &Transaction::returnJSON;
-  else if (ret == "bool")  replyCB = &Transaction::returnBool;
-  else if (ret == "u64")   replyCB = &Transaction::returnU64;
-  else if (ret == "s64")   replyCB = &Transaction::returnS64;
+  string ret = config.getString("return", fields.isNull() ? "json" : "fields");
+
+  if      (ret == "ok")     replyCB = &Transaction::returnOk;
+  else if (ret == "hlist")  replyCB = &Transaction::returnHeadList;
+  else if (ret == "list")   replyCB = &Transaction::returnList;
+  else if (ret == "fields") replyCB = &Transaction::returnFields;
+  else if (ret == "json")   replyCB = &Transaction::returnJSON;
+  else if (ret == "bool")   replyCB = &Transaction::returnBool;
+  else if (ret == "u64")    replyCB = &Transaction::returnU64;
+  else if (ret == "s64")    replyCB = &Transaction::returnS64;
   else THROWS("Unsupported query return type '" << ret << "'");
 }
 
@@ -56,6 +59,7 @@ bool QueryHandler::operator()(Event::Request &req) {
   const JSON::Dict &args = req.getArgs();
   if (args.empty()) req.parseArgs();
 
+  req.cast<Transaction>().setFields(fields);
   req.cast<Transaction>().query(replyCB, sql, args);
 
   return !pass;

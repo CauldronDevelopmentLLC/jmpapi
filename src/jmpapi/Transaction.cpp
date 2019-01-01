@@ -50,7 +50,8 @@ using namespace JmpAPI;
 
 
 Transaction::Transaction(App &app, evhttp_request *req) :
-  Request(req), Event::OAuth2Login(app.getEventClient()), app(app) {}
+  Request(req), Event::OAuth2Login(app.getEventClient()), app(app),
+  currentField(0) {}
 
 
 void Transaction::setSessionCookie() {
@@ -82,6 +83,12 @@ bool Transaction::lookupSession() {
   query(&Transaction::session, sql, *getSession());
 
   return true;
+}
+
+
+void Transaction::setFields(const JSON::ValuePtr &fields) {
+  this->fields = fields;
+  currentField = 0;
 }
 
 
@@ -424,6 +431,51 @@ void Transaction::returnS64(MariaDB::EventDBCallback::state_t state) {
     break;
 
   default: return returnJSON(state);
+  }
+}
+
+
+void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
+  switch (state) {
+  case MariaDB::EventDBCallback::EVENTDB_ROW:
+    if (writer.isNull()) getJSONWriter()->beginDict();
+
+    if (writer->inDict()) db->insertRow(*writer, 0, -1, false);
+
+    else if (db->getFieldCount() == 1) {
+      writer->beginAppend();
+      db->writeField(*writer, 0);
+
+    } else {
+      writer->appendDict();
+      db->insertRow(*writer, 0, -1, false);
+      writer->endDict();
+    }
+    break;
+
+  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: {
+    if (currentField == fields->size()) THROW("Unexpected DB result");
+    string field = fields->getString(currentField++);
+    if (field.empty()) THROW("Empty field name");
+
+    if (field[0] == '*') writer->insertDict(field.substr(1));
+    else writer->insertList(field);
+  }
+
+  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+    if (writer->inList()) writer->endList();
+    else writer->endDict();
+    break;
+
+  case MariaDB::EventDBCallback::EVENTDB_DONE:
+    if (writer.isNull()) sendJSONError(HTTP_NOT_FOUND);
+    else {
+      writer->endDict();
+      return returnOk(state); // Success
+    }
+    break;
+
+  default: return returnOk(state);
   }
 }
 

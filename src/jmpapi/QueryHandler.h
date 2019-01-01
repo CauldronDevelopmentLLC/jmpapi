@@ -36,11 +36,14 @@
 #include <cbang/event/HTTPHandler.h>
 #include <cbang/db/maria/EventDBCallback.h>
 
+#include <vector>
+
 
 namespace JmpAPI {
   class QueryHandler : public cb::Event::HTTPHandler {
     std::string sql;
     bool pass;
+    cb::JSON::ValuePtr fields;
     Transaction::event_db_member_functor_t replyCB;
 
   public:
