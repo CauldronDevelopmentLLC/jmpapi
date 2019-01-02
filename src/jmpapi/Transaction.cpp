@@ -464,9 +464,12 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: {
+    closeField = false;
+    if (fields.isNull()) THROW("Fields cannot be null");
     if (currentField == fields->size()) THROW("Unexpected DB result");
     nextField = fields->getString(currentField++);
     if (nextField.empty()) THROW("Empty field name");
+    break;
   }
 
   case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
