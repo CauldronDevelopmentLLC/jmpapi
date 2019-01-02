@@ -89,6 +89,7 @@ bool Transaction::lookupSession() {
 void Transaction::setFields(const JSON::ValuePtr &fields) {
   this->fields = fields;
   currentField = 0;
+  nextField.clear();
 }
 
 
@@ -440,6 +441,15 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
   case MariaDB::EventDBCallback::EVENTDB_ROW:
     if (writer.isNull()) getJSONWriter()->beginDict();
 
+    if (!nextField.empty()) {
+      closeField = true;
+      if (nextField[0] == '*') {
+        if (nextField.length() != 1) writer->insertDict(nextField.substr(1));
+        else closeField = false;
+      } else writer->insertList(nextField);
+      nextField.clear();
+    }
+
     if (writer->inDict()) db->insertRow(*writer, 0, -1, false);
 
     else if (db->getFieldCount() == 1) {
@@ -455,16 +465,15 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
 
   case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: {
     if (currentField == fields->size()) THROW("Unexpected DB result");
-    string field = fields->getString(currentField++);
-    if (field.empty()) THROW("Empty field name");
-
-    if (field[0] == '*') writer->insertDict(field.substr(1));
-    else writer->insertList(field);
+    nextField = fields->getString(currentField++);
+    if (nextField.empty()) THROW("Empty field name");
   }
 
   case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
-    if (writer->inList()) writer->endList();
-    else writer->endDict();
+    if (closeField) {
+      if (writer->inList()) writer->endList();
+      else writer->endDict();
+    }
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_DONE:

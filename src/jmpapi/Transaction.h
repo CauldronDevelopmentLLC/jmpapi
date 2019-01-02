@@ -50,8 +50,12 @@ namespace JmpAPI {
   class Transaction : public cb::Event::Request, public cb::Event::OAuth2Login {
     App &app;
     cb::JSON::ValuePtr config;
+
     cb::JSON::ValuePtr fields;
     unsigned currentField;
+    std::string nextField;
+    bool closeField;
+
     cb::SmartPointer<cb::MariaDB::EventDB> db;
     cb::SmartPointer<cb::JSON::Writer> writer;
 
