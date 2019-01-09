@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -18,10 +18,6 @@
        You should have received a copy of the GNU General Public License
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
-
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
 
                  For information regarding this software email:
                                 Joseph Coffland
@@ -63,7 +59,7 @@ namespace JmpAPI {
     Transaction(App &app, evhttp_request *req);
 
     void setSessionCookie();
-    bool lookupSession();
+    bool lookupSession(const std::string &sql);
 
     void setFields(const cb::JSON::ValuePtr &fields);
 
@@ -71,6 +67,7 @@ namespace JmpAPI {
     event_db_member_functor_t;
     void query(event_db_member_functor_t member, const std::string &s,
                const cb::JSON::Value &dict);
+    void query(event_db_member_functor_t member, const std::string &s);
 
     // From cb::Event::Request
     cb::SmartPointer<cb::JSON::Writer> getJSONWriter();
@@ -99,7 +96,8 @@ namespace JmpAPI {
     void returnU64(cb::MariaDB::EventDBCallback::state_t state);
     void returnS64(cb::MariaDB::EventDBCallback::state_t state);
     void returnFields(cb::MariaDB::EventDBCallback::state_t state);
-    void returnJSON(cb::MariaDB::EventDBCallback::state_t state);
+    void returnDict(cb::MariaDB::EventDBCallback::state_t state);
+    void returnOne(cb::MariaDB::EventDBCallback::state_t state);
     void returnOk(cb::MariaDB::EventDBCallback::state_t state);
   };
 }

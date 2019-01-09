@@ -28,28 +28,75 @@ script#admin-user-template(type="text/x-template")
     h2
       .back
         .fa.fa-arrow-left(@click="back", title="Return to main page")
-      | Editing User
+      | Editing User {{uid}}
+
+    .avatar
       img(:src="user.avatar")
-      | {{user.name}}
 
     table.user
       tr
         th Email
-        td: a(:href="'mailto:' + user.email") {{user.email}}
+        td.email: input(v-model="user.email")
+      tr
+        th Name
+        td.name: input(v-model="user.name")
+      tr
+        th Avatar
+        td.avatar: input(v-model="user.avatar")
+      tr
+        th Enabled
+        td.enabled: input(type="checkbox", v-model="user.enabled")
       tr
         th Created
-        td {{user.created}}
+        td.created {{user.created}}
       tr
         th Last Seen
-        td {{user.last_used}}
+        td.last_Seen {{user.last_used}}
       tr
-        th Provider
-        td {{user.provider}}
+        th Actions
+        td.actions
+          .fa.fa-trash(@click="user_delete", title="Delete user")
+          .fa.fa-save(@click="user_save", title="Save changes")
 
-    table
+    h2 Login Associations
+    table.associations
       thead
         tr
-          th Group
+          th Email
+          td.input: input(v-model="association_new.email")
+          th Provider
+          td.input
+            select(v-model="association_new.provider")
+              option(v-for="provider in providers", :value="provider")
+                | {{provider}}
+            td.actions
+              .fa.fa-plus(@click="user_association_set",
+                title="Set user login provider association.")
+
+        tr
+          th Provider
+          th Email
+          th Name
+          th Avatar
+          th Actions
+
+      tbody
+        tr(v-for="association in user.associations")
+          td.provider {{association.provider}}
+          td.email(@click="user.email = association.email")
+            | {{association.email}}
+          td.name(@click="user.name = association.name") {{association.name}}
+          td.avatar: img(:src="association.avatar",
+            @click="user.avatar = association.avatar")
+          td.actions
+            .fa.fa-trash(@click="user_association_remove(association)",
+              title="Remove login association.")
+
+    h2 Groups
+    table.groups
+      thead
+        tr
+          th Name
           th Status
           th Actions
 
@@ -58,7 +105,7 @@ script#admin-user-template(type="text/x-template")
           td.group {{group.name}}
           td.status {{group.member ? 'Member' : 'Nonmember'}}
           td.actions
-            .fa.fa-minus(v-if="group.member", @click="remove_group(group)",
+            .fa.fa-minus(v-if="group.member", @click="user_group_remove(group)",
               title="Remove user from group")
-            .fa.fa-plus(v-if="!group.member", @click="add_group(group)",
+            .fa.fa-plus(v-if="!group.member", @click="user_group_add(group)",
               title="Add user to group")

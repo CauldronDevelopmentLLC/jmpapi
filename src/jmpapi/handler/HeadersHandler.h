@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,30 +19,34 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#include "RedirectHandler.h"
+#pragma once
 
-#include <cbang/event/Request.h>
+#include <cbang/event/HTTPHandler.h>
+#include <cbang/json/Value.h>
 
-using namespace JmpAPI;
-using namespace cb;
-using namespace std;
-
-
-RedirectHandler::RedirectHandler(int code, const string &location) :
-  StatusHandler(code), location(location) {}
+#include <vector>
+#include <algorithm>
+#include <string>
 
 
-bool RedirectHandler::operator()(Event::Request &req) {
-  req.outSet("Location", location);
-  return StatusHandler::operator()(req);
+namespace JmpAPI {
+  class HeadersHandler : public cb::Event::HTTPHandler {
+    typedef std::pair<std::string, std::string> header_t;
+    std::vector<header_t> headers;
+
+  public:
+    HeadersHandler() {}
+    HeadersHandler(const cb::JSON::ValuePtr &hdrs);
+
+    void add(const std::string &key, const std::string &value);
+
+    // From HTTPHandler
+    bool operator()(cb::Event::Request &req);
+  };
 }

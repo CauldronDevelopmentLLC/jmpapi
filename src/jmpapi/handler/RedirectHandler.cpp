@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,25 +19,26 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#pragma once
+#include "RedirectHandler.h"
 
-#include <cbang/event/HTTPHandler.h>
+#include <cbang/event/Request.h>
+
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
 
-namespace JmpAPI {
-  class PassHandler : public cb::Event::HTTPHandler {
-  public:
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req) {return false;}
-  };
+RedirectHandler::RedirectHandler(int code, const string &location) :
+  StatusHandler(code), location(location) {}
+
+
+bool RedirectHandler::operator()(Event::Request &req) {
+  req.outSet("Location", location);
+  return StatusHandler::operator()(req);
 }

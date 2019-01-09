@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,40 +19,35 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#pragma once
+#include "HeadersHandler.h"
 
-#include "Transaction.h"
+#include <cbang/String.h>
+#include <cbang/event/Request.h>
 
-#include <cbang/event/HTTPHandler.h>
-#include <cbang/json/Value.h>
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
 
-namespace JmpAPI {
-  class EndpointHandler : public cb::Event::HTTPHandler {
-  public:
-    typedef bool (Transaction::*member_t)(const cb::JSON::ValuePtr &config);
+HeadersHandler::HeadersHandler(const JSON::ValuePtr &hdrs) {
+  for (unsigned i = 0; i < hdrs->size(); i++)
+    add(hdrs->keyAt(i), hdrs->getString(i));
+}
 
-  protected:
-    member_t member;
-    cb::JSON::ValuePtr config;
 
-  public:
-    EndpointHandler(member_t member, const cb::JSON::ValuePtr &config) :
-      member(member), config(config) {}
+void HeadersHandler::add(const string &key, const string &value) {
+  headers.push_back(header_t(String::trim(key), String::trim(value)));
+}
 
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req) {
-      return (req.cast<Transaction>().*member)(config);
-    }
-  };
+
+bool HeadersHandler::operator()(Event::Request &req) {
+  for (unsigned i = 0; i < headers.size(); i++)
+    req.outSet(headers[i].first, headers[i].second);
+  return false;
 }

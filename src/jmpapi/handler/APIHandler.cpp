@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -18,10 +18,6 @@
        You should have received a copy of the GNU General Public License
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
-
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
 
                  For information regarding this software email:
                                 Joseph Coffland
@@ -148,9 +144,11 @@ JSON::ValuePtr APIHandler::loadEndpoint(const string &pattern,
     // Ignore non-methods
     if (!isMethod(key)) continue;
 
+    // Hide some handlers in docs
     const JSON::Value &_method = *_endpoint.get(i);
-    if (_method.getBoolean("hide", false) ||
-        _method.getString("handler", "") == "pass") continue;
+    string handler = _method.getString("handler", "");
+    bool hide = handler == "pass" || handler == "session";
+    if (_method.getBoolean("hide", hide)) continue;
 
     endpoint->insert(key, loadMethod(_method, urlArgs, *endpointArgs));
   }

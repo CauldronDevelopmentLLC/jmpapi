@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -18,10 +18,6 @@
        You should have received a copy of the GNU General Public License
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
-
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
 
                  For information regarding this software email:
                                 Joseph Coffland
@@ -41,13 +37,14 @@ QueryHandler::QueryHandler(const JSON::Value &config) :
 
   if (config.hasList("fields")) fields = config.get("fields");
 
-  string ret = config.getString("return", fields.isNull() ? "json" : "fields");
+  string ret = config.getString("return", fields.isNull() ? "ok" : "fields");
 
   if      (ret == "ok")     replyCB = &Transaction::returnOk;
   else if (ret == "hlist")  replyCB = &Transaction::returnHeadList;
   else if (ret == "list")   replyCB = &Transaction::returnList;
   else if (ret == "fields") replyCB = &Transaction::returnFields;
-  else if (ret == "json")   replyCB = &Transaction::returnJSON;
+  else if (ret == "dict")   replyCB = &Transaction::returnDict;
+  else if (ret == "one")    replyCB = &Transaction::returnOne;
   else if (ret == "bool")   replyCB = &Transaction::returnBool;
   else if (ret == "u64")    replyCB = &Transaction::returnU64;
   else if (ret == "s64")    replyCB = &Transaction::returnS64;

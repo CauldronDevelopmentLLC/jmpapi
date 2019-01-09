@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,31 +19,32 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#pragma once
+#include "StatusHandler.h"
 
-#include "ArgConstraint.h"
+#include <cbang/event/Request.h>
+#include <cbang/event/RequestMethod.h>
 
-#include <cbang/util/Regex.h>
+using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-namespace JmpAPI {
-  class ArgPattern : public ArgConstraint {
-    cb::Regex regex;
+StatusHandler::StatusHandler(int code) : code(code) {}
 
-  public:
-    ArgPattern(const std::string &pattern) : regex(pattern) {}
 
-    // From ArgConstraint
-    void operator()(const std::string &value) const;
-  };
+StatusHandler::StatusHandler(const std::string &code) :
+  code(HTTPStatus::parse(code)) {}
+
+
+bool StatusHandler::operator()(Event::Request &req) {
+  req.send(Event::HTTPStatus((HTTPStatus::enum_t)code).toString());
+  req.reply(code);
+
+  return true;
 }

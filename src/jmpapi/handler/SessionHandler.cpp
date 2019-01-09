@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,34 +19,25 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#pragma once
+#include "SessionHandler.h"
 
-#include "ArgConstraint.h"
+#include <jmpapi/Transaction.h>
 
-#include <cbang/json/Value.h>
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
-#include <set>
+
+SessionHandler::SessionHandler(const JSON::Value &config) :
+  sql(config.getString("sql")) {}
 
 
-namespace JmpAPI {
-  class ArgEnum : public ArgConstraint {
-    bool caseSensitive;
-    std::set<std::string> values;
-
-  public:
-    ArgEnum(const cb::JSON::ValuePtr &config);
-
-    // From ArgConstraint
-    void operator()(const std::string &value) const;
-  };
+bool SessionHandler::operator()(Event::Request &req) {
+  return req.cast<Transaction>().lookupSession(sql);
 }

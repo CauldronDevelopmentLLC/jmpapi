@@ -25,27 +25,31 @@
 
 \******************************************************************************/
 
-.user-login
-  position fixed
-  top 4px
-  right 4px
-  font-weight bold
-  line-height 32px
+#pragma once
 
-  @import 'fa-button.styl'
+#include <cbang/event/HTTPHandler.h>
+#include <cbang/json/Value.h>
 
-  .fa-google:hover
-    background-color #e0483a
+#include <set>
 
-  .fa-facebook:hover
-    background-color #3b5999
 
-  .fa-github:hover
-    background-color #24292e
+namespace JmpAPI {
+  class APIHandler : public cb::Event::HTTPHandler {
+    cb::JSON::ValuePtr api;
 
-  .avatar
-    vertical-align top
-    width 32px
-    height 32px
-    border-radius 5px
-    margin 1px
+  public:
+    APIHandler(const cb::JSON::Value &config, const cb::JSON::Value &api);
+
+    // From HTTPHandler
+    bool operator()(cb::Event::Request &req);
+
+  protected:
+    cb::JSON::ValuePtr loadCategories(const cb::JSON::Value &cats);
+    cb::JSON::ValuePtr loadCategory(const cb::JSON::Value &cat);
+    cb::JSON::ValuePtr loadEndpoint(const std::string &pattern,
+                                    const cb::JSON::Value &endpoint);
+    cb::JSON::ValuePtr loadMethod(const cb::JSON::Value &method,
+                                  const std::set<std::string> &urlArgs,
+                                  const cb::JSON::Value &endpointArgs);
+  };
+}

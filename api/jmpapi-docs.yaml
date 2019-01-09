@@ -9,4 +9,5 @@ endpoints:
   /api:
     GET:
       handler: api
+      return: dict
       help: Returns a description of this API.

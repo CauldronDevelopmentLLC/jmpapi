@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -18,10 +18,6 @@
        You should have received a copy of the GNU General Public License
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
-
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
 
                  For information regarding this software email:
                                 Joseph Coffland
@@ -57,10 +53,12 @@ bool ArgsHandler::operator()(Event::Request &req) {
     if (it == validators.end()) continue; // Ignore unrecognized args
 
     try {
-      // TODO ArgConstraint should take a JSON::Value not a std::string.
-      (*it->second)(args.getAsString(i));
+      (*it->second)(req, *args.get(i));
 
     } catch (const Exception &e) {
+      if (e.getCode() == HTTP_UNAUTHORIZED)
+        THROWX("Access denied", HTTP_UNAUTHORIZED);
+
       THROWXS("Invalid argument '" << name << "=" << args.getAsString(i)
               << "': " << e.getMessage(), HTTP_BAD_REQUEST);
     }
@@ -72,7 +70,7 @@ bool ArgsHandler::operator()(Event::Request &req) {
     if (found.find(it->first) == found.end()) {
       const ArgValidator &av = *it->second;
 
-      if (av.hasDefault()) req.insertArg(it->first, av.getDefault());
+      if (av.hasDefault()) req.getArgs().insert(it->first, av.getDefault());
       else if (!av.isOptional()) missing.push_back(it->first);
     }
 

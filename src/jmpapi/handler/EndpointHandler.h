@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,24 +19,36 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#include "ArgPattern.h"
+#pragma once
 
-using namespace JmpAPI;
-using namespace cb;
-using namespace std;
+#include <jmpapi/Transaction.h>
+
+#include <cbang/event/HTTPHandler.h>
+#include <cbang/json/Value.h>
 
 
-void ArgPattern::operator()(const string &value) const {
-  if (!regex.match(value))
-    THROWS("Must match regex pattern: " << regex.toString());
+namespace JmpAPI {
+  class EndpointHandler : public cb::Event::HTTPHandler {
+  public:
+    typedef bool (Transaction::*member_t)(const cb::JSON::ValuePtr &config);
+
+  protected:
+    member_t member;
+    cb::JSON::ValuePtr config;
+
+  public:
+    EndpointHandler(member_t member, const cb::JSON::ValuePtr &config) :
+      member(member), config(config) {}
+
+    // From HTTPHandler
+    bool operator()(cb::Event::Request &req) {
+      return (req.cast<Transaction>().*member)(config);
+    }
+  };
 }

@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -18,10 +18,6 @@
        You should have received a copy of the GNU General Public License
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
-
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
 
                  For information regarding this software email:
                                 Joseph Coffland
@@ -65,8 +61,6 @@ App::App() :
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files."
               )->setDefault("/usr/share/jmpapi/http");
-  options.add("session-sql", "SQL statement for looking up a session."
-              )->setDefault("CALL jmpapi.AuthSession(%(id)s)");
   options.add("jsonp", "Respond with JSONP format data if this argument is "
               "present in an API call.");
   options.popCategory();

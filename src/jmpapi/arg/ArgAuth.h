@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,36 +19,30 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#include "StatusHandler.h"
+#pragma once
 
-#include <cbang/event/Request.h>
-#include <cbang/event/RequestMethod.h>
+#include "ArgConstraint.h"
 
-using namespace std;
-using namespace cb;
-using namespace JmpAPI;
+#include <vector>
 
 
-StatusHandler::StatusHandler(int code) : code(code) {}
+namespace JmpAPI {
+  class ArgAuth : public ArgConstraint {
+    bool allow;
+    std::vector<std::string> groups;
+    std::vector<std::string> sessionVars;
 
+  public:
+    ArgAuth(bool allow, const cb::JSON::ValuePtr &config);
 
-StatusHandler::StatusHandler(const std::string &code) :
-  code(HTTPStatus::parse(code)) {}
-
-
-bool StatusHandler::operator()(Event::Request &req) {
-  req.send(Event::HTTPStatus((HTTPStatus::enum_t)code).toString());
-  req.reply(code);
-
-  return true;
+    // From ArgConstraint
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &_value) const;
+  };
 }

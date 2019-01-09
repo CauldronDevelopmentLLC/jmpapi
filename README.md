@@ -1,7 +1,7 @@
 JmpAPI
 ===========
-A high performance JSON over HTTP API server with MariaDB backend and pug.js
-frontend.
+A high performance JSON over HTTP API server with MariaDB built-in federated
+login.
 
 # Prerequisites
   - [C!](https://github.com/CauldronDevelopmentLLC/cbang)

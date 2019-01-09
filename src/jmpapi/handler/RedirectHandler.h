@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -31,23 +27,17 @@
 
 #pragma once
 
-#include "ArgConstraint.h"
-
-#include <cbang/json/Value.h>
+#include "StatusHandler.h"
 
 
 namespace JmpAPI {
-  class ArgMinLength : public ArgConstraint {
-    unsigned min;
+  class RedirectHandler : public StatusHandler {
+    std::string location;
 
   public:
-    ArgMinLength(const cb::JSON::ValuePtr &config) :
-      min(config->getU32("min")) {}
+    RedirectHandler(int code, const std::string &location);
 
-    // From ArgConstraint
-    void operator()(const std::string &value) const {
-      if (value.length() < min)
-        THROWS("Must be at least " << min << " chars long");
-    }
+    // From HTTPHandler
+    bool operator()(cb::Event::Request &req);
   };
 }

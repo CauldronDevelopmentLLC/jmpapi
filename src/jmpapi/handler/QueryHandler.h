@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -31,21 +27,23 @@
 
 #pragma once
 
-#include "ArgValidator.h"
+#include <jmpapi/Transaction.h>
 
 #include <cbang/event/HTTPHandler.h>
-#include <cbang/json/Value.h>
+#include <cbang/db/maria/EventDBCallback.h>
 
-#include <set>
-#include <map>
+#include <vector>
 
 
 namespace JmpAPI {
-  class ArgsHandler : public cb::Event::HTTPHandler {
-    std::map<std::string, cb::SmartPointer<ArgValidator> > validators;
+  class QueryHandler : public cb::Event::HTTPHandler {
+    std::string sql;
+    bool pass;
+    cb::JSON::ValuePtr fields;
+    Transaction::event_db_member_functor_t replyCB;
 
   public:
-    ArgsHandler(const cb::JSON::ValuePtr &args);
+    QueryHandler(const cb::JSON::Value &config);
 
     // From HTTPHandler
     bool operator()(cb::Event::Request &req);

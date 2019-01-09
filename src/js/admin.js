@@ -1,31 +1,39 @@
 /******************************************************************************\
 
-                    Copyright 2018. Cauldron Development LLC
-                              All Rights Reserved.
+                          This file is part of JmpAPI.
 
-                  For information regarding this software email:
-                                 Joseph Coffland
-                          joseph@cauldrondevelopment.com
+               Copyright (c) 2014-2019, Cauldron Development LLC
+                              All rights reserved.
 
-        This software is free software: you can redistribute it and/or
-        modify it under the terms of the GNU Lesser General Public License
-        as published by the Free Software Foundation, either version 2.1 of
-        the License, or (at your option) any later version.
+          The JmpAPI Webserver is free software: you can redistribute
+         it and/or modify it under the terms of the GNU General Public
+          License as published by the Free Software Foundation, either
+        version 2 of the License, or (at your option) any later version.
 
-        This software is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-        Lesser General Public License for more details.
+          The JmpAPI Webserver is distributed in the hope that it will
+         be useful, but WITHOUT ANY WARRANTY; without even the implied
+            warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+         PURPOSE.  See the GNU General Public License for more details.
 
-        You should have received a copy of the GNU Lesser General Public
-        License along with the C! library.  If not, see
-        <http://www.gnu.org/licenses/>.
+       You should have received a copy of the GNU General Public License
+                     along with this software.  If not, see
+                        <http://www.gnu.org/licenses/>.
+
+                 For information regarding this software email:
+                                Joseph Coffland
+                         joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
 'use strict'
 
 var base = location.pathname.substring(0, location.pathname.lastIndexOf('/'));
+
+
+function trimif(s) {
+  s = typeof s == 'undefined' ? '' : s.trim();
+  return s.length ? s : undefined;
+}
 
 
 var __app = {
@@ -40,7 +48,7 @@ var __app = {
       msg: '',
       err: false,
       page: 'main',
-      user: {},
+      uid: undefined,
       group: ''
     }
   },
@@ -54,15 +62,28 @@ var __app = {
   },
 
 
+  created: function () {
+    this.providers_promise = this.api({url: '/login/providers'});
+  },
+
+
   methods: {
-    message: function () {
+    clear: function () {
       this.msg = '';
       this.err = false;
+    },
+
+
+    message: function () {
+      this.clear();
+
       for (var i = 0; i < arguments.length; i++) {
         var arg = arguments[i];
         if (typeof arg != 'string') arg = JSON.stringify(arg);
         this.msg += arg;
       }
+
+      setTimeout(this.clear, 5000);
     },
 
 
@@ -95,13 +116,17 @@ var __app = {
     _api: function (config) {
       config.url = base + config.url;
 
+      if (typeof config.data != 'undefined') {
+        config.data = JSON.stringify(config.data);
+        config.contentType = 'application/json';
+      }
+
       var d = $.ajax(config);
 
       if (typeof config.msgs == 'undefined') return d;
 
       d.done(function () {
         if (config.msgs.success) this.message(config.msgs.success);
-
       }.bind(this))
 
       d.fail(function (xhr, status, error) {
@@ -150,15 +175,152 @@ var __app = {
     },
 
 
-    edit_user: function (user) {
-      this.page = 'user';
-      this.user = user;
+    get_providers: function (cb) {this.providers_promise.done(cb)},
+
+
+    config_set: function (entry) {
+      var value = entry.type == 'bool' ? (entry.value ? 1 : 0) : entry.value;
+
+      this.api({
+        method: 'PUT',
+        url: '/config/' + entry.name,
+        data: {value: value},
+        msgs: {success: 'Set "' + entry.name + '".'}
+      })
     },
 
 
-    edit_group: function (group) {
+    user_edit: function (user) {
+      this.page = 'user';
+      this.uid = user.id;
+    },
+
+
+    group_edit: function (group) {
       this.page = 'group';
       this.group = group;
+    },
+
+
+    user_add: function (provider, email, name) {
+      return this.api({
+        method: 'POST',
+        url: '/users',
+        data: {
+          provider: provider,
+          email: trimif(email),
+          name: trimif(name)
+        },
+        msgs: {
+          success: 'Added user ' + email + '.',
+          conflict: 'User ' + email + ' already exists.'
+        }
+      })
+    },
+
+
+    user_save: function (uid, user) {
+      return this.api({
+        method: 'PUT',
+        url: '/users/' + uid,
+        data: {
+          email: trimif(user.email),
+          name: trimif(user.name),
+          avatar: trimif(user.avatar),
+          enabled: !!user.enabled
+        },
+        msgs: {success: 'Updated user ' + uid + '.'}
+      })
+    },
+
+
+    user_delete: function (uid, name) {
+      return this.api({
+        method: 'DELETE',
+        url: '/users/' + uid,
+        msgs: {
+          confirm: 'Are you sure you want to delete user ' + name + '?',
+          success: 'Deleted user ' + name + '.'
+        }
+      })
+    },
+
+
+    user_association_set: function (uid, name, association) {
+      return this.api({
+        method: 'PUT',
+        url: '/users/' + uid + '/associations/' + association.provider,
+        data: {
+          email: trimif(association.email),
+          name: trimif(association.name),
+          avatar: trimif(association.avatar)
+        },
+        msgs: {
+          success: 'Set user ' + name + ' association with ' +
+            association.provider + '.'
+        }
+      })
+    },
+
+
+    user_association_remove: function (uid, name, association) {
+      return this.api({
+        method: 'DELETE',
+        url: '/users/' + uid + '/associations/' + association.provider,
+        msgs: {
+          confirm: 'Are you sure you want to delete user ' + name +
+            ' association with ' + association.provider + '?',
+          success: 'Deleted user ' + name + ' association with ' +
+            association.provider + '.'
+        }
+      })
+    },
+
+
+    user_group_remove: function (uid, name, group) {
+      return this.api({
+        method: 'DELETE',
+        url: '/users/' + uid + '/groups/' + group,
+        msgs: {
+          success: 'Removed user ' + name + ' from group ' + group + '.'
+        }
+      })
+    },
+
+
+    user_group_add: function (uid, name, group) {
+      return this.api({
+        method: 'PUT',
+        url: '/users/' + uid + '/groups/' + group,
+        msgs: {
+          success: 'Added user ' + name + ' to group ' + group + '.',
+          conflict: 'User ' + name + ' already in group ' + group + '.'
+        }
+      })
+    },
+
+
+    group_add: function (group) {
+      return this.api({
+        method: 'PUT',
+        url: '/groups/' + group,
+        msgs: {
+          success: 'Added group ' + group + '.',
+          conflict: 'Group ' + group + ' already exists.'
+        }
+      })
+    },
+
+
+    group_delete: function (group) {
+      return this.api({
+        method: 'DELETE',
+        url: '/groups/' + group,
+        msgs: {
+          confirm: 'Are you sure you want to delete group ' + group + '?',
+          success: 'Deleted group ' + group + '.'
+        }
+      })
     }
   }
 }

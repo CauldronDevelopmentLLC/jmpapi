@@ -1,25 +1,27 @@
 /******************************************************************************\
 
-                    Copyright 2018. Cauldron Development LLC
-                              All Rights Reserved.
+                          This file is part of JmpAPI.
 
-                  For information regarding this software email:
-                                 Joseph Coffland
-                          joseph@cauldrondevelopment.com
+               Copyright (c) 2014-2019, Cauldron Development LLC
+                              All rights reserved.
 
-        This software is free software: you can redistribute it and/or
-        modify it under the terms of the GNU Lesser General Public License
-        as published by the Free Software Foundation, either version 2.1 of
-        the License, or (at your option) any later version.
+          The JmpAPI Webserver is free software: you can redistribute
+         it and/or modify it under the terms of the GNU General Public
+          License as published by the Free Software Foundation, either
+        version 2 of the License, or (at your option) any later version.
 
-        This software is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-        Lesser General Public License for more details.
+          The JmpAPI Webserver is distributed in the hope that it will
+         be useful, but WITHOUT ANY WARRANTY; without even the implied
+            warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+         PURPOSE.  See the GNU General Public License for more details.
 
-        You should have received a copy of the GNU Lesser General Public
-        License along with the C! library.  If not, see
-        <http://www.gnu.org/licenses/>.
+       You should have received a copy of the GNU General Public License
+                     along with this software.  If not, see
+                        <http://www.gnu.org/licenses/>.
+
+                 For information regarding this software email:
+                                Joseph Coffland
+                         joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
@@ -63,17 +65,21 @@
     border-collapse collapse
     width 100%
 
+    tr.disabled
+      background #efefef
+
+    tr:nth-child(even)
+      background #fafafa
+
+      &.disabled
+        background #eaeaea
+
     td, th
       border 1px solid #eee
       padding 4px
       white-space nowrap
       overflow hidden
       text-overflow ellipsis
-
-    th
-      text-align center
-
-    td
       text-align left
 
     tbody tr:nth-child(even)
@@ -108,16 +114,23 @@
   .admin-groups
     td.input
       width 99%
-      padding 0
 
       input
-        width 97%
+        width 31em
+
+  .admin-users
+    input
+      max-width 13em
 
   .admin-user
     > h2 img
       margin 0 0.5em
       width 40px
       vertical-align middle
+      border-radius 3px
+
+    div.avatar img
+      max-width 128px
       border-radius 3px
 
     .user
@@ -131,9 +144,28 @@
 
       td
         width 100%
+        text-align left
+
+      input:not([type])
+        width 34em
 
     td.status
       width 100%
+
+    .associations
+      .name, .email
+        cursor pointer
+
+        &:hover
+          text-decoration underline
+
+      .avatar img
+        border-radius 5px
+        cursor pointer
+        border 2px solid transparent
+
+        &:hover
+          border 2px solid #666
 
   .admin-group
     td.name

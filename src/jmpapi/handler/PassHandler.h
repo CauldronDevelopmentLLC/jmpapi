@@ -25,27 +25,15 @@
 
 \******************************************************************************/
 
-.user-login
-  position fixed
-  top 4px
-  right 4px
-  font-weight bold
-  line-height 32px
+#pragma once
 
-  @import 'fa-button.styl'
+#include <cbang/event/HTTPHandler.h>
 
-  .fa-google:hover
-    background-color #e0483a
 
-  .fa-facebook:hover
-    background-color #3b5999
-
-  .fa-github:hover
-    background-color #24292e
-
-  .avatar
-    vertical-align top
-    width 32px
-    height 32px
-    border-radius 5px
-    margin 1px
+namespace JmpAPI {
+  class PassHandler : public cb::Event::HTTPHandler {
+  public:
+    // From HTTPHandler
+    bool operator()(cb::Event::Request &req) {return false;}
+  };
+}

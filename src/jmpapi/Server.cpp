@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -32,14 +28,16 @@
 #include "Server.h"
 #include "App.h"
 #include "Transaction.h"
-#include "EndpointHandler.h"
-#include "StatusHandler.h"
-#include "QueryHandler.h"
-#include "APIHandler.h"
-#include "ArgsHandler.h"
-#include "PassHandler.h"
-#include "HeadersHandler.h"
-#include "RedirectHandler.h"
+
+#include <jmpapi/handler/EndpointHandler.h>
+#include <jmpapi/handler/StatusHandler.h>
+#include <jmpapi/handler/QueryHandler.h>
+#include <jmpapi/handler/APIHandler.h>
+#include <jmpapi/handler/ArgsHandler.h>
+#include <jmpapi/handler/PassHandler.h>
+#include <jmpapi/handler/HeadersHandler.h>
+#include <jmpapi/handler/RedirectHandler.h>
+#include <jmpapi/handler/SessionHandler.h>
 
 #include <cbang/event/Request.h>
 #include <cbang/event/ACLHandler.h>
@@ -122,7 +120,7 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
   if (type.empty()) type == "pass";
 
   if (type == "pass") return new PassHandler;
-
+  if (type == "session") return new SessionHandler(*config);
   if (type == "query") return new QueryHandler(*config);
 
   if (type == "login")
@@ -233,13 +231,8 @@ void Server::loadCategories(const JSON::Value &cats) {
 void Server::init() {
   Event::WebServer::init();
 
-  const JSON::Value &config = *app.getConfig();
-
-  // Load Sessions
-  addMember<Transaction>(&Transaction::lookupSession);
-
   // API Categories
-  loadCategories(*config.get("api"));
+  loadCategories(*app.getConfig()->get("api"));
 
   // Root
   string root = app.getOptions()["http-root"].toString("");

@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -33,27 +29,18 @@
 
 #include "ArgConstraint.h"
 
-#include <cbang/Math.h>
-#include <cbang/json/Value.h>
+#include <cbang/String.h>
 
 
 namespace JmpAPI {
-  class ArgValidator {
-    bool optional;
-    bool defaultSet;
-    std::string defaultValue;
-    std::vector<cb::SmartPointer<ArgConstraint> > constraints;
+  class ArgBoolean : public ArgConstraint {
 
   public:
-    ArgValidator() : optional(false), defaultSet(false) {}
-    ArgValidator(const cb::JSON::ValuePtr &config);
-
-    bool isOptional() const {return optional;}
-    bool hasDefault() const {return defaultSet;}
-    const std::string &getDefault() const {return defaultValue;}
-
-    void add(const cb::SmartPointer<ArgConstraint> &constraint);
-
-    void operator()(const std::string &value) const;
+    // From ArgConstraint
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &value) const {
+      if (value.isString()) cb::String::parseBool(value.asString());
+      else if (!value.isBoolean() && !value.isNumber()) THROW("Not a boolean");
+    }
   };
 }

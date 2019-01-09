@@ -25,27 +25,33 @@
 
 \******************************************************************************/
 
-.user-login
-  position fixed
-  top 4px
-  right 4px
-  font-weight bold
-  line-height 32px
+#pragma once
 
-  @import 'fa-button.styl'
+#include "ArgConstraint.h"
 
-  .fa-google:hover
-    background-color #e0483a
+#include <cbang/Math.h>
+#include <cbang/json/Value.h>
 
-  .fa-facebook:hover
-    background-color #3b5999
+namespace cb {namespace Event {class Request;}}
 
-  .fa-github:hover
-    background-color #24292e
 
-  .avatar
-    vertical-align top
-    width 32px
-    height 32px
-    border-radius 5px
-    margin 1px
+namespace JmpAPI {
+  class ArgValidator {
+    bool optional;
+    cb::JSON::ValuePtr defaultValue;
+    std::vector<cb::SmartPointer<ArgConstraint> > constraints;
+
+  public:
+    ArgValidator() : optional(false) {}
+    ArgValidator(const cb::JSON::ValuePtr &config);
+
+    bool isOptional() const {return optional;}
+    bool hasDefault() const {return !defaultValue.isNull();}
+    const cb::JSON::ValuePtr &getDefault() const {return defaultValue;}
+
+    void add(const cb::SmartPointer<ArgConstraint> &constraint);
+
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &value) const;
+  };
+}

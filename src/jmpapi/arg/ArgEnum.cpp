@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,37 +19,37 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
-#pragma once
+#include "ArgEnum.h"
 
-#include "Transaction.h"
-
-#include <cbang/event/HTTPHandler.h>
-#include <cbang/db/maria/EventDBCallback.h>
-
-#include <vector>
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
 
-namespace JmpAPI {
-  class QueryHandler : public cb::Event::HTTPHandler {
-    std::string sql;
-    bool pass;
-    cb::JSON::ValuePtr fields;
-    Transaction::event_db_member_functor_t replyCB;
+ArgEnum::ArgEnum(const JSON::ValuePtr &config) :
+  caseSensitive(config->isDict() ||
+                config->getBoolean("case-sensitive", false)) {
+  JSON::ValuePtr list = config->isList() ? config : config->get("values");
 
-  public:
-    QueryHandler(const cb::JSON::Value &config);
+  for (unsigned i = 0; i < list->size(); i++) {
+    const string &value = list->getString(i);
+    values.insert(caseSensitive ? value : String::toLower(value));
+  }
+}
 
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req);
-  };
+
+void ArgEnum::operator()(Event::Request &req, const JSON::Value &_value) const {
+  if (!_value.isString()) THROW("Enum argument must be string");
+
+  string value = _value.getString();
+  if (caseSensitive) value = String::toLower(value);
+
+  if (values.find(value) == values.end())
+    THROWS("Must be one of: " << String::join(values, ", "));
 }

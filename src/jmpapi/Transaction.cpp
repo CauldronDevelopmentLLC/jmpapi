@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -18,10 +18,6 @@
        You should have received a copy of the GNU General Public License
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
-
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
 
                  For information regarding this software email:
                                 Joseph Coffland
@@ -59,7 +55,7 @@ void Transaction::setSessionCookie() {
 }
 
 
-bool Transaction::lookupSession() {
+bool Transaction::lookupSession(const string &sql) {
   // Check if Session is already loaded
   if (!getSession().isNull()) return false;
 
@@ -76,11 +72,9 @@ bool Transaction::lookupSession() {
   } catch (const Exception &) {}
 
   // Lookup Session in DB
-  string sql = app.getOptions()["session-sql"].toString("");
   if (sql.empty()) return false;
-
   setSession(new Session(sid, getClientIP()));
-  query(&Transaction::session, sql, *getSession());
+  query(&Transaction::session, sql);
 
   return true;
 }
@@ -105,13 +99,25 @@ void Transaction::query(event_db_member_functor_t member, const string &_sql,
 
 
     string operator()(char type, int index, const string &name) const {
-      if (String::startsWith(name, "group."))
+      if (type == 'b' && String::startsWith(name, "group."))
         return String(!session.isNull() && session->hasGroup(name.substr(6)));
-      return "null";
+
+      if (String::startsWith(name, "session.")) {
+        string key = name.substr(8);
+        if (session->has(key)) return session->get(key)->format(type);
+      }
+
+      return "NULL";
     }
   };
 
   db->query(this, member, dict.format(_sql, FormatCB(*this)));
+}
+
+
+void Transaction::query(event_db_member_functor_t member, const string &sql) {
+  JSON::Dict dict;
+  query(member, sql, dict);
 }
 
 
@@ -193,12 +199,13 @@ void Transaction::processProfile(const JSON::ValuePtr &profile) {
       Session &session = *getSession();
       session.setUser(profile->getString("email"));
       session.insert("provider",    provider);
+      session.insert("provider_id", profile->getString("id"));
       session.insert("name",        profile->getString("name"));
       session.insert("avatar",      profile->getString("avatar"));
 
       // DB login
       if (!config->hasString("sql")) login();
-      else query(&Transaction::login, config->getString("sql"), *getSession());
+      else query(&Transaction::login, config->getString("sql"));
 
       return;
     } CATCH_ERROR;
@@ -273,31 +280,31 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
 
 
 bool Transaction::apiLogout(const JSON::ValuePtr &config) {
-  // DB logout
   if (!config->hasString("sql") || getSession().isNull()) logout();
-  else query(&Transaction::logout, config->getString("sql"), *getSession());
+  else query(&Transaction::logout, config->getString("sql"));
 
   return true;
 }
 
 
 void Transaction::session(MariaDB::EventDBCallback::state_t state) {
+  Session &session = *getSession(); // Must have Session
+
   switch (state) {
   case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:
   case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_ROW: {
-    SmartPointer<Session> session = getSession();
-    if (!session->hasString("provider")) session->read(*db->getRowDict());
-    else session->addGroup(db->getString(0));
+    if (!session.hasString("user")) session.read(*db->getRowDict());
+    else session.addGroup(db->getString(0));
     break;
   }
 
   case MariaDB::EventDBCallback::EVENTDB_DONE:
-    if (getSession()->hasString("provider")) {
+    if (session.hasString("user")) {
       // Session was found in DB
-      getSession()->addGroup("authenticated");
+      session.addGroup("authenticated");
       app.getSessionManager().addSession(getSession());
     }
 
@@ -408,7 +415,7 @@ void Transaction::returnBool(MariaDB::EventDBCallback::state_t state) {
     getJSONWriter()->writeBoolean(db->getBoolean(0));
     break;
 
-  default: return returnJSON(state);
+  default: return returnOne(state);
   }
 }
 
@@ -420,7 +427,7 @@ void Transaction::returnU64(MariaDB::EventDBCallback::state_t state) {
     getJSONWriter()->write(db->getU64(0));
     break;
 
-  default: return returnJSON(state);
+  default: return returnOne(state);
   }
 }
 
@@ -431,7 +438,7 @@ void Transaction::returnS64(MariaDB::EventDBCallback::state_t state) {
     getJSONWriter()->write(db->getS64(0));
     break;
 
-  default: return returnJSON(state);
+  default: return returnOne(state);
   }
 }
 
@@ -492,15 +499,24 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnJSON(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnDict(MariaDB::EventDBCallback::state_t state) {
   switch (state) {
   case MariaDB::EventDBCallback::EVENTDB_ROW:
-    if (writer.isNull()) {
-      getJSONWriter();
-      if (db->getFieldCount() == 1) db->writeField(*writer, 0);
-      else db->writeRowDict(*writer);
+    if (writer.isNull()) db->writeRowDict(*getJSONWriter());
+    else return returnOk(state); // Error
+    break;
 
-    } else return returnOk(state); // Error
+  default: return returnOne(state);
+  }
+}
+
+
+void Transaction::returnOne(MariaDB::EventDBCallback::state_t state) {
+  switch (state) {
+  case MariaDB::EventDBCallback::EVENTDB_ROW:
+    if (writer.isNull() && db->getFieldCount() == 1)
+      db->writeField(*getJSONWriter(), 0);
+    else return returnOk(state); // Error
     break;
 
   case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:

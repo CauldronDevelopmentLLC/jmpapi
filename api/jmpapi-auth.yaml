@@ -7,6 +7,12 @@ help: >
   or GitHub as login providers.
 
 endpoints:
+  /.*:
+    GET|PUT|POST|DELETE:
+      handler: session
+      help: Look up session by ID.
+      sql: CALL jmpapi.AuthSession(%(session.id)s)
+
   /login/:provider:
     GET:
       handler: login
@@ -15,48 +21,116 @@ endpoints:
         provider:
           optional: true
           enum: [google, facebook, github, providers]
-          help: The OAuth2 login provider.
+          help: >
+            The OAuth2 login provider or ``providers`` to list supported
+            providers.
 
       sql: >
-        CALL jmpapi.AuthLogin(%(id)s, %(provider)s, %(user)s, %(name)s,
-          %(avatar)s)
+        CALL jmpapi.AuthLogin(%(session.id)s, %(session.provider)s,
+          %(session.provider_id)s, %(session.user)s, %(session.name)s,
+          %(session.avatar)s)
 
   /logout:
     PUT:
       handler: logout
-      sql: CALL jmpapi.AuthLogout(%(id)s)
+      sql: CALL jmpapi.AuthLogout(%(session.id)s)
       help: Close the currently logged in session.
 
-  /users:
+  /config.*:
+    allow: [$admin]
+
+  /config:
     GET:
-      allow: [$admin]
+      return: list
+      sql: CALL jmpapi.ConfigList()
+
+  /config/:name:
+    GET:
+      return: one
+      sql: CALL jmpapi.ConfigGet(%(name)s)
+
+    PUT:
+      args:
+        value: {}
+      sql: CALL jmpapi.ConfigSet(%(name)s, %(value)i)
+
+  /users:
+    allow: [$admin]
+
+    GET:
       return: list
       sql: CALL jmpapi.UserList()
       help: Returns a list of all users.
 
     POST:
-      allow: [$admin]
+      return: u64
       args:
         provider:
           enum: [google, facebook, github]
           help: The OAuth2 login provider.
+        provider_id: {optional: true, min: 1}
+        email: {type: email, help: "The user's email address."}
+        name: {optional: true, min: 2, help: "The user's name."}
+        avatar:
+          optional: true
+          type: uri
+          help: "A URL pointing to the user's avatar"
+        enabled: {type: bool, default: true}
 
-        email:
-          help: "The user's email address."
+      sql: >
+        CALL jmpapi.UserAdd(%(provider)s, %(provider_id)s, %(email)s, %(name)s,
+          %(avatar)s, %(enabled)b);
+        SELECT @uid;
 
-        name:
-          help: "The user's name."
-
-      sql: CALL jmpapi.UserAdd(%(provider)s, %(email)s, %(name)s)
+  /users/:id.*:
+    args:
+      id: {allow: [$admin, =uid]}
 
   /users/:id:
-    DELETE:
-      allow: [$admin]
-      return: ok
-      sql: CALL jmpapi.UserDelete(%(id)u)
-      help: Delete an existing user.
+    args:
+      id: {help: User ID}
+
+    GET:
+      fields: ["*", associations, groups]
+      help: Get user info.
+      sql: CALL jmpapi.UserGet(%(id)u)
+
+    PUT:
+      help: Update user settings
       args:
-        id: {help: User ID}
+        email: {optional: true, type: email}
+        name: {optional: true, min: 2}
+        avatar: {optional: true, type: uri}
+        enabled: {allow: [$admin], optional: true, type: bool}
+      sql: >
+        CALL jmpapi.UserSet(%(id)u, %(email)s, %(name)s, %(avatar)s,
+          %(enabled)b)
+
+    DELETE:
+      help: Delete an existing user.
+      sql: CALL jmpapi.UserDelete(%(id)u)
+
+  /users/:id/associations/:provider:
+    args:
+      id: {help: User ID}
+      provider:
+        enum: [google, facebook, github]
+        help: The OAuth2 login provider.
+
+    PUT:
+      help: Add a user login association.
+      args:
+        provider_id: {optional: true, min: 1}
+        email: {optional: true, type: email}
+        name: {optional: true, min: 2}
+        avatar: {optional: true, type: uri}
+      sql: >
+        CALL jmpapi.UserAssociationAdd(%(id)u, %(provider)s, %(provider_id)s,
+          %(email)s, %(name)s, %(avatar)s)
+
+    DELETE:
+      help: Delete a user login association.
+      sql: CALL jmpapi.UserAssociationDelete(%(id)u, %(provider)s)
 
   /users/:id/groups:
     GET:
@@ -68,19 +142,19 @@ endpoints:
   /users/:id/groups/:group:
     PUT:
       allow: [$admin]
-      return: ok
       sql: CALL jmpapi.UserGroupAdd(%(id)u, %(group)s)
       help: Add a user to a group.
 
     DELETE:
       allow: [$admin]
-      return: ok
       sql: CALL jmpapi.UserGroupDelete(%(id)u, %(group)s)
       help: Remove a user from a group.
 
+  /groups.*:
+    allow: [$admin]
+
   /groups:
     GET:
-      allow: [$admin]
       return: list
       sql: CALL jmpapi.GroupList()
       help: Returns the list of groups.
@@ -90,27 +164,21 @@ endpoints:
       group: {help: The group name.}
 
     PUT:
-      allow: [$admin]
-      return: ok
       sql: CALL jmpapi.GroupAdd(%(group)s)
       help: Create a new group.
 
     DELETE:
-      allow: [$admin]
-      return: ok
       sql: CALL jmpapi.GroupDelete(%(group)s)
       help: Delete a group.
 
   /groups/:group/members:
     GET:
-      allow: [$admin]
       return: list
       sql: CALL jmpapi.GroupMemberList(%(group)s)
       help: Returns a list of members of a group.
 
   /groups/:group/nonmembers:
     GET:
-      allow: [$admin]
       return: list
       sql: CALL jmpapi.GroupNonmemberList(%(group)s)
       help: Returns a list of nonmembers of a group.

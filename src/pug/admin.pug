@@ -44,7 +44,7 @@ html(lang="en")
 
       .message(:class="{error: err, success: msg && !err}") {{msg}}
 
-      component(v-if="loggedin", :is="'admin-' + page", :user="user",
+      component(v-if="loggedin", :is="'admin-' + page", :uid="uid",
         :group="group")
 
       include templates/incompatible.pug

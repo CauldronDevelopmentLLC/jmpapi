@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -31,17 +27,23 @@
 
 #pragma once
 
-#include "StatusHandler.h"
+#include "ArgConstraint.h"
+
+#include <cbang/json/Value.h>
+
+#include <set>
 
 
 namespace JmpAPI {
-  class RedirectHandler : public StatusHandler {
-    std::string location;
+  class ArgEnum : public ArgConstraint {
+    bool caseSensitive;
+    std::set<std::string> values;
 
   public:
-    RedirectHandler(int code, const std::string &location);
+    ArgEnum(const cb::JSON::ValuePtr &config);
 
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req);
+    // From ArgConstraint
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &value) const;
   };
 }

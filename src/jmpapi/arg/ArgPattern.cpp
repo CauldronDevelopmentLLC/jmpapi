@@ -25,27 +25,15 @@
 
 \******************************************************************************/
 
-.user-login
-  position fixed
-  top 4px
-  right 4px
-  font-weight bold
-  line-height 32px
+#include "ArgPattern.h"
 
-  @import 'fa-button.styl'
+using namespace JmpAPI;
+using namespace cb;
+using namespace std;
 
-  .fa-google:hover
-    background-color #e0483a
 
-  .fa-facebook:hover
-    background-color #3b5999
-
-  .fa-github:hover
-    background-color #24292e
-
-  .avatar
-    vertical-align top
-    width 32px
-    height 32px
-    border-radius 5px
-    margin 1px
+void ArgPattern::operator()(Event::Request &req,
+                            const JSON::Value &value) const {
+  if (!regex.match(value.asString()))
+    THROWS("Must match regex pattern: " << regex.toString());
+}

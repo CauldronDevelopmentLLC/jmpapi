@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -33,21 +29,45 @@
 
 #include "ArgConstraint.h"
 
+#include <cbang/String.h>
 #include <cbang/json/Value.h>
+
+#include <limits>
 
 
 namespace JmpAPI {
-  class ArgMaxLength : public ArgConstraint {
-    unsigned max;
+  template<typename T>
+  class ArgNumber : public ArgConstraint {
+    double min;
+    double max;
 
   public:
-    ArgMaxLength(const cb::JSON::ValuePtr &config) :
-      max(config->getU32("max")) {}
+    ArgNumber(const cb::JSON::ValuePtr &config) :
+      min(config->getNumber("min", NAN)), max(config->getNumber("max", NAN)) {}
 
     // From ArgConstraint
-    void operator()(const std::string &value) const {
-      if (max < value.length())
-        THROWS("Must be no more than " << max << " chars long");
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &value) const {
+      T n;
+
+      if (value.isNumber()) n = (T)value.getNumber();
+      else if (value.isString()) n = cb::String::parse<T>(value.getString());
+      else THROW("Must be a number or string");
+
+      if (!isnan(min) && n < (T)min) THROWS("Must be greater than " << (T)min);
+      if (!isnan(max) && (T)max < n) THROWS("Must be less than " << (T)max);
+
+      if (value.isNumber()) {
+        double x = value.getNumber();
+
+        if ((double)std::numeric_limits<T>::min() < x)
+          THROWS("Less than minimum value " << std::numeric_limits<T>::min()
+                 << " for numeric type");
+
+        if (x < (double)std::numeric_limits<T>::max())
+          THROWS("Greater than maximum value " << std::numeric_limits<T>::max()
+                 << " for numeric type");
+      }
     }
   };
 }

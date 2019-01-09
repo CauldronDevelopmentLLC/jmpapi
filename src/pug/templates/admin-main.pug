@@ -25,55 +25,77 @@
 
 script#admin-main-template(type="text/x-template")
   .admin-main-page
+    h2 Settings
+    table
+      thead
+        tr
+          th Name
+          td Value
+          td Actions
+      tbody
+        tr(v-for="entry in config", v-if="entry.writable", :title="entry.help")
+          th.name {{entry.name}}
+          td.value(v-if="entry.writable")
+            input(v-model="entry.value",
+              :type="entry.type == 'bool' ? 'checkbox' : 'number'")
+          td.value(v-if="!entry.writable") {{entry.value}}
+          td.actions
+            .fa.fa-save(v-if="entry.writable", @click="config_set(entry)")
+
     h2 Users
     .admin-users
       table
-        tr
-          th Email
-          td.input: input(v-model="new_user_email")
-          th Provider
-          td.input
-            select(v-model="new_user_provider")
-              option(v-for="provider in providers", :value="provider")
-                | {{provider}}
+        thead
+          tr
+            th Email
+            td.input: input(v-model="user_new.email")
+            th Provider
+            td.input
+              select(v-model="user_new.provider")
+                option(v-for="provider in providers", :value="provider")
+                  | {{provider}}
 
-          td.actions
-            .fa.fa-plus(@click="add_user", title="Create new user.")
+            td.actions
+              .fa.fa-plus(@click="user_add", title="Create new user.")
 
-        tr.head
-          th Avatar
-          th Name
-          th Created
-          th Last Seen
-          th Actions
+          tr.head
+            th Avatar
+            th Name
+            th Created
+            th Last Seen
+            th Actions
 
-        tr(v-for="user in users")
-          td.avatar
-            img(:src="user.avatar", draggable="true",
-              @dragstart="dragstart($event, user)")
-          td.name(:title="user.name") {{user.name}}
-          td.created {{user.created}}
-          td.last {{user.last_used}}
-          td.actions
-            .fa.fa-cog(@click="edit_user(user)", title="Edit user.")
-            .fa.fa-trash(@click="delete_user(user)", title="Delete user.")
+        tbody
+          tr(v-for="user in users", :class="{disabled: !user.enabled}")
+            td.avatar
+              img(:src="user.avatar", draggable="true",
+                @dragstart="dragstart($event, user)")
+            td.name(:title="user.name") {{user.name || user.email}}
+            td.created {{user.created}}
+            td.last {{user.last_used}}
+            td.actions
+              .fa.fa-cog(@click="user_edit(user)", title="Edit user.")
+              .fa.fa-trash(@click="user_delete(user)", title="Delete user.")
 
     h2 Groups
     .admin-groups
       table
-        tr.head
-          th Name
-          th Actions
+        thead
+          tr
+            th.name Name
+            td.input: input(v-model="group_new", @keyup.enter="group_add")
+            td.actions
+              .fa.fa-plus(@click="group_add", title="Create new group.")
 
-        tr
-          td.input: input(v-model="new_group", @keyup.enter="add_group")
-          td.actions
-            .fa.fa-plus(@click="add_group", title="Create new group.")
+          tr.head
+            th(colspan=2) Name
+            th Actions
 
-        tr(v-for="group in groups", @drop="drop($event, group)",
-          @dragover="dragover")
-          td.name {{group}}
-          td.actions
-            .fa.fa-cog(@click="edit_group(group)", title="Edit group.")
-            .fa.fa-trash(@click="delete_group(group)",
-              v-if="group != 'admin'", title="Delete group.")
+        tbody
+          tr(v-for="group in groups", @drop="drop($event, group)",
+            @dragover="dragover")
+            td.name(colspan=2) {{group}}
+            td.actions
+              .fa.fa-cog(@click="group_edit(group)", title="Edit group.")
+              .fa.fa-trash(@click="group_delete(group)",
+                v-if="group != 'admin'", title="Delete group.")

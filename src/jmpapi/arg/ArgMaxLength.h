@@ -25,27 +25,26 @@
 
 \******************************************************************************/
 
-.user-login
-  position fixed
-  top 4px
-  right 4px
-  font-weight bold
-  line-height 32px
+#pragma once
 
-  @import 'fa-button.styl'
+#include "ArgConstraint.h"
 
-  .fa-google:hover
-    background-color #e0483a
+#include <cbang/json/Value.h>
 
-  .fa-facebook:hover
-    background-color #3b5999
 
-  .fa-github:hover
-    background-color #24292e
+namespace JmpAPI {
+  class ArgMaxLength : public ArgConstraint {
+    unsigned max;
 
-  .avatar
-    vertical-align top
-    width 32px
-    height 32px
-    border-radius 5px
-    margin 1px
+  public:
+    ArgMaxLength(const cb::JSON::ValuePtr &config) :
+      max(config->getU32("max")) {}
+
+    // From ArgConstraint
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &value) const {
+      if (max < value.asString().length())
+        THROWS("Must be no more than " << max << " chars long");
+    }
+  };
+}

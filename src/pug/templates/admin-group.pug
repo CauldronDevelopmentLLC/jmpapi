@@ -48,7 +48,7 @@ script#admin-group-template(type="text/x-template")
               td.avatar: img(:src="user.avatar")
               td.name {{user.name}}
               td.actions
-                .fa.fa-minus(@click="remove_user(user)",
+                .fa.fa-minus(@click="group_user_remove(user)",
                   title="Remove user from group.")
 
       h2(v-if="!nonmembers.length") No nonmembers.
@@ -66,5 +66,5 @@ script#admin-group-template(type="text/x-template")
               td.avatar: img(:src="user.avatar")
               td.name {{user.name}}
               td.actions
-                .fa.fa-plus(@click="add_user(user)",
+                .fa.fa-plus(@click="group_user_add(user)",
                   title="Add user to group.")

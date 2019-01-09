@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -31,13 +27,18 @@
 
 #pragma once
 
-#include <string>
+#include "ArgConstraint.h"
+
+#include <cbang/net/URI.h>
 
 
 namespace JmpAPI {
-  class ArgConstraint {
+  class ArgURI : public ArgConstraint {
   public:
-    virtual ~ArgConstraint() {}
-    virtual void operator()(const std::string &value) const = 0;
+    // From ArgConstraint
+    void operator()(cb::Event::Request &req,
+                    const cb::JSON::Value &value) const {
+      cb::URI(value.asString());
+    }
   };
 }

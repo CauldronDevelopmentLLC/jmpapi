@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -31,26 +27,18 @@
 
 #pragma once
 
-#include <cbang/event/HTTPHandler.h>
+#include <string>
+
 #include <cbang/json/Value.h>
 
-#include <vector>
-#include <algorithm>
-#include <string>
+namespace cb {namespace Event {class Request;}}
 
 
 namespace JmpAPI {
-  class HeadersHandler : public cb::Event::HTTPHandler {
-    typedef std::pair<std::string, std::string> header_t;
-    std::vector<header_t> headers;
-
+  class ArgConstraint {
   public:
-    HeadersHandler() {}
-    HeadersHandler(const cb::JSON::ValuePtr &hdrs);
-
-    void add(const std::string &key, const std::string &value);
-
-    // From HTTPHandler
-    bool operator()(cb::Event::Request &req);
+    virtual ~ArgConstraint() {}
+    virtual void operator()(cb::Event::Request &req,
+                            const cb::JSON::Value &value) const = 0;
   };
 }

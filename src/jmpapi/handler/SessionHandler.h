@@ -2,7 +2,7 @@
 
                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2018, Cauldron Development LLC
+               Copyright (c) 2014-2019, Cauldron Development LLC
                               All rights reserved.
 
           The JmpAPI Webserver is free software: you can redistribute
@@ -19,10 +19,6 @@
                      along with this software.  If not, see
                         <http://www.gnu.org/licenses/>.
 
-       In addition, BSD licensing may be granted on a case by case basis
-       by written permission from at least one of the copyright holders.
-          You may request written permission by emailing the authors.
-
                  For information regarding this software email:
                                 Joseph Coffland
                          joseph@cauldrondevelopment.com
@@ -31,27 +27,20 @@
 
 #pragma once
 
-#include "ArgConstraint.h"
+#include <cbang/event/HTTPHandler.h>
 
-#include <cbang/String.h>
-#include <cbang/json/Value.h>
+
+namespace cb {namespace JSON {class Value;}}
 
 
 namespace JmpAPI {
-  template<typename T>
-  class ArgNumber : public ArgConstraint {
-    double min;
-    double max;
+  class SessionHandler : public cb::Event::HTTPHandler {
+    std::string sql;
 
   public:
-    ArgNumber(const cb::JSON::ValuePtr &config) :
-      min(config->getNumber("min", NAN)), max(config->getNumber("max", NAN)) {}
+    SessionHandler(const cb::JSON::Value &config);
 
-    // From ArgConstraint
-    void operator()(const std::string &value) const {
-      T n = cb::String::parse<T>(value);
-      if (!isnan(min) && n < (T)min) THROWS("Must be greater than " << (T)min);
-      if (!isnan(max) && (T)max < n) THROWS("Must be less than " << (T)max);
-    }
+    // From HTTPHandler
+    bool operator()(cb::Event::Request &req);
   };
 }
