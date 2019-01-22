@@ -1,14 +1,15 @@
 # Install
  * Autocreate DB.
+ * Auto update DB on upgrade.
 
 # Server
  * Support form data args.
  * Handle JSON on HTTP DELETE method.
  * API versioning.
- * Caching.
+ * Support arbitrary OAuth2 providers.
 
 # Endpoints
- * Allow different response based on authorization.
+ * Allow different response based on authorization. ``no-auth-pass``
  * Allow returning raw JSON.
  * Execute external commands.
  * Match request headers.

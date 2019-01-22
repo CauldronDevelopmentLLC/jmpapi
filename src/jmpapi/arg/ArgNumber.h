@@ -60,12 +60,14 @@ namespace JmpAPI {
       if (value.isNumber()) {
         double x = value.getNumber();
 
-        if ((double)std::numeric_limits<T>::min() < x)
-          THROWS("Less than minimum value " << std::numeric_limits<T>::min()
+        if (x < (double)std::numeric_limits<T>::min())
+          THROWS("Less than minimum value " <<
+                 (double)std::numeric_limits<T>::min()
                  << " for numeric type");
 
-        if (x < (double)std::numeric_limits<T>::max())
-          THROWS("Greater than maximum value " << std::numeric_limits<T>::max()
+        if ((double)std::numeric_limits<T>::max() < x)
+          THROWS("Greater than maximum value "
+                 << (double)std::numeric_limits<T>::max()
                  << " for numeric type");
       }
     }
