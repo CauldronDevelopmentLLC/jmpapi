@@ -54,31 +54,28 @@ CORSHandler::CORSHandler(const JSON::Value &config) :
   }
 
   // Add defaults
-  if (config.has("headers")) {
-    auto &hdrs = *config.get("headers");
+  auto hdrs = config.get("headers", new JSON::Dict);
 
-    const char *name = "Access-Control-Allow-Origin";
-    if (config.has("origin") && !hdrs.has(name))
-      hdrs.insert(name, config.getAsString("origin"));
+  const char *name = "Access-Control-Allow-Origin";
+  if (config.has("origin") && !hdrs->has(name))
+    add(name, config.getAsString("origin"));
 
-    name = "Access-Control-Allow-Methods";
-    if (!hdrs.has(name))
-      hdrs.insert(name,
-                  config.getString("methods", "POST,PUT,GET,OPTIONS,DELETE"));
+  name = "Access-Control-Allow-Methods";
+  if (!hdrs->has(name))
+    add(name, config.getString("methods", "POST,PUT,GET,OPTIONS,DELETE"));
 
-    name = "Access-Control-Allow-Headers";
-    if (!hdrs.has(name))
-      hdrs.insert(name, "DNT,User-Agent,X-Requested-With,If-Modified-Since,"
-                  "Cache-Control,Content-Type,Range,Set-Cookie,Authorization");
+  name = "Access-Control-Allow-Headers";
+  if (!hdrs->has(name))
+    add(name, "DNT,User-Agent,X-Requested-With,If-Modified-Since,"
+        "Cache-Control,Content-Type,Range,Set-Cookie,Authorization");
 
-    name = "Access-Control-Allow-Credentials";
-    if (config.getBoolean("credentials", false) && !hdrs.has(name))
-      hdrs.insert(name, "true");
+  name = "Access-Control-Allow-Credentials";
+  if (config.getBoolean("credentials", false) && !hdrs->has(name))
+    add(name, "true");
 
-    name = "Access-Control-Max-Age";
-    if (config.has("max-age") && !hdrs.has(name))
-      hdrs.insert(name, config.getAsString("max-age"));
-  }
+  name = "Access-Control-Max-Age";
+  if (config.has("max-age") && !hdrs->has(name))
+    add(name, config.getAsString("max-age"));
 }
 
 
