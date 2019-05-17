@@ -33,9 +33,8 @@ using namespace std;
 
 
 ArgEnum::ArgEnum(const JSON::ValuePtr &config) :
-  caseSensitive(config->isDict() ||
-                config->getBoolean("case-sensitive", false)) {
-  JSON::ValuePtr list = config->isList() ? config : config->get("values");
+  caseSensitive(config->getBoolean("case-sensitive", false)) {
+  auto list = config->get("enum");
 
   for (unsigned i = 0; i < list->size(); i++) {
     const string &value = list->getString(i);
@@ -51,5 +50,5 @@ void ArgEnum::operator()(Event::Request &req, const JSON::Value &_value) const {
   if (caseSensitive) value = String::toLower(value);
 
   if (values.find(value) == values.end())
-    THROWS("Must be one of: " << String::join(values, ", "));
+    THROW("Must be one of: " << String::join(values, ", "));
 }

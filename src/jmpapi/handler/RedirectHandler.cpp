@@ -34,7 +34,8 @@ using namespace cb;
 using namespace std;
 
 
-RedirectHandler::RedirectHandler(int code, const string &location) :
+RedirectHandler::RedirectHandler(Event::HTTPStatus code,
+                                 const string &location) :
   StatusHandler(code), location(location) {}
 
 

@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cbang/event/HTTPHandler.h>
+#include <cbang/event/HTTPRequestHandler.h>
 #include <cbang/json/Value.h>
 
 #include <vector>
@@ -36,7 +36,7 @@
 
 
 namespace JmpAPI {
-  class HeadersHandler : public cb::Event::HTTPHandler {
+  class HeadersHandler : public cb::Event::HTTPRequestHandler {
     typedef std::pair<std::string, std::string> header_t;
     std::vector<header_t> headers;
 
@@ -46,7 +46,7 @@ namespace JmpAPI {
 
     void add(const std::string &key, const std::string &value);
 
-    // From HTTPHandler
+    // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);
   };
 }

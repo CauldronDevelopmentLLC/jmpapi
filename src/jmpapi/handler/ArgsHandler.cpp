@@ -41,7 +41,7 @@ ArgsHandler::ArgsHandler(const JSON::ValuePtr &args) {
 
 
 bool ArgsHandler::operator()(Event::Request &req) {
-  JSON::Dict &args = req.parseArgs();
+  auto &args = req.parseArgs();
   set<string> found;
 
   for (unsigned i = 0; i < args.size(); i++) {
@@ -59,7 +59,7 @@ bool ArgsHandler::operator()(Event::Request &req) {
       if (e.getCode() == HTTP_UNAUTHORIZED)
         THROWX("Access denied", HTTP_UNAUTHORIZED);
 
-      THROWXS("Invalid argument '" << name << "=" << args.getAsString(i)
+      THROWX("Invalid argument '" << name << "=" << args.getAsString(i)
               << "': " << e.getMessage(), HTTP_BAD_REQUEST);
     }
   }
@@ -75,7 +75,7 @@ bool ArgsHandler::operator()(Event::Request &req) {
     }
 
   if (!missing.empty())
-    THROWXS("Missing argument" << (1 < missing.size() ? "s" : "") << ": "
+    THROWX("Missing argument" << (1 < missing.size() ? "s" : "") << ": "
             << String::join(missing, ", "), HTTP_BAD_REQUEST);
 
   return false;

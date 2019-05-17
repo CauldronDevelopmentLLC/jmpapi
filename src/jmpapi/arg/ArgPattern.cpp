@@ -35,5 +35,5 @@ using namespace std;
 void ArgPattern::operator()(Event::Request &req,
                             const JSON::Value &value) const {
   if (!regex.match(value.asString()))
-    THROWS("Must match regex pattern: " << regex.toString());
+    THROW("Must match regex pattern: " << regex.toString());
 }

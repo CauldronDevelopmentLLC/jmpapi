@@ -83,7 +83,7 @@ Server::Server(App &app) :
 }
 
 
-SmartPointer<Event::HTTPHandler>
+SmartPointer<Event::HTTPRequestHandler>
 Server::createAccessHandler(const JSON::Value &config) {
   SmartPointer<Event::HTTPAccessHandler> handler =
     new Event::HTTPAccessHandler;
@@ -112,7 +112,7 @@ Server::createAccessHandler(const JSON::Value &config) {
 }
 
 
-SmartPointer<Event::HTTPHandler>
+SmartPointer<Event::HTTPRequestHandler>
 Server::createEndpoint(const JSON::ValuePtr &config) {
   string type = config->getString("handler", "");
 
@@ -131,22 +131,24 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
 
   if (type == "status") {
     if (config->hasNumber("code"))
-      return new StatusHandler(config->getU8("code"));
+      return new StatusHandler
+        ((Event::HTTPStatus::enum_t)config->getU8("code"));
     return new StatusHandler(config->getString("code"));
   }
 
   if (type == "redirect")
-    return new RedirectHandler(config->getNumber("code", 301),
+    return new RedirectHandler((Event::HTTPStatus::enum_t)
+                               config->getU32("code", 301),
                                config->getString("location"));
 
   if (type == "api")
     return new APIHandler(*app.getConfig(), *app.getConfig()->get("api"));
 
-  THROWS("Unsupported handler '" << type << "'");
+  THROW("Unsupported handler '" << type << "'");
 }
 
 
-SmartPointer<Event::HTTPHandler>
+SmartPointer<Event::HTTPRequestHandler>
 Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
   LOG_INFO(1, "Adding endpoint " << pattern);
 
@@ -166,7 +168,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     if (!methods) continue; // Ignore non-methods
 
     const JSON::ValuePtr config = api.get(i);
-    SmartPointer<Event::HTTPHandler> handler = createEndpoint(config);
+    SmartPointer<Event::HTTPRequestHandler> handler = createEndpoint(config);
 
     if (handler.isNull()) continue;
 
@@ -232,7 +234,8 @@ void Server::init() {
   Event::WebServer::init();
 
   // API Categories
-  loadCategories(*app.getConfig()->get("api"));
+  auto &config = *app.getConfig();
+  if (config.has("api")) loadCategories(*config.get("api"));
 
   // Root
   string root = app.getOptions()["http-root"].toString("");
@@ -246,6 +249,7 @@ void Server::init() {
 }
 
 
-Event::Request *Server::createRequest(evhttp_request *req) {
-  return new Transaction(app, req);
+SmartPointer<Event::Request> Server::createRequest
+(Event::RequestMethod method, const URI &uri, const Version &version) {
+  return new Transaction(app, method, uri, version);
 }

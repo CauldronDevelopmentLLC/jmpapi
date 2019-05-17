@@ -34,7 +34,7 @@
 
 #include <cbang/json/JSON.h>
 #include <cbang/log/Logger.h>
-#include <cbang/util/DefaultCatch.h>
+#include <cbang/Catch.h>
 #include <cbang/db/maria/EventDB.h>
 #include <cbang/net/URI.h>
 
@@ -45,9 +45,10 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-Transaction::Transaction(App &app, evhttp_request *req) :
-  Request(req), Event::OAuth2Login(app.getEventClient()), app(app),
-  currentField(0) {}
+Transaction::Transaction(App &app, RequestMethod method, const URI &uri,
+                         const Version &version) :
+  Request(method, uri, version), Event::OAuth2Login(app.getEventClient()),
+  app(app), currentField(0) {}
 
 
 void Transaction::setSessionCookie() {
@@ -89,6 +90,8 @@ void Transaction::setFields(const JSON::ValuePtr &fields) {
 
 void Transaction::query(event_db_member_functor_t member, const string &_sql,
                         const JSON::Value &dict) {
+  if (isReplying()) THROW("DB query initiated but Transaction was finalized!");
+
   if (db.isNull()) db = app.getDBConnection();
 
   class FormatCB : public String::FormatCB {
@@ -136,30 +139,29 @@ SmartPointer<JSON::Writer> Transaction::getJSONWriter() {
 }
 
 
-void Transaction::sendError(int code, const string &msg) {
+void Transaction::sendError(Event::HTTPStatus  code, const string &msg) {
   sendJSONError(code, msg);
 }
 
 
-void Transaction::sendJSONError(int code, const std::string &msg) {
+void Transaction::sendJSONError(Event::HTTPStatus code, const string &msg) {
   // Release JSON writer
   writer.release();
 
   // Drop DB connection
   if (!db.isNull()) db->close();
 
-  if (isFinalized()) {
+  if (isReplying()) {
     LOG_ERROR(msg);
     return;
   }
 
   resetOutput();
 
-  code = code ? code : HTTP_INTERNAL_SERVER_ERROR;
+  if (!code) code = HTTP_INTERNAL_SERVER_ERROR;
 
   getJSONWriter()->beginDict();
-  writer->insert("error", msg.empty() ?
-                 Event::HTTPStatus((HTTPStatus::enum_t)code).toString() : msg);
+  writer->insert("error", msg.empty() ? code.toString() : msg);
   writer->insert("status", code);
   writer->endDict();
 
@@ -167,17 +169,18 @@ void Transaction::sendJSONError(int code, const std::string &msg) {
 }
 
 
-void Transaction::finalize() {
+void Transaction::write() {
   if (!writer.isNull()) {
     writer->close();
     writer.release();
   }
 
-  Request::finalize();
+  Request::write();
 }
 
 
-void Transaction::processProfile(const JSON::ValuePtr &profile) {
+void Transaction::processProfile(Event::Request &req,
+                                 const JSON::ValuePtr &profile) {
   if (!profile.isNull()) {
     try {
       string provider = profile->getString("provider");
@@ -218,7 +221,7 @@ void Transaction::processProfile(const JSON::ValuePtr &profile) {
 
 
 bool Transaction::apiLogin(const JSON::ValuePtr &config) {
-  JSON::Dict &args = parseArgs();
+  auto &args = parseArgs();
   this->config = config;
 
   string provider = args.getString("provider", "");
@@ -250,10 +253,12 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
       return true;
     }
 
+    OAuth2Login::setOAuth2(SmartPointer<OAuth2>::Phony(auth));
+
     const URI &uri = getURI();
     if (uri.has("state") && !getSession().isNull())
       return OAuth2Login::requestToken
-        (*this, *auth, getSession()->getID(),
+        (*this, getSession()->getID(),
          getSession()->getString("redirect_uri", ""));
 
     // Open new Session
@@ -287,21 +292,21 @@ bool Transaction::apiLogout(const JSON::ValuePtr &config) {
 }
 
 
-void Transaction::session(MariaDB::EventDBCallback::state_t state) {
+void Transaction::session(MariaDB::EventDB::state_t state) {
   Session &session = *getSession(); // Must have Session
 
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT:
+  case MariaDB::EventDB::EVENTDB_END_RESULT:
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_ROW: {
+  case MariaDB::EventDB::EVENTDB_ROW: {
     if (!session.hasString("user")) session.read(*db->getRowDict());
     else session.addGroup(db->getString(0));
     break;
   }
 
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     if (session.hasString("user")) {
       // Session was found in DB
       session.addGroup("authenticated");
@@ -317,18 +322,18 @@ void Transaction::session(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::login(MariaDB::EventDBCallback::state_t state) {
+void Transaction::login(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT:
+  case MariaDB::EventDB::EVENTDB_END_RESULT:
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_ROW: {
+  case MariaDB::EventDB::EVENTDB_ROW: {
     getSession()->addGroup(db->getString(0));
     break;
   }
 
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     // Authenticate Session
     getSession()->addGroup("authenticated");
 
@@ -345,9 +350,9 @@ void Transaction::login(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::logout(MariaDB::EventDBCallback::state_t state) {
+void Transaction::logout(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     // Session
     if (!getSession().isNull())
       app.getSessionManager().closeSession(getSession()->getID());
@@ -364,8 +369,8 @@ void Transaction::logout(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnHeadList(MariaDB::EventDBCallback::state_t state) {
-  if (state == MariaDB::EventDBCallback::EVENTDB_ROW) {
+void Transaction::returnHeadList(MariaDB::EventDB::state_t state) {
+  if (state == MariaDB::EventDB::EVENTDB_ROW) {
     if (writer.isNull()) {
       getJSONWriter()->beginList();
 
@@ -384,9 +389,9 @@ void Transaction::returnHeadList(MariaDB::EventDBCallback::state_t state) {
 
 
 
-void Transaction::returnList(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnList(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     if (writer.isNull()) getJSONWriter()->beginList();
 
     writer->beginAppend();
@@ -395,10 +400,10 @@ void Transaction::returnList(MariaDB::EventDBCallback::state_t state) {
     else db->writeRowDict(*writer);
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: break;
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT: break;
+  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT: break;
+  case MariaDB::EventDB::EVENTDB_END_RESULT: break;
 
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     if (writer.isNull()) getJSONWriter()->beginList(); // Empty list
     writer->endList();
     returnOk(state);
@@ -409,9 +414,9 @@ void Transaction::returnList(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnBool(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnBool(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     getJSONWriter()->writeBoolean(db->getBoolean(0));
     break;
 
@@ -421,9 +426,9 @@ void Transaction::returnBool(MariaDB::EventDBCallback::state_t state) {
 
 
 
-void Transaction::returnU64(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnU64(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     getJSONWriter()->write(db->getU64(0));
     break;
 
@@ -432,9 +437,9 @@ void Transaction::returnU64(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnS64(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnS64(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     getJSONWriter()->write(db->getS64(0));
     break;
 
@@ -443,9 +448,9 @@ void Transaction::returnS64(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnFields(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     if (writer.isNull()) getJSONWriter()->beginDict();
 
     if (!nextField.empty()) {
@@ -470,7 +475,7 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
     }
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT: {
+  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT: {
     closeField = false;
     if (fields.isNull()) THROW("Fields cannot be null");
     if (currentField == fields->size()) THROW("Unexpected DB result");
@@ -479,14 +484,14 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
     break;
   }
 
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+  case MariaDB::EventDB::EVENTDB_END_RESULT:
     if (closeField) {
       if (writer->inList()) writer->endList();
       else writer->endDict();
     }
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     if (writer.isNull()) sendJSONError(HTTP_NOT_FOUND);
     else {
       writer->endDict();
@@ -499,9 +504,9 @@ void Transaction::returnFields(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnDict(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnDict(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     if (writer.isNull()) db->writeRowDict(*getJSONWriter());
     else return returnOk(state); // Error
     break;
@@ -511,19 +516,19 @@ void Transaction::returnDict(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnOne(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnOne(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     if (writer.isNull() && db->getFieldCount() == 1)
       db->writeField(*getJSONWriter(), 0);
     else return returnOk(state); // Error
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_BEGIN_RESULT:
-  case MariaDB::EventDBCallback::EVENTDB_END_RESULT:
+  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT:
+  case MariaDB::EventDB::EVENTDB_END_RESULT:
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     if (writer.isNull()) sendJSONError(HTTP_NOT_FOUND);
     else return returnOk(state); // Success
     break;
@@ -533,18 +538,18 @@ void Transaction::returnOne(MariaDB::EventDBCallback::state_t state) {
 }
 
 
-void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
+void Transaction::returnOk(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDBCallback::EVENTDB_DONE:
+  case MariaDB::EventDB::EVENTDB_DONE:
     reply();
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_RETRY:
-    if (!isFinalized()) resetOutput();
+  case MariaDB::EventDB::EVENTDB_RETRY:
+    if (!isReplying()) resetOutput();
     break;
 
-  case MariaDB::EventDBCallback::EVENTDB_ERROR: {
-    int error = HTTP_INTERNAL_SERVER_ERROR;
+  case MariaDB::EventDB::EVENTDB_ERROR: {
+    Event::HTTPStatus error = HTTP_INTERNAL_SERVER_ERROR;
 
     switch (db->getErrorNumber()) {
     case ER_SIGNAL_NOT_FOUND: error = HTTP_NOT_FOUND;   break;
@@ -560,14 +565,14 @@ void Transaction::returnOk(MariaDB::EventDBCallback::state_t state) {
     break;
   }
 
-  case MariaDB::EventDBCallback::EVENTDB_ROW:
+  case MariaDB::EventDB::EVENTDB_ROW:
     LOG_ERROR("Unexpected DB row");
     sendJSONError(HTTP_INTERNAL_SERVER_ERROR, "Unexpected DB row");
     break;
 
   default:
     sendJSONError();
-    THROWXS("Unexpected DB response: " << state, HTTP_INTERNAL_SERVER_ERROR);
+    THROWX("Unexpected DB response: " << state, HTTP_INTERNAL_SERVER_ERROR);
     return;
   }
 }

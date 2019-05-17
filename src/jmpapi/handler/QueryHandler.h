@@ -29,14 +29,14 @@
 
 #include <jmpapi/Transaction.h>
 
-#include <cbang/event/HTTPHandler.h>
-#include <cbang/db/maria/EventDBCallback.h>
+#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/db/maria/EventDB.h>
 
 #include <vector>
 
 
 namespace JmpAPI {
-  class QueryHandler : public cb::Event::HTTPHandler {
+  class QueryHandler : public cb::Event::HTTPRequestHandler {
     std::string sql;
     bool pass;
     cb::JSON::ValuePtr fields;
@@ -45,7 +45,7 @@ namespace JmpAPI {
   public:
     QueryHandler(const cb::JSON::Value &config);
 
-    // From HTTPHandler
+    // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);
   };
 }

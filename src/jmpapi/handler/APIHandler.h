@@ -27,20 +27,20 @@
 
 #pragma once
 
-#include <cbang/event/HTTPHandler.h>
+#include <cbang/event/HTTPRequestHandler.h>
 #include <cbang/json/Value.h>
 
 #include <set>
 
 
 namespace JmpAPI {
-  class APIHandler : public cb::Event::HTTPHandler {
+  class APIHandler : public cb::Event::HTTPRequestHandler {
     cb::JSON::ValuePtr api;
 
   public:
     APIHandler(const cb::JSON::Value &config, const cb::JSON::Value &api);
 
-    // From HTTPHandler
+    // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);
 
   protected:

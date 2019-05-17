@@ -48,12 +48,12 @@ QueryHandler::QueryHandler(const JSON::Value &config) :
   else if (ret == "bool")   replyCB = &Transaction::returnBool;
   else if (ret == "u64")    replyCB = &Transaction::returnU64;
   else if (ret == "s64")    replyCB = &Transaction::returnS64;
-  else THROWS("Unsupported query return type '" << ret << "'");
+  else THROW("Unsupported query return type '" << ret << "'");
 }
 
 
 bool QueryHandler::operator()(Event::Request &req) {
-  const JSON::Dict &args = req.getArgs();
+  auto &args = req.getArgs();
   if (args.empty()) req.parseArgs();
 
   req.cast<Transaction>().setFields(fields);

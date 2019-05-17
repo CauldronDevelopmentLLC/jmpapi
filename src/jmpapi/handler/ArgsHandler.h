@@ -29,7 +29,7 @@
 
 #include <jmpapi/arg/ArgValidator.h>
 
-#include <cbang/event/HTTPHandler.h>
+#include <cbang/event/HTTPRequestHandler.h>
 #include <cbang/json/Value.h>
 
 #include <set>
@@ -37,13 +37,13 @@
 
 
 namespace JmpAPI {
-  class ArgsHandler : public cb::Event::HTTPHandler {
+  class ArgsHandler : public cb::Event::HTTPRequestHandler {
     std::map<std::string, cb::SmartPointer<ArgValidator> > validators;
 
   public:
     ArgsHandler(const cb::JSON::ValuePtr &args);
 
-    // From HTTPHandler
+    // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);
   };
 }

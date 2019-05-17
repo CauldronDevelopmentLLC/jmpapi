@@ -44,7 +44,7 @@ namespace JmpAPI {
     void operator()(cb::Event::Request &req,
                     const cb::JSON::Value &value) const {
       if (max < value.asString().length())
-        THROWS("Must be no more than " << max << " chars long");
+        THROW("Must be no more than " << max << " chars long");
     }
   };
 }

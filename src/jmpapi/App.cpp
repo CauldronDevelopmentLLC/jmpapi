@@ -27,7 +27,7 @@
 
 #include "App.h"
 
-#include <cbang/util/DefaultCatch.h>
+#include <cbang/Catch.h>
 
 #include <cbang/os/SystemUtilities.h>
 
@@ -86,8 +86,8 @@ App::App() :
   Event::Event::enableLogging(3);
 
   // Handle exit signal
-  base.newSignal(SIGINT, this, &App::signalEvent).add();
-  base.newSignal(SIGTERM, this, &App::signalEvent).add();
+  base.newSignal(SIGINT, this, &App::signalEvent)->add();
+  base.newSignal(SIGTERM, this, &App::signalEvent)->add();
 }
 
 

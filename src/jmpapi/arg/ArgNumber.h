@@ -54,19 +54,19 @@ namespace JmpAPI {
       else if (value.isString()) n = cb::String::parse<T>(value.getString());
       else THROW("Must be a number or string");
 
-      if (!isnan(min) && n < (T)min) THROWS("Must be greater than " << (T)min);
-      if (!isnan(max) && (T)max < n) THROWS("Must be less than " << (T)max);
+      if (!isnan(min) && n < (T)min) THROW("Must be greater than " << (T)min);
+      if (!isnan(max) && (T)max < n) THROW("Must be less than " << (T)max);
 
       if (value.isNumber()) {
         double x = value.getNumber();
 
         if (x < (double)std::numeric_limits<T>::min())
-          THROWS("Less than minimum value " <<
+          THROW("Less than minimum value " <<
                  (double)std::numeric_limits<T>::min()
                  << " for numeric type");
 
         if ((double)std::numeric_limits<T>::max() < x)
-          THROWS("Greater than maximum value "
+          THROW("Greater than maximum value "
                  << (double)std::numeric_limits<T>::max()
                  << " for numeric type");
       }

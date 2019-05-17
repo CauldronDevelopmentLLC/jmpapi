@@ -47,12 +47,12 @@ ArgAuth::ArgAuth(bool allow, const JSON::ValuePtr &config) : allow(allow) {
 
   for (unsigned i = 0; i < config->size(); i++) {
     string constraint = config->getString(i);
-    if (constraint.empty()) THROWS("Empty arg" << type << " constraint");
+    if (constraint.empty()) THROW("Empty arg" << type << " constraint");
 
     if (constraint[0] == '$') groups.push_back(constraint.substr(1));
     else if (constraint[0] == '=')
       sessionVars.push_back(constraint.substr(1));
-    else THROWS("Invalid arg " << type << " constraint.  Must start with "
+    else THROW("Invalid arg " << type << " constraint.  Must start with "
                 "'$' for group or '=' for session variable.");
   }
 }

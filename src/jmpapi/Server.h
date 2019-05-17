@@ -28,7 +28,6 @@
 #pragma once
 
 #include <cbang/event/WebServer.h>
-#include <cbang/net/SessionManager.h>
 #include <cbang/json/Value.h>
 
 
@@ -43,11 +42,11 @@ namespace JmpAPI {
   public:
     Server(App &app);
 
-    cb::SmartPointer<cb::Event::HTTPHandler>
+    cb::SmartPointer<cb::Event::HTTPRequestHandler>
     createAccessHandler(const cb::JSON::Value &config);
-    cb::SmartPointer<cb::Event::HTTPHandler>
+    cb::SmartPointer<cb::Event::HTTPRequestHandler>
     createEndpoint(const cb::JSON::ValuePtr &config);
-    cb::SmartPointer<cb::Event::HTTPHandler>
+    cb::SmartPointer<cb::Event::HTTPRequestHandler>
     createAPIHandler(const std::string &pattern, const cb::JSON::Value &config);
     void loadCategory(const std::string &name, const cb::JSON::Value &cat);
     void loadCategories(const cb::JSON::Value &cats);
@@ -56,6 +55,8 @@ namespace JmpAPI {
 
 
     // From cb::Event::HTTPHandler
-    cb::Event::Request *createRequest(evhttp_request *req);
+    cb::SmartPointer<cb::Event::Request> createRequest
+    (cb::Event::RequestMethod method, const cb::URI &uri,
+     const cb::Version &version);
   };
 }

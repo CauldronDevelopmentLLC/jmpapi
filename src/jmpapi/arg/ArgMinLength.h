@@ -44,7 +44,7 @@ namespace JmpAPI {
     void operator()(cb::Event::Request &req,
                     const cb::JSON::Value &value) const {
       if (value.asString().length() < min)
-        THROWS("Must be at least " << min << " chars long");
+        THROW("Must be at least " << min << " chars long");
     }
   };
 }

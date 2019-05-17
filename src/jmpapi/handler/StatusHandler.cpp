@@ -35,15 +35,15 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-StatusHandler::StatusHandler(int code) : code(code) {}
+StatusHandler::StatusHandler(Event::HTTPStatus code) : code(code) {}
 
 
 StatusHandler::StatusHandler(const std::string &code) :
-  code(HTTPStatus::parse(code)) {}
+  code(Event::HTTPStatus::parse(code)) {}
 
 
 bool StatusHandler::operator()(Event::Request &req) {
-  req.send(Event::HTTPStatus((HTTPStatus::enum_t)code).toString());
+  req.send(code.toString());
   req.reply(code);
 
   return true;

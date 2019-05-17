@@ -29,7 +29,7 @@
 
 #include <cbang/event/Request.h>
 #include <cbang/event/OAuth2Login.h>
-#include <cbang/db/maria/EventDBCallback.h>
+#include <cbang/db/maria/EventDB.h>
 #include <cbang/json/Value.h>
 
 
@@ -56,14 +56,15 @@ namespace JmpAPI {
     cb::SmartPointer<cb::JSON::Writer> writer;
 
   public:
-    Transaction(App &app, evhttp_request *req);
+    Transaction(App &app, RequestMethod method, const cb::URI &uri,
+                const cb::Version &version);
 
     void setSessionCookie();
     bool lookupSession(const std::string &sql);
 
     void setFields(const cb::JSON::ValuePtr &fields);
 
-    typedef typename cb::MariaDB::EventDBMemberFunctor<Transaction>::member_t
+    typedef typename cb::MariaDB::EventDB::Callback<Transaction>::member_t
     event_db_member_functor_t;
     void query(event_db_member_functor_t member, const std::string &s,
                const cb::JSON::Value &dict);
@@ -71,33 +72,34 @@ namespace JmpAPI {
 
     // From cb::Event::Request
     cb::SmartPointer<cb::JSON::Writer> getJSONWriter();
-    void sendError(int code, const std::string &msg);
-    void sendJSONError(int code = HTTP_INTERNAL_SERVER_ERROR,
+    void sendError(cb::Event::HTTPStatus code, const std::string &msg);
+    void sendJSONError(cb::Event::HTTPStatus code = HTTP_INTERNAL_SERVER_ERROR,
                        const std::string &msg = "");
-    void finalize();
+    void write();
 
     // From cb::Event::OAuth2Login
-    void processProfile(const cb::JSON::ValuePtr &profile);
+    void processProfile(cb::Event::Request &req,
+                        const cb::JSON::ValuePtr &profile);
 
     // Event::WebServer request callbacks
     bool apiLogin(const cb::JSON::ValuePtr &config);
     bool apiLogout(const cb::JSON::ValuePtr &config);
 
     // MariaDB::EventDB callbacks
-    void session(cb::MariaDB::EventDBCallback::state_t state);
-    void login(cb::MariaDB::EventDBCallback::state_t state =
-               cb::MariaDB::EventDBCallback::EVENTDB_DONE);
-    void logout(cb::MariaDB::EventDBCallback::state_t state =
-                cb::MariaDB::EventDBCallback::EVENTDB_DONE);
+    void session(cb::MariaDB::EventDB::state_t state);
+    void login(cb::MariaDB::EventDB::state_t state =
+               cb::MariaDB::EventDB::EVENTDB_DONE);
+    void logout(cb::MariaDB::EventDB::state_t state =
+                cb::MariaDB::EventDB::EVENTDB_DONE);
 
-    void returnHeadList(cb::MariaDB::EventDBCallback::state_t state);
-    void returnList(cb::MariaDB::EventDBCallback::state_t state);
-    void returnBool(cb::MariaDB::EventDBCallback::state_t state);
-    void returnU64(cb::MariaDB::EventDBCallback::state_t state);
-    void returnS64(cb::MariaDB::EventDBCallback::state_t state);
-    void returnFields(cb::MariaDB::EventDBCallback::state_t state);
-    void returnDict(cb::MariaDB::EventDBCallback::state_t state);
-    void returnOne(cb::MariaDB::EventDBCallback::state_t state);
-    void returnOk(cb::MariaDB::EventDBCallback::state_t state);
+    void returnHeadList(cb::MariaDB::EventDB::state_t state);
+    void returnList(cb::MariaDB::EventDB::state_t state);
+    void returnBool(cb::MariaDB::EventDB::state_t state);
+    void returnU64(cb::MariaDB::EventDB::state_t state);
+    void returnS64(cb::MariaDB::EventDB::state_t state);
+    void returnFields(cb::MariaDB::EventDB::state_t state);
+    void returnDict(cb::MariaDB::EventDB::state_t state);
+    void returnOne(cb::MariaDB::EventDB::state_t state);
+    void returnOk(cb::MariaDB::EventDB::state_t state);
   };
 }

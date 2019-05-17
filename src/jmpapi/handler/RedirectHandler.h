@@ -35,9 +35,9 @@ namespace JmpAPI {
     std::string location;
 
   public:
-    RedirectHandler(int code, const std::string &location);
+    RedirectHandler(cb::Event::HTTPStatus code, const std::string &location);
 
-    // From HTTPHandler
+    // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);
   };
 }

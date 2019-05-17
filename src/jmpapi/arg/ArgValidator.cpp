@@ -56,7 +56,7 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   // Implicit type
   if (type.empty()) type = config->has("enum") ? "enum" : "string";
 
-  if      (type == "enum")   add(new ArgEnum(config->get("enum")));
+  if      (type == "enum")   add(new ArgEnum(config));
   else if (type == "number") add(new ArgNumber<double>(config));
   else if (type == "int")    add(new ArgNumber<int64_t>(config));
   else if (type == "s64")    add(new ArgNumber<int64_t>(config));
@@ -76,7 +76,7 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
     if (config->hasNumber("min")) add(new ArgMinLength(config));
     if (config->hasNumber("max")) add(new ArgMaxLength(config));
 
-  } else THROWS("Unknown argument type '" << type << "'");
+  } else THROW("Unknown argument type '" << type << "'");
 
   if (config->has("pattern")) add(new ArgPattern(config->getString("pattern")));
   if (config->has("allow")) add(new ArgAuth(true, config->get("allow")));
