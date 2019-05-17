@@ -38,6 +38,7 @@
 #include <jmpapi/handler/HeadersHandler.h>
 #include <jmpapi/handler/RedirectHandler.h>
 #include <jmpapi/handler/SessionHandler.h>
+#include <jmpapi/handler/CORSHandler.h>
 
 #include <cbang/event/Request.h>
 #include <cbang/event/ACLHandler.h>
@@ -119,9 +120,10 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
   if (type.empty() && config->has("sql")) type = "query";
   if (type.empty()) type == "pass";
 
-  if (type == "pass") return new PassHandler;
+  if (type == "pass")    return new PassHandler;
+  if (type == "cors")    return new CORSHandler(*config);
   if (type == "session") return new SessionHandler(*config);
-  if (type == "query") return new QueryHandler(*config);
+  if (type == "query")   return new QueryHandler(*config);
 
   if (type == "login")
     return new EndpointHandler(&Transaction::apiLogin, config);
@@ -191,7 +193,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     if (args->size()) methodGroup->addHandler(new ArgsHandler(args));
 
     // Headers
-    if (config->has("headers"))
+    if (config->has("headers") && !handler.isInstance<HeadersHandler>())
       methodGroup->addHandler(new HeadersHandler(config->get("headers")));
 
     // Method(s)
