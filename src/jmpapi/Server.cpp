@@ -164,6 +164,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     group->addHandler(createAccessHandler(api));
 
   // Methods
+  unsigned endpoints = 0;
   for (unsigned i = 0; i < api.size(); i++) {
     const string &key = api.keyAt(i);
     unsigned methods = parseMethods(key);
@@ -173,6 +174,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     SmartPointer<Event::HTTPRequestHandler> handler = createEndpoint(config);
 
     if (handler.isNull()) continue;
+    endpoints++;
 
     SmartPointer<Event::HTTPHandlerGroup> methodGroup =
       new Event::HTTPHandlerGroup;
@@ -200,6 +202,10 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     methodGroup->addHandler(handler);
     group->addHandler(new Event::HTTPMethodMatcher(methods, methodGroup));
   }
+
+  // Handle arg constraints when there are no endpoints
+  if (!endpoints && api.has("args"))
+    group->addHandler(new ArgsHandler(api.get("args")));
 
   return matcher;
 }
