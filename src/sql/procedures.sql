@@ -113,6 +113,9 @@ BEGIN
 
   COMMIT;
 
+  -- List session variables
+  SELECT "uid" name, @uid value;
+
   -- List user's groups
   SELECT g.name 'group' FROM user_groups ug
     JOIN groups g ON ug.gid = g.id AND ug.uid = @uid;

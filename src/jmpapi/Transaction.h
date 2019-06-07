@@ -52,6 +52,8 @@ namespace JmpAPI {
     std::string nextField;
     bool closeField;
 
+    unsigned result = 0;
+
     cb::SmartPointer<cb::MariaDB::EventDB> db;
     cb::SmartPointer<cb::JSON::Writer> writer;
 

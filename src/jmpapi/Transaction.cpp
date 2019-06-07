@@ -114,6 +114,7 @@ void Transaction::query(event_db_member_functor_t member, const string &_sql,
     }
   };
 
+  result = 0; // Reset result count
   db->query(this, member, dict.format(_sql, FormatCB(*this)));
 }
 
@@ -324,12 +325,14 @@ void Transaction::session(MariaDB::EventDB::state_t state) {
 
 void Transaction::login(MariaDB::EventDB::state_t state) {
   switch (state) {
-  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT:
-  case MariaDB::EventDB::EVENTDB_END_RESULT:
-    break;
+  case MariaDB::EventDB::EVENTDB_BEGIN_RESULT: break;
+  case MariaDB::EventDB::EVENTDB_END_RESULT: result++; break;
 
   case MariaDB::EventDB::EVENTDB_ROW: {
-    getSession()->addGroup(db->getString(0));
+    if (result) getSession()->addGroup(db->getString(0)); // Groups
+    else if (db->getField(1).isNumber()) // Session vars
+      getSession()->insert(db->getString(0), db->getDouble(1));
+    else getSession()->insert(db->getString(0), db->getString(1));
     break;
   }
 
