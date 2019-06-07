@@ -73,7 +73,8 @@ void ArgAuth::operator()(Event::Request &req,
 
   string value = _value.asString();
   for (unsigned i = 0; i < sessionVars.size(); i++)
-    if (session->getAsString(sessionVars[i]) == value) {
+    if (session->has(sessionVars[i]) &&
+        session->getAsString(sessionVars[i]) == value) {
       if (allow) return;
       unauthorized();
     }
