@@ -51,7 +51,7 @@ endpoints:
 
     PUT:
       args:
-        value: {}
+        value: {help: "Config value"}
       sql: CALL jmpapi.ConfigSet(%(name)s, %(value)i)
 
   /users:

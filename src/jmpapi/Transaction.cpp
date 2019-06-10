@@ -61,7 +61,7 @@ bool Transaction::lookupSession(const string &sql) {
   if (!getSession().isNull()) return false;
 
   // Check if we have a session ID
-  string sid = getSessionID(app.getSessionManager().getSessionCookie());
+  string sid = getSessionID(app.getSessionCookieName());
   if (sid.empty()) return false;
 
   // Lookup Session in SessionManager

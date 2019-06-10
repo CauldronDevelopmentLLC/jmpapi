@@ -58,7 +58,7 @@ CREATE PROCEDURE AuthLogin(
   IN _name        VARCHAR(128),
   IN _avatar      VARCHAR(256))
 BEGIN
-  SET @@session.time_zone = "+00:00";
+  SET @@session.time_zone = '+00:00';
 
   IF ISNULL(_name) OR LENGTH(_name) = 0 THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'User name cannot be empty';
@@ -114,7 +114,9 @@ BEGIN
   COMMIT;
 
   -- List session variables
-  SELECT "uid" name, @uid value;
+  SELECT 'uid' name, @uid value UNION ALL
+    SELECT 'lifetime', ConfigGetFunc('session-lifetime', 0) UNION ALL
+    SELECT 'timeout',  ConfigGetFunc('session-timeout',  0);
 
   -- List user's groups
   SELECT g.name 'group' FROM user_groups ug
@@ -124,7 +126,7 @@ END //
 
 CREATE PROCEDURE AuthLogout(IN _sid VARCHAR(48))
 BEGIN
-  SET @@session.time_zone = "+00:00";
+  SET @@session.time_zone = '+00:00';
 
   UPDATE users u
     INNER JOIN sessions s ON u.id = s.uid SET u.last_used = NOW();
@@ -135,15 +137,20 @@ END //
 -- Sessions
 CREATE PROCEDURE AuthSession(IN _sid VARCHAR(48))
 BEGIN
-  SET @@session.time_zone = "+00:00";
+  SET @@session.time_zone = '+00:00';
 
   -- Delete old sessions
-  DELETE FROM sessions WHERE last_used + INTERVAL 1 DAY < NOW();
+  SET @timeout  = ConfigGetFunc('session-timeout',  0);
+  SET @lifetime = ConfigGetFunc('session-lifetime', 0);
+  DELETE FROM sessions
+    WHERE (@timeout AND last_used + INTERVAL @timeout SECOND < NOW()) OR
+      (@lifetime AND created + INTERVAL @lifetime SECOND < NOW());
 
   -- Get session, if it exists
   SELECT u.id uid, u.email user, u.name, u.avatar,
     DATE_FORMAT(s.created, '%Y-%m-%dT%TZ') created,
-    DATE_FORMAT(s.last_used, '%Y-%m-%dT%TZ') last_used
+    DATE_FORMAT(s.last_used, '%Y-%m-%dT%TZ') last_used,
+    @timeout timeout, @lifetime lifetime
     FROM sessions s
     JOIN users u ON s.id = _sid AND s.uid = u.id;
 
@@ -173,7 +180,7 @@ CREATE PROCEDURE UserAssociationAdd(
   IN _name        VARCHAR(128),
   IN _avatar      VARCHAR(256))
 BEGIN
-  SET @@session.time_zone = "+00:00";
+  SET @@session.time_zone = '+00:00';
 
   IF NOT EmailIsValid(_email) THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid email';
@@ -209,7 +216,7 @@ CREATE PROCEDURE UserAdd(
   IN _avatar      VARCHAR(256),
   IN _enabled     BOOLEAN)
 BEGIN
-  SET @@session.time_zone = "+00:00";
+  SET @@session.time_zone = '+00:00';
 
   IF NOT EmailIsValid(_email) THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid email';

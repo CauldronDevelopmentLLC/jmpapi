@@ -54,7 +54,7 @@ App::App() :
   client(base, dns, new SSLContext), googleAuth(options), githubAuth(options),
   facebookAuth(options), dbHost("localhost"), dbUser("jmpapi"),
   dbName("jmpapi"), dbPort(3306), dbTimeout(5), server(*this),
-  sessionManager(options), config(new JSON::Dict) {
+  config(new JSON::Dict) {
 
   cmdLine.setAllowPositionalArgs(true);
 
@@ -63,6 +63,7 @@ App::App() :
               )->setDefault("/usr/share/jmpapi/http");
   options.add("jsonp", "Respond with JSONP format data if this argument is "
               "present in an API call.");
+  options.add("session-cookie", "Session cookie name")->setDefault("sid");
   options.popCategory();
 
   options.pushCategory("Debugging");
@@ -98,7 +99,7 @@ bool App::_hasFeature(int feature) {
 
 
 string App::getSessionCookieName() const {
-  return sessionManager.getSessionCookie();
+  return options["session-cookie"].toString();
 }
 
 
@@ -112,7 +113,7 @@ SmartPointer<MariaDB::EventDB> App::getDBConnection(bool blocking) {
   db->setReadTimeout(dbTimeout);
   db->setWriteTimeout(dbTimeout);
   db->setReconnect(true);
-  db->enableNonBlocking();
+  if (!blocking) db->enableNonBlocking();
   db->setCharacterSet("utf8");
 
   // Connect

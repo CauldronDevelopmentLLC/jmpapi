@@ -12,7 +12,11 @@ CREATE TABLE IF NOT EXISTS config (
 
 INSERT INTO config (name, value, type, help, writable) VALUES
   ('version', 0, 'number', 'Current database version', FALSE),
-  ('auto-register', TRUE, 'bool', 'Allow automatic user registration', TRUE)
+  ('auto-register', TRUE, 'bool', 'Allow automatic user registration', TRUE),
+  ('session-timeout', 2592000, 'number',
+   'Seconds since last session use or zero for no limit', TRUE),
+  ('session-lifetime', 0, 'number',
+   'Max session lifetime in seconds, zero for no limit', TRUE)
   ON DUPLICATE KEY UPDATE name = name;
 
 
