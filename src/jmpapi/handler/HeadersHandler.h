@@ -27,26 +27,21 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
-#include <cbang/json/Value.h>
+#include <jmpapi/Headers.h>
 
-#include <vector>
-#include <algorithm>
-#include <string>
+#include <cbang/event/HTTPRequestHandler.h>
 
 
 namespace JmpAPI {
-  class HeadersHandler : public cb::Event::HTTPRequestHandler {
-    typedef std::pair<std::string, std::string> header_t;
-    std::vector<header_t> headers;
-
+  class HeadersHandler : public cb::Event::HTTPRequestHandler, public Headers {
   public:
     HeadersHandler() {}
-    HeadersHandler(const cb::JSON::ValuePtr &hdrs);
-
-    void add(const std::string &key, const std::string &value);
+    HeadersHandler(const cb::JSON::ValuePtr &hdrs) : Headers(hdrs) {}
 
     // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    bool operator()(cb::Event::Request &req) {
+      set(req);
+      return false;
+    }
   };
 }

@@ -19,6 +19,7 @@ END //
 
 CREATE FUNCTION ConfigGetFunc(_name VARCHAR(16), _default INT)
   RETURNS INT
+  READS SQL DATA
 BEGIN
   SET @value = _default;
   SELECT value INTO @value FROM config WHERE name = _name;

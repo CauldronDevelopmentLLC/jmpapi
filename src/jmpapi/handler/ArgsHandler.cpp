@@ -41,7 +41,7 @@ ArgsHandler::ArgsHandler(const JSON::ValuePtr &args) {
 
 
 bool ArgsHandler::operator()(Event::Request &req) {
-  auto &args = req.parseArgs();
+  auto &args = *req.parseArgs();
   set<string> found;
 
   for (unsigned i = 0; i < args.size(); i++) {
@@ -70,7 +70,7 @@ bool ArgsHandler::operator()(Event::Request &req) {
     if (found.find(it->first) == found.end()) {
       const ArgValidator &av = *it->second;
 
-      if (av.hasDefault()) req.getArgs().insert(it->first, av.getDefault());
+      if (av.hasDefault()) args.insert(it->first, av.getDefault());
       else if (!av.isOptional()) missing.push_back(it->first);
     }
 

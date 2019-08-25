@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "Headers.h"
+
 #include <cbang/event/Request.h>
 #include <cbang/event/OAuth2Login.h>
 #include <cbang/db/maria/EventDB.h>
@@ -61,6 +63,8 @@ namespace JmpAPI {
     Transaction(App &app, RequestMethod method, const cb::URI &uri,
                 const cb::Version &version);
 
+    App &getApp() {return app;}
+
     void setSessionCookie();
     bool lookupSession(const std::string &sql);
 
@@ -68,8 +72,6 @@ namespace JmpAPI {
 
     typedef typename cb::MariaDB::EventDB::Callback<Transaction>::member_t
     event_db_member_functor_t;
-    void query(event_db_member_functor_t member, const std::string &s,
-               const cb::JSON::Value &dict);
     void query(event_db_member_functor_t member, const std::string &s);
 
     // From cb::Event::Request

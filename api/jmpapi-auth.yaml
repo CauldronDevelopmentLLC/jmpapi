@@ -11,7 +11,7 @@ endpoints:
     GET|PUT|POST|DELETE:
       handler: session
       help: Look up session by ID.
-      sql: CALL jmpapi.AuthSession(%(session.id)s)
+      sql: CALL jmpapi.AuthSession(%(session.id)S)
 
   /login/:provider:
     GET:
@@ -26,14 +26,14 @@ endpoints:
             providers.
 
       sql: >
-        CALL jmpapi.AuthLogin(%(session.id)s, %(session.provider)s,
-          %(session.provider_id)s, %(session.user)s, %(session.name)s,
-          %(session.avatar)s)
+        CALL jmpapi.AuthLogin(%(session.id)S, %(session.provider)S,
+          %(session.provider_id)S, %(session.user)S, %(session.name)S,
+          %(session.avatar)S)
 
   /logout:
     PUT:
       handler: logout
-      sql: CALL jmpapi.AuthLogout(%(session.id)s)
+      sql: CALL jmpapi.AuthLogout(%(session.id)S)
       help: Close the currently logged in session.
 
   /config.*:
@@ -47,12 +47,12 @@ endpoints:
   /config/:name:
     GET:
       return: one
-      sql: CALL jmpapi.ConfigGet(%(name)s)
+      sql: CALL jmpapi.ConfigGet(%(name)S)
 
     PUT:
       args:
         value: {help: "Config value"}
-      sql: CALL jmpapi.ConfigSet(%(name)s, %(value)i)
+      sql: CALL jmpapi.ConfigSet(%(name)S, %(value)i)
 
   /users:
     allow: [$admin]
@@ -78,8 +78,8 @@ endpoints:
         enabled: {type: bool, default: true}
 
       sql: >
-        CALL jmpapi.UserAdd(%(provider)s, %(provider_id)s, %(email)s, %(name)s,
-          %(avatar)s, %(enabled)b);
+        CALL jmpapi.UserAdd(%(provider)S, %(provider_id)S, %(email)S, %(name)S,
+          %(avatar)S, %(enabled)b);
         SELECT @uid;
 
   /users/:id.*:
@@ -103,7 +103,7 @@ endpoints:
         avatar: {optional: true, type: uri}
         enabled: {allow: [$admin], optional: true, type: bool}
       sql: >
-        CALL jmpapi.UserSet(%(id)u, %(email)s, %(name)s, %(avatar)s,
+        CALL jmpapi.UserSet(%(id)u, %(email)S, %(name)S, %(avatar)S,
           %(enabled)b)
 
     DELETE:
@@ -125,12 +125,12 @@ endpoints:
         name: {optional: true, min: 2}
         avatar: {optional: true, type: uri}
       sql: >
-        CALL jmpapi.UserAssociationAdd(%(id)u, %(provider)s, %(provider_id)s,
-          %(email)s, %(name)s, %(avatar)s)
+        CALL jmpapi.UserAssociationAdd(%(id)u, %(provider)S, %(provider_id)S,
+          %(email)S, %(name)S, %(avatar)S)
 
     DELETE:
       help: Delete a user login association.
-      sql: CALL jmpapi.UserAssociationDelete(%(id)u, %(provider)s)
+      sql: CALL jmpapi.UserAssociationDelete(%(id)u, %(provider)S)
 
   /users/:id/groups:
     GET:
@@ -142,12 +142,12 @@ endpoints:
   /users/:id/groups/:group:
     PUT:
       allow: [$admin]
-      sql: CALL jmpapi.UserGroupAdd(%(id)u, %(group)s)
+      sql: CALL jmpapi.UserGroupAdd(%(id)u, %(group)S)
       help: Add a user to a group.
 
     DELETE:
       allow: [$admin]
-      sql: CALL jmpapi.UserGroupDelete(%(id)u, %(group)s)
+      sql: CALL jmpapi.UserGroupDelete(%(id)u, %(group)S)
       help: Remove a user from a group.
 
   /groups.*:
@@ -164,21 +164,21 @@ endpoints:
       group: {help: The group name.}
 
     PUT:
-      sql: CALL jmpapi.GroupAdd(%(group)s)
+      sql: CALL jmpapi.GroupAdd(%(group)S)
       help: Create a new group.
 
     DELETE:
-      sql: CALL jmpapi.GroupDelete(%(group)s)
+      sql: CALL jmpapi.GroupDelete(%(group)S)
       help: Delete a group.
 
   /groups/:group/members:
     GET:
       return: list
-      sql: CALL jmpapi.GroupMemberList(%(group)s)
+      sql: CALL jmpapi.GroupMemberList(%(group)S)
       help: Returns a list of members of a group.
 
   /groups/:group/nonmembers:
     GET:
       return: list
-      sql: CALL jmpapi.GroupNonmemberList(%(group)s)
+      sql: CALL jmpapi.GroupNonmemberList(%(group)S)
       help: Returns a list of nonmembers of a group.

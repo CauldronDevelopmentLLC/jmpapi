@@ -27,29 +27,23 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
-#include <cbang/json/Value.h>
+#include <jmpapi/Headers.h>
+#include <jmpapi/ProxyRequest.h>
 
-#include <set>
+#include <cbang/json/Value.h>
+#include <cbang/event/HTTPRequestHandler.h>
 
 
 namespace JmpAPI {
-  class APIHandler : public cb::Event::HTTPRequestHandler {
-    cb::JSON::ValuePtr api;
+  class App;
+
+  class ProxyHandler : public cb::Event::HTTPRequestHandler {
+    ProxyRequest request;
 
   public:
-    APIHandler(const cb::JSON::Value &config);
+    ProxyHandler(const cb::JSON::Value &config);
 
     // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);
-
-  protected:
-    cb::JSON::ValuePtr loadCategories(const cb::JSON::Value &cats);
-    cb::JSON::ValuePtr loadCategory(const cb::JSON::Value &cat);
-    cb::JSON::ValuePtr loadEndpoint(const std::string &pattern,
-                                    const cb::JSON::Value &endpoint);
-    cb::JSON::ValuePtr loadMethod(const cb::JSON::Value &method,
-                                  const std::set<std::string> &urlArgs,
-                                  const cb::JSON::Value &endpointArgs);
   };
 }

@@ -66,13 +66,13 @@ namespace {
 }
 
 
-APIHandler::APIHandler(const JSON::Value &config, const JSON::Value &_api) :
+APIHandler::APIHandler(const JSON::Value &config) :
   api(new JSON::Dict) {
 
   api->insert("title", config.getString("title", "JmpAPI Docs"));
   const char *keys[] = {"help", "header", 0};
   copyExistingKeys(keys, config, *api);
-  api->insert("categories", loadCategories(_api));
+  api->insert("categories", loadCategories(*config.get("api")));
 }
 
 

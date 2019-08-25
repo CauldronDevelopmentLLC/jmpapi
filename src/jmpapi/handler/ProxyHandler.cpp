@@ -25,29 +25,31 @@
 
 \******************************************************************************/
 
-#include "HeadersHandler.h"
+#include "ProxyHandler.h"
 
-#include <cbang/String.h>
-#include <cbang/event/Request.h>
+#include <jmpapi/Resolver.h>
 
-using namespace JmpAPI;
-using namespace cb;
 using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-HeadersHandler::HeadersHandler(const JSON::ValuePtr &hdrs) {
-  for (unsigned i = 0; i < hdrs->size(); i++)
-    add(hdrs->keyAt(i), hdrs->getString(i));
-}
+ProxyHandler::ProxyHandler(const JSON::Value &config) : request(config) {}
 
 
-void HeadersHandler::add(const string &key, const string &value) {
-  headers.push_back(header_t(String::trim(key), String::trim(value)));
-}
+bool ProxyHandler::operator()(Event::Request &req) {
+  auto cb =
+    [&req] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+      if (data.isSet()) {
+        if (!req.outHas("Content-Type"))
+          req.outSet("Content-Type", "application/json");
+        req.send(data->toString());
+      }
 
+      req.reply(status);
+    };
 
-bool HeadersHandler::operator()(Event::Request &req) {
-  for (unsigned i = 0; i < headers.size(); i++)
-    req.outSet(headers[i].first, headers[i].second);
-  return false;
+  request.request(new Resolver(req), cb);
+
+  return true;
 }

@@ -28,10 +28,12 @@
 #include "Server.h"
 #include "App.h"
 #include "Transaction.h"
+#include "Resolver.h"
 
 #include <jmpapi/handler/EndpointHandler.h>
 #include <jmpapi/handler/StatusHandler.h>
 #include <jmpapi/handler/QueryHandler.h>
+#include <jmpapi/handler/ProxyHandler.h>
 #include <jmpapi/handler/APIHandler.h>
 #include <jmpapi/handler/ArgsHandler.h>
 #include <jmpapi/handler/PassHandler.h>
@@ -50,7 +52,8 @@
 #include <cbang/event/IndexHTMLHandler.h>
 
 #include <cbang/openssl/SSLContext.h>
-#include <cbang/json/JSON.h>
+#include <cbang/json/Value.h>
+#include <cbang/json/String.h>
 #include <cbang/log/Logger.h>
 
 using namespace cb;
@@ -118,12 +121,14 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
   string type = config->getString("handler", "");
 
   if (type.empty() && config->has("sql")) type = "query";
+  if (type.empty() && config->has("url")) type = "proxy";
   if (type.empty()) type == "pass";
 
   if (type == "pass")    return new PassHandler;
   if (type == "cors")    return new CORSHandler(*config);
   if (type == "session") return new SessionHandler(*config);
   if (type == "query")   return new QueryHandler(*config);
+  if (type == "proxy")   return new ProxyHandler(*config);
 
   if (type == "login")
     return new EndpointHandler(&Transaction::apiLogin, config);
@@ -143,8 +148,7 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
                                config->getU32("code", 301),
                                config->getString("location"));
 
-  if (type == "api")
-    return new APIHandler(*app.getConfig(), *app.getConfig()->get("api"));
+  if (type == "api") return new APIHandler(*app.getConfig());
 
   THROW("Unsupported handler '" << type << "'");
 }
@@ -170,8 +174,8 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     unsigned methods = parseMethods(key);
     if (!methods) continue; // Ignore non-methods
 
-    const JSON::ValuePtr config = api.get(i);
-    SmartPointer<Event::HTTPRequestHandler> handler = createEndpoint(config);
+    auto &config = api.get(i);
+    auto handler = createEndpoint(config);
 
     if (handler.isNull()) continue;
     endpoints++;
@@ -241,9 +245,17 @@ void Server::loadCategories(const JSON::Value &cats) {
 void Server::init() {
   Event::WebServer::init();
 
-  // API Categories
+  // Load API
   auto &config = *app.getConfig();
-  if (config.has("api")) loadCategories(*config.get("api"));
+  if (config.has("api")) {
+    auto &api = *config.get("api");
+
+    // Replace global references
+    if (config.has("global"))
+      Resolver("global", config.get("global")).resolve(api);
+
+    loadCategories(api);
+  }
 
   // Root
   string root = app.getOptions()["http-root"].toString("");

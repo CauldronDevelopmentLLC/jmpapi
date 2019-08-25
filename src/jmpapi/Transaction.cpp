@@ -27,6 +27,7 @@
 
 #include "Transaction.h"
 #include "App.h"
+#include "Resolver.h"
 
 #include <cbang/event/Buffer.h>
 #include <cbang/event/Event.h>
@@ -88,40 +89,13 @@ void Transaction::setFields(const JSON::ValuePtr &fields) {
 }
 
 
-void Transaction::query(event_db_member_functor_t member, const string &_sql,
-                        const JSON::Value &dict) {
+void Transaction::query(event_db_member_functor_t member, const string &sql) {
   if (isReplying()) THROW("DB query initiated but Transaction was finalized!");
 
   if (db.isNull()) db = app.getDBConnection();
 
-  class FormatCB : public String::FormatCB {
-    SmartPointer<Session> session;
-
-  public:
-    FormatCB(Event::Request &req) : session(req.getSession()) {}
-
-
-    string operator()(char type, int index, const string &name) const {
-      if (type == 'b' && String::startsWith(name, "group."))
-        return String(!session.isNull() && session->hasGroup(name.substr(6)));
-
-      if (String::startsWith(name, "session.")) {
-        string key = name.substr(8);
-        if (session->has(key)) return session->get(key)->format(type);
-      }
-
-      return "NULL";
-    }
-  };
-
   result = 0; // Reset result count
-  db->query(this, member, dict.format(_sql, FormatCB(*this)));
-}
-
-
-void Transaction::query(event_db_member_functor_t member, const string &sql) {
-  JSON::Dict dict;
-  query(member, sql, dict);
+  db->query(this, member, Resolver(*this).format(sql, "NULL"));
 }
 
 
@@ -129,7 +103,7 @@ SmartPointer<JSON::Writer> Transaction::getJSONWriter() {
   if (writer.isNull()) {
     if (app.getOptions()["jsonp"].hasValue()) {
       string callback = app.getOptions()["jsonp"];
-      if (getArgs().hasString(callback))
+      if (getArgs()->hasString(callback))
         return writer = Request::getJSONPWriter(getArg(callback));
     }
 
@@ -222,7 +196,7 @@ void Transaction::processProfile(Event::Request &req,
 
 
 bool Transaction::apiLogin(const JSON::ValuePtr &config) {
-  auto &args = parseArgs();
+  auto &args = *parseArgs();
   this->config = config;
 
   string provider = args.getString("provider", "");

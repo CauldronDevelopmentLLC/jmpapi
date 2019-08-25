@@ -54,10 +54,7 @@ module.exports = {
 
     }).done(function (user) {
       user.has_group = function () {
-        return function (group) {
-          return typeof user.groups != 'undefined' &&
-            user.groups.indexOf(group) != -1
-        }
+        return function (group) {return user.group[group]}
       }();
 
       this.loggedin = true;

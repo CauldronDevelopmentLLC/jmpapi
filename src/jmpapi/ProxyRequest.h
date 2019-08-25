@@ -27,29 +27,33 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
-#include <cbang/json/Value.h>
+#include "Headers.h"
+#include "Resolver.h"
 
-#include <set>
+#include <jmpapi/tmpl/Template.h>
+
+#include <cbang/json/Value.h>
+#include <cbang/event/Enum.h>
+
+#include <functional>
 
 
 namespace JmpAPI {
-  class APIHandler : public cb::Event::HTTPRequestHandler {
-    cb::JSON::ValuePtr api;
+  class App;
+
+  class ProxyRequest : public cb::Event::Enum {
+    std::string url;
+    cb::Event::RequestMethod method;
+    Headers headers;
+    cb::SmartPointer<Template> data;
+    cb::SmartPointer<Template> tmpl;
 
   public:
-    APIHandler(const cb::JSON::Value &config);
+    ProxyRequest(const cb::JSON::Value &config);
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    typedef std::function<void (cb::Event::HTTPStatus status,
+                                const cb::JSON::ValuePtr &data)> done_cb_t;
 
-  protected:
-    cb::JSON::ValuePtr loadCategories(const cb::JSON::Value &cats);
-    cb::JSON::ValuePtr loadCategory(const cb::JSON::Value &cat);
-    cb::JSON::ValuePtr loadEndpoint(const std::string &pattern,
-                                    const cb::JSON::Value &endpoint);
-    cb::JSON::ValuePtr loadMethod(const cb::JSON::Value &method,
-                                  const std::set<std::string> &urlArgs,
-                                  const cb::JSON::Value &endpointArgs);
+    void request(const ResolverPtr &resolver, done_cb_t done);
   };
 }
