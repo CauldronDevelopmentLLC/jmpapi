@@ -25,37 +25,19 @@
 
 \******************************************************************************/
 
+#pragma once
+
 #include "Template.h"
 
-#include "ContextTmpl.h"
-#include "LiteralTmpl.h"
-#include "DictTmpl.h"
-#include "ListTmpl.h"
-#include "ProxyTmpl.h"
-#include "ConditionTmpl.h"
 
-using namespace std;
-using namespace cb;
-using namespace JmpAPI;
+namespace JmpAPI {
+  class LiteralTmpl : public Template {
+    const cb::JSON::ValuePtr content;
 
+  public:
+    LiteralTmpl(const cb::JSON::ValuePtr &content) : content(content) {}
 
-SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
-  if (tmpl.isNull()) return 0;
-  if (tmpl->isString()) return new ContextTmpl(tmpl->getString(), 0);
-
-  SmartPointer<Template> child;
-  if (tmpl->hasDict("literal"))   child = new LiteralTmpl(tmpl->get("literal"));
-  else if (tmpl->hasDict("dict")) child = new DictTmpl(tmpl->get("dict"));
-  else if (tmpl->hasDict("list")) child = new ListTmpl(tmpl->get("list"));
-  else if (tmpl->has("url"))      child = new ProxyTmpl(tmpl);
-
-  if (tmpl->hasString("context"))
-    child = new ContextTmpl(tmpl->getString("context"), child);
-
-  if (tmpl->hasString("condition"))
-    child = new ConditionTmpl(tmpl->getString("condition"), child);
-
-  if (!child.isSet()) THROW("Invalid template");
-
-  return child;
+    // From Template
+    void apply(const ResolverPtr &resolver, cb_t cb);
+  };
 }
