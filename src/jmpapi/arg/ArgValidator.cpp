@@ -46,6 +46,11 @@ using namespace std;
 #define EMAIL_RE \
   "^[" EMAIL_CHARS "][." EMAIL_CHARS "]*@[." EMAIL_CHARS "]*[" EMAIL_CHARS "]$"
 
+#define DATE_RE "\\d{4}-\\d{2}-\\d{2}"
+#define TIME_RE "\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?"
+#define ZONE_RE "(Z|([+-]\\d{2}:\\d{2}))"
+#define ISO8601_RE DATE_RE "T" TIME_RE ZONE_RE
+
 
 ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   optional(config->getBoolean("optional", false)),
@@ -70,6 +75,7 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   else if (type == "float")  add(new ArgNumber<float>(config));
   else if (type == "bool")   add(new ArgBoolean);
   else if (type == "email")  add(new ArgPattern(EMAIL_RE));
+  else if (type == "time")   add(new ArgPattern(ISO8601_RE));
   else if (type == "uri")    add(new ArgURI);
 
   else if (type == "string") {

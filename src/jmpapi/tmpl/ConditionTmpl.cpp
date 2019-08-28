@@ -34,11 +34,30 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-void ConditionTmpl::apply(const ResolverPtr &resolver, cb_t done) {
-  JSON::ValuePtr result = resolver->select(condition);
+ConditionTmpl::ConditionTmpl(const JSON::ValuePtr &config,
+                             const SmartPointer<Template> child) :
+  child(child) {
+  if (config->isString()) ctx = config->getString();
+  else if (config->hasString("context")) {
+    ctx = config->getString("context");
+    if (config->has("value")) value = config->get("value");
+    // TODO support comparison operators: != < <= >= contains
 
-  if (!result.isSet() || !result->toBoolean())
-    return done(true, resolver->getContext()->createUndefined());
+  } else THROW("Invalid condition template: " << *config);
+}
+
+
+void ConditionTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  JSON::ValuePtr result = resolver->select(ctx);
+  bool match = false;
+
+  if (result.isSet()) {
+    // TODO improve comparison
+    if (value.isSet()) match = value->asString() == result->asString();
+    else if (result->toBoolean()) match = true;
+  }
+
+  if (!match) return done(true, resolver->getContext()->createUndefined());
 
   if (child.isSet()) child->apply(resolver, done);
   else done(true, resolver->getContext());

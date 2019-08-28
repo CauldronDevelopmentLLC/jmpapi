@@ -44,7 +44,7 @@ SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
   if (tmpl->isString()) return new ContextTmpl(tmpl->getString(), 0);
 
   SmartPointer<Template> child;
-  if (tmpl->hasDict("literal"))   child = new LiteralTmpl(tmpl->get("literal"));
+  if (tmpl->has("literal"))       child = new LiteralTmpl(tmpl->get("literal"));
   else if (tmpl->hasDict("dict")) child = new DictTmpl(tmpl->get("dict"));
   else if (tmpl->hasDict("list")) child = new ListTmpl(tmpl->get("list"));
   else if (tmpl->has("url"))      child = new ProxyTmpl(tmpl);
@@ -52,10 +52,10 @@ SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
   if (tmpl->hasString("context"))
     child = new ContextTmpl(tmpl->getString("context"), child);
 
-  if (tmpl->hasString("condition"))
-    child = new ConditionTmpl(tmpl->getString("condition"), child);
+  if (tmpl->has("condition"))
+    child = new ConditionTmpl(tmpl->get("condition"), child);
 
-  if (!child.isSet()) THROW("Invalid template");
+  if (!child.isSet()) THROW("Invalid template: " << *tmpl);
 
   return child;
 }

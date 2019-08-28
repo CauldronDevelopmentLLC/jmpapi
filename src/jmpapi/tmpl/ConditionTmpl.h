@@ -32,13 +32,13 @@
 
 namespace JmpAPI {
   class ConditionTmpl : public Template {
-    std::string condition;
+    std::string ctx;
+    cb::JSON::ValuePtr value;
     cb::SmartPointer<Template> child;
 
   public:
-    ConditionTmpl(const std::string &condition,
-                const cb::SmartPointer<Template> child) :
-      condition(condition), child(child) {}
+    ConditionTmpl(const cb::JSON::ValuePtr &config,
+                  const cb::SmartPointer<Template> child);
 
     // From Template
     void apply(const ResolverPtr &resolver, cb_t cb);
