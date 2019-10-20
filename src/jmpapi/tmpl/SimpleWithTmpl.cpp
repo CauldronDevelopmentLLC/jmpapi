@@ -25,44 +25,16 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "SimpleWithTmpl.h"
 
-#include <cbang/String.h>
-#include <cbang/json/Dict.h>
-#include <cbang/event/Request.h>
-
-#include <functional>
+using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-namespace JmpAPI {
-  class Resolver;
-  typedef cb::SmartPointer<Resolver> ResolverPtr;
-  typedef cb::SmartPointer<cb::Event::Request> RequestPtr;
+void SimpleWithTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  JSON::ValuePtr result = resolver->select(ctx);
 
-
-  class Resolver : virtual public cb::RefCounted {
-    RequestPtr req;
-    cb::JSON::ValuePtr ctx;
-    ResolverPtr parent;
-
-  public:
-    Resolver() {}
-    Resolver(const RequestPtr &req);
-    Resolver(const cb::JSON::ValuePtr &ctx, const ResolverPtr &parent);
-    virtual ~Resolver() {}
-
-    Resolver &getRoot();
-    RequestPtr getRequest() const {return req;}
-    const cb::JSON::ValuePtr &getContext() const {return ctx;}
-    const cb::JSON::ValuePtr &getArgs() const;
-
-    ResolverPtr makeChild(const cb::JSON::ValuePtr &ctx);
-
-    virtual cb::JSON::ValuePtr select(const std::string &name) const;
-    std::string format(const std::string &s,
-                       cb::String::format_cb_t cb = 0) const;
-    std::string format(const std::string &s,
-                       const std::string &defaultValue) const;
-    void resolve(cb::JSON::Value &value) const;
-  };
+  if (child.isSet()) child->apply(resolver->makeChild(result), done);
+  else done(HTTP_OK, result);
 }

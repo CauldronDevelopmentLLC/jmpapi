@@ -45,8 +45,8 @@ module.exports = {
 
   data: function () {
     return {
-      name: '',
-      open: false
+      open: false,
+      selected: false
     }
   },
 
@@ -56,9 +56,21 @@ module.exports = {
   },
 
 
+  computed: {
+    name: function () {return this.method + '-' + this.path},
+
+
+    klass: function () {
+      var klass = this.open ? 'opened' : 'closed';
+      if (this.selected) klass += ' highlight';
+      return klass;
+    }
+  },
+
+
   mounted: function () {
-    this.name = this.method + '-' + this.path;
-    this.open = location.hash.substr(1) == this.name;
+    window.addEventListener('hashchange', this.update);
+    this.update();
 
     // Scroll into view if open
     if (this.open)
@@ -69,6 +81,12 @@ module.exports = {
 
 
   methods: {
+    update: function () {
+      this.selected = location.hash.substr(1) == this.name;
+      if (this.selected) this.open = true;
+    },
+
+
     api_path: function (path) {
       var base = location.protocol + '//' + location.hostname;
       if (location.port) base += ':' + location.port;

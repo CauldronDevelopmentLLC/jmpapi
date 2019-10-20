@@ -31,13 +31,17 @@
 
 
 namespace JmpAPI {
-  class ListTmpl : public Template {
-    cb::SmartPointer<Template> child;
+  class IfTmpl : public Template {
+    cb::SmartPointer<Template> ifTmpl;
+    cb::SmartPointer<Template> thenTmpl;
+    cb::SmartPointer<Template> elseTmpl;
 
   public:
-    ListTmpl(const cb::JSON::ValuePtr &tmpl);
+    IfTmpl(const cb::SmartPointer<Template> &ifTmpl,
+           const cb::SmartPointer<Template> &thenTmpl,
+           const cb::SmartPointer<Template> &elseTmpl);
 
     // From Template
-    void apply(const ResolverPtr &resolver, cb_t cb);
+    void apply(const ResolverPtr &resolver, cb_t done);
   };
 }

@@ -95,7 +95,7 @@ void Transaction::query(event_db_member_functor_t member, const string &sql) {
   if (db.isNull()) db = app.getDBConnection();
 
   result = 0; // Reset result count
-  db->query(this, member, Resolver(*this).format(sql, "NULL"));
+  db->query(this, member, Resolver(this).format(sql, "NULL"));
 }
 
 
@@ -280,6 +280,10 @@ void Transaction::session(MariaDB::EventDB::state_t state) {
     else session.addGroup(db->getString(0));
     break;
   }
+
+  case MariaDB::EventDB::EVENTDB_ERROR:
+    LOG_ERROR("DB:" << db->getErrorNumber() << ": " << db->getError());
+    // Fall through
 
   case MariaDB::EventDB::EVENTDB_DONE:
     if (session.hasString("user")) {
@@ -529,9 +533,17 @@ void Transaction::returnOk(MariaDB::EventDB::state_t state) {
     Event::HTTPStatus error = HTTP_INTERNAL_SERVER_ERROR;
 
     switch (db->getErrorNumber()) {
-    case ER_SIGNAL_NOT_FOUND: error = HTTP_NOT_FOUND;   break;
-    case ER_DUP_ENTRY:        error = HTTP_CONFLICT;    break;
-    case ER_SIGNAL_EXCEPTION: error = HTTP_BAD_REQUEST; break;
+    case ER_SIGNAL_NOT_FOUND: case ER_FILE_NOT_FOUND:
+      error = HTTP_NOT_FOUND;
+      break;
+
+    case ER_DUP_ENTRY:           error = HTTP_CONFLICT;    break;
+    case ER_SIGNAL_EXCEPTION:    error = HTTP_BAD_REQUEST; break;
+
+    case ER_ACCESS_DENIED_ERROR: case ER_DBACCESS_DENIED_ERROR:
+      error = HTTP_UNAUTHORIZED;
+      break;
+
     default: break;
     }
 

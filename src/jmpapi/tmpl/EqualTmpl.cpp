@@ -25,18 +25,61 @@
 
 \******************************************************************************/
 
-#include "ProxyTmpl.h"
+#include "EqualTmpl.h"
+
+#include <cbang/json/True.h>
+#include <cbang/json/False.h>
+
+#include <cbang/log/Logger.h>
 
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-void ProxyTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+EqualTmpl::EqualTmpl(const JSON::ValuePtr &config) {
+  if (!config->isList() || !config->size())
+    THROW("Invalid 'equal' template, must be an non-empty list");
+
+  for (unsigned i = 0; i < config->size(); i++) {
+    auto child = parse(config->get(i));
+    if (child.isNull()) THROW("Empty child in 'equal': " << *config);
+    children.push_back(child);
+  }
+}
+
+
+void EqualTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  struct Result {
+    size_t total;
+    size_t count;
+    bool pass;
+    string value;
+  };
+
+  SmartPointer<Result> result = new Result({
+      .total = children.size(),
+      .count = children.size(),
+      .pass = true,
+    });
+
   auto cb =
-    [done] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
-      done(200 <= status && status < 300, data);
+    [this, resolver, done, result] (Event::HTTPStatus status,
+                                    const JSON::ValuePtr &data) {
+      if (!result->pass) return;
+
+      string value = data.isSet() ? data->asString() : string();
+
+      if (result->count == result->total) result->value = value;
+      else if (result->value != value) {
+        result->pass = false;
+        return done(HTTP_OK, JSON::False::instancePtr());
+      }
+
+      if (!--result->count)
+        done(HTTP_OK, JSON::True::instancePtr());
     };
 
-  request(resolver, cb);
+  for (unsigned i = 0; i < children.size(); i++)
+    children[i]->apply(resolver, cb);
 }

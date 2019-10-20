@@ -128,7 +128,7 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
   if (type == "cors")    return new CORSHandler(*config);
   if (type == "session") return new SessionHandler(*config);
   if (type == "query")   return new QueryHandler(*config);
-  if (type == "proxy")   return new ProxyHandler(*config);
+  if (type == "proxy")   return new ProxyHandler(config);
 
   if (type == "login")
     return new EndpointHandler(&Transaction::apiLogin, config);
@@ -247,15 +247,7 @@ void Server::init() {
 
   // Load API
   auto &config = *app.getConfig();
-  if (config.has("api")) {
-    auto &api = *config.get("api");
-
-    // Replace global references
-    if (config.has("global"))
-      Resolver("global", config.get("global")).resolve(api);
-
-    loadCategories(api);
-  }
+  if (config.has("api")) loadCategories(*config.get("api"));
 
   // Root
   string root = app.getOptions()["http-root"].toString("");

@@ -29,18 +29,23 @@
 
 #include "Template.h"
 
+#include <jmpapi/Headers.h>
+
+#include <cbang/event/Enum.h>
+
 
 namespace JmpAPI {
-  class ContextTmpl : public Template {
-    std::string ctx;
+  class RequestTmpl : public Template {
+    std::string url;
+    cb::Event::RequestMethod method;
+    Headers headers;
+    cb::SmartPointer<Template> dataTmpl;
     cb::SmartPointer<Template> child;
 
   public:
-    ContextTmpl(const std::string &ctx,
-                const cb::SmartPointer<Template> child) :
-      ctx(ctx), child(child) {}
+    RequestTmpl(const cb::JSON::ValuePtr &config);
 
     // From Template
-    void apply(const ResolverPtr &resolver, cb_t cb);
+    void apply(const ResolverPtr &resolver, cb_t done);
   };
 }

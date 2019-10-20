@@ -25,19 +25,46 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "OnTmpl.h"
 
-#include "Template.h"
+#include <cbang/json/True.h>
+#include <cbang/json/False.h>
 
-#include <jmpapi/ProxyRequest.h>
+using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-namespace JmpAPI {
-  class ProxyTmpl : public Template, public ProxyRequest {
-  public:
-    ProxyTmpl(const cb::JSON::ValuePtr &tmpl) : ProxyRequest(*tmpl) {}
+OnTmpl::OnTmpl(const JSON::ValuePtr &config,
+               const SmartPointer<Template> &child) : child(child) {
+  if (config->isString() || config->isNumber()) add(*config);
 
-    // From Template
-    void apply(const ResolverPtr &resolver, cb_t cb);
-  };
+  else if (config->isList()) {
+    for (unsigned i = 0; i < config->size(); i++)
+      add(*config->get(i));
+
+  } else THROW("Invalid template: " << *config);
+}
+
+
+void OnTmpl::add(const JSON::Value &status) {
+  if (status.isString())
+    on.insert(Event::HTTPStatus::parse(status.getString()));
+
+  else if (status.isNumber())
+    on.insert((Event::HTTPStatus::enum_t)status.getNumber());
+
+  else THROW("Invalid 'on' status: " << status);
+}
+
+
+void OnTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  auto cb =
+    [this, done] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+      if (on.find(status) == on.end())
+        done(HTTP_OK, JSON::False::instancePtr());
+      else done(HTTP_OK, JSON::True::instancePtr());
+    };
+
+  child->apply(resolver, cb);
 }

@@ -28,13 +28,15 @@
 #include "ProxyHandler.h"
 
 #include <jmpapi/Resolver.h>
+#include <jmpapi/tmpl/RequestTmpl.h>
 
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-ProxyHandler::ProxyHandler(const JSON::Value &config) : request(config) {}
+ProxyHandler::ProxyHandler(const JSON::ValuePtr &config) :
+  tmpl(new RequestTmpl(config)) {}
 
 
 bool ProxyHandler::operator()(Event::Request &req) {
@@ -49,7 +51,7 @@ bool ProxyHandler::operator()(Event::Request &req) {
       req.reply(status);
     };
 
-  request.request(new Resolver(req), cb);
+  tmpl->apply(new Resolver(&req), cb);
 
   return true;
 }

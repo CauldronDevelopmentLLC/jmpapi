@@ -25,24 +25,40 @@
 
 \******************************************************************************/
 
-#include "ContextTmpl.h"
+#include "AndTmpl.h"
 
-#include <cbang/json/Dict.h>
+#include <cbang/json/True.h>
+#include <cbang/json/False.h>
 
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-void ContextTmpl::apply(const ResolverPtr &resolver, cb_t done) {
-  JSON::ValuePtr result = resolver->select(ctx);
+AndTmpl::AndTmpl(const JSON::ValuePtr &config) {
+  if (!config->isList() || !config->size())
+    THROW("Invalid 'and' template, must be an non-empty list");
 
-  if (!result.isSet()) {
-    JSON::ValuePtr err = new JSON::Dict;
-    err->insert("error", SSTR("Path not found '" << ctx << "'"));
-    return done(false, err);
-  }
+  for (unsigned i = 0; i < config->size(); i++)
+    children.push_back(parse(config->get(i)));
+}
 
-  if (child.isSet()) child->apply(resolver->makeChild(result), done);
-  else done(true, result);
+
+void AndTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  SmartPointer<size_t> count = new size_t(children.size());
+
+  auto cb =
+    [this, resolver, done, count] (Event::HTTPStatus status,
+                                   const JSON::ValuePtr &data) {
+      if (!*count) return;
+
+      if (status != HTTP_OK || !data.isSet() || !data->toBoolean()) {
+        done(HTTP_OK, JSON::False::instancePtr());
+        *count = 0;
+
+      } else if (!--*count) done(HTTP_OK, JSON::True::instancePtr());
+    };
+
+  for (unsigned i = 0; i < children.size(); i++)
+    children[i]->apply(resolver, cb);
 }

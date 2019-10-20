@@ -29,6 +29,7 @@
 
 #include <cbang/log/Logger.h>
 #include <cbang/json/Null.h>
+#include <cbang/json/String.h>
 
 #include <set>
 
@@ -37,30 +38,34 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-Resolver::Resolver(const string &key, const JSON::ValuePtr &value) {
-  insert(key, value);
+Resolver::Resolver(const RequestPtr &req) : req(req) {}
+
+
+Resolver::Resolver(const JSON::ValuePtr &ctx, const ResolverPtr &parent) :
+  req(parent->req), ctx(ctx), parent(parent) {}
+
+
+Resolver &Resolver::getRoot() {
+  return parent.isSet() ? parent->getRoot() : *this;
 }
 
 
-Resolver::Resolver(Event::Request &req) : req(&req) {}
-
-
-Resolver::Resolver(const ResolverPtr &parent, const JSON::ValuePtr &ctx) :
-  parent(parent), req(parent->req), ctx(ctx) {}
+const JSON::ValuePtr &Resolver::getArgs() const {
+  if (req.isNull()) THROW("No request");
+  auto &args = req->getArgs();
+  if (args->empty()) req->parseArgs();
+  return args;
+}
 
 
 ResolverPtr Resolver::makeChild(const JSON::ValuePtr &ctx) {
-  return new Resolver(this, ctx);
+  return new Resolver(ctx, this);
 }
 
 
-JSON::ValuePtr Resolver::select(const string &name) {
+JSON::ValuePtr Resolver::select(const string &name) const {
   if (name.empty()) return 0;
-
-  if (String::startsWith(name, "../")) {
-    if (parent.isSet()) return parent->select(name.substr(3));
-    return 0;
-  }
+  if (name == ".") return ctx;
 
   if (name[0] == '~') {
     auto result = select(name.substr(1));
@@ -68,43 +73,40 @@ JSON::ValuePtr Resolver::select(const string &name) {
     return result;
   }
 
-  if (req) {
-    if (String::startsWith(name, "args.")) {
-      auto args = req->getArgs();
-      if (args->empty()) req->parseArgs();
+  if (name == "..") return parent->getContext();
+  if (String::startsWith(name, "../")) {
+    if (parent.isSet()) return parent->select(name.substr(3));
+    return 0;
+  }
 
-      return args->select(name.substr(5), 0);
-    }
+  if (req.isSet()) {
+    if (name == "args") return getArgs();
+    if (String::startsWith(name, "args."))
+      return getArgs()->select(name.substr(5), 0);
 
-    auto session = req->getSession();
+    auto &session = req->getSession();
     if (session.isSet()) {
+      if (name == "session") return session;
       if (String::startsWith(name, "session."))
         return session->select(name.substr(8), 0);
 
+      if (name == "group") return session->get("group");
       if (String::startsWith(name, "group."))
         return session->get("group")->select(name.substr(6), 0);
     }
   }
 
-  auto result = JSON::Value::select(name, 0);
-
-  if (!result.isSet() && ctx.isSet()) result = ctx->select(name, 0);
-
-  if (!result.isSet() && req) {
-    auto args = req->getArgs();
-    if (args->empty()) req->parseArgs();
-
-    result = args->select(name, 0);
+  if (ctx.isSet()) {
+    if (String::startsWith(name, "./")) return ctx->select(name.substr(2), 0);
+    return ctx->select(name, 0);
   }
 
-  if (!result.isSet() && hasDict("global") && name[0] == '$')
-    result = get("global")->select(name.substr(1), 0);
-
-  return result;
+  return 0;
 }
 
 
-string Resolver::format(const string &s, cb::String::format_cb_t default_cb) {
+string Resolver::format(const string &s,
+                        cb::String::format_cb_t default_cb) const {
   std::set<string> exclude;
 
   String::format_cb_t cb =
@@ -132,22 +134,21 @@ string Resolver::format(const string &s, cb::String::format_cb_t default_cb) {
 }
 
 
-string Resolver::format(const string &s, const string &defaultValue) {
+string Resolver::format(const string &s, const string &defaultValue) const {
   auto cb = [&] (char, int, const string &, bool &) {return defaultValue;};
   return format(s, cb);
 }
 
 
-void Resolver::resolve(JSON::Value &value) {
+void Resolver::resolve(JSON::Value &value) const {
   auto cb =
     [&] (JSON::Value &value, JSON::Value *parent, unsigned index) {
-      if (!value.isString() || !parent) return;
+      if (!value.isString()) return;
 
       string s = value.getString();
       if (s.find('%') == string::npos) return;
 
-      if (parent->isList()) parent->set(index, format(s));
-      else parent->insert(parent->keyAt(index), format(s));
+      value.cast<JSON::String>().getValue() = format(s);
     };
 
   value.visit(cb);

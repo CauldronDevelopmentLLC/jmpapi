@@ -7,6 +7,7 @@
  * Handle JSON on HTTP DELETE method.
  * API versioning.
  * Support arbitrary OAuth2 providers.
+ * Log client IP provided by proxy in header.
 
 # Endpoints
  * Allow different response based on authorization. ``no-auth-pass``
@@ -21,4 +22,3 @@
 
 # Error Handling
  * Better error reporting when DB return type does not match.
- * Show line and column on YAML parse error.

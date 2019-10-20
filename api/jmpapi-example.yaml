@@ -1,11 +1,5 @@
 options:
-  google-client-secret: <Replace with Google Secret>
-  db-pass: <Replace with DB password>
-  http-root: ./http
-
-global:
-  name: Demo
-  example: Globals replace references such as %(global.example)s in API strings.
+  http-root: /usr/share/jmpapi/http
 
 title: JmpAPI Docs
 

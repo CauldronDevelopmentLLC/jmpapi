@@ -25,7 +25,7 @@
 
 \******************************************************************************/
 
-#include "ListTmpl.h"
+#include "EachTmpl.h"
 
 #include <cbang/json/List.h>
 
@@ -34,13 +34,15 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-ListTmpl::ListTmpl(const JSON::ValuePtr &tmpl) :
-  child(Template::parse(tmpl)) {}
+EachTmpl::EachTmpl(const JSON::ValuePtr &tmpl) :
+  child(Template::parse(tmpl)) {
+  if (tmpl->has("flatten")) flatten = tmpl->get("flatten")->toBoolean();
+}
 
 
-void ListTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void EachTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   auto ctx = resolver->getContext();
-  if (!ctx->isList() || !ctx->size()) return done(true, new JSON::List);
+  if (ctx.isNull() || !ctx->size()) return done(HTTP_OK, 0);
 
   struct Result {
     unsigned count;
@@ -53,7 +55,6 @@ void ListTmpl::apply(const ResolverPtr &resolver, cb_t done) {
       .count = ctx->size(),
       .data = new JSON::List,
       .pass = true,
-      .done = done,
     });
 
   // Populate list
@@ -61,13 +62,38 @@ void ListTmpl::apply(const ResolverPtr &resolver, cb_t done) {
     result->data->appendUndefined();
 
   for (unsigned i = 0; i < ctx->size(); i++) {
-    auto child_cb =
-      [result, i] (bool ok, const JSON::ValuePtr &data) {
-        if (!ok) result->pass = false;
-        if (data.isSet()) result->data->set(i, data);
-        if (!--result->count) result->done(result->pass, result->data);
+    auto cb =
+      [this, result, done, i] (Event::HTTPStatus status,
+                               const JSON::ValuePtr &data) {
+        if (!result->pass) return;
+
+        if (status != HTTP_NOT_FOUND) {
+          if (status != HTTP_OK) {
+            result->pass = false;
+            done(status, data);
+            return;
+          }
+
+          if (data.isSet()) result->data->set(i, data);
+        }
+
+        if (!--result->count) {
+          JSON::ValuePtr list = new JSON::List;
+
+          for (unsigned j = 0; j < result->data->size(); j++) {
+            auto item = result->data->get(j);
+
+            if (flatten && item->isList())
+              for (unsigned k = 0; k < item->size(); k++)
+                list->append(item->get(k));
+
+            else if (!item->isUndefined()) list->append(item);
+          }
+
+          done(HTTP_OK, list->empty() ? 0 : list);
+        }
       };
 
-    child->apply(resolver->makeChild(ctx->get(i)), child_cb);
+    child->apply(resolver->makeChild(ctx->get(i)), cb);
   }
 }

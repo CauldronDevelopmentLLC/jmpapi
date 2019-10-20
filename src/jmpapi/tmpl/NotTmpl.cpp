@@ -25,44 +25,28 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "NotTmpl.h"
 
-#include <cbang/String.h>
-#include <cbang/json/Dict.h>
-#include <cbang/event/Request.h>
+#include <cbang/json/True.h>
+#include <cbang/json/False.h>
 
-#include <functional>
-
-
-namespace JmpAPI {
-  class Resolver;
-  typedef cb::SmartPointer<Resolver> ResolverPtr;
-  typedef cb::SmartPointer<cb::Event::Request> RequestPtr;
+using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-  class Resolver : virtual public cb::RefCounted {
-    RequestPtr req;
-    cb::JSON::ValuePtr ctx;
-    ResolverPtr parent;
+NotTmpl::NotTmpl(const JSON::ValuePtr &config) : child(parse(config)) {}
 
-  public:
-    Resolver() {}
-    Resolver(const RequestPtr &req);
-    Resolver(const cb::JSON::ValuePtr &ctx, const ResolverPtr &parent);
-    virtual ~Resolver() {}
 
-    Resolver &getRoot();
-    RequestPtr getRequest() const {return req;}
-    const cb::JSON::ValuePtr &getContext() const {return ctx;}
-    const cb::JSON::ValuePtr &getArgs() const;
+void NotTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  auto cb =
+    [this, resolver, done] (Event::HTTPStatus status,
+                            const JSON::ValuePtr &data) {
+      if (status == HTTP_OK && data.isSet() && data->toBoolean())
+        done(HTTP_OK, JSON::False::instancePtr());
 
-    ResolverPtr makeChild(const cb::JSON::ValuePtr &ctx);
+      else done(HTTP_OK, JSON::True::instancePtr());
+    };
 
-    virtual cb::JSON::ValuePtr select(const std::string &name) const;
-    std::string format(const std::string &s,
-                       cb::String::format_cb_t cb = 0) const;
-    std::string format(const std::string &s,
-                       const std::string &defaultValue) const;
-    void resolve(cb::JSON::Value &value) const;
-  };
+  child->apply(resolver, cb);
 }

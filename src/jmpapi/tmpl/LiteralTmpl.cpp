@@ -32,6 +32,8 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-void LiteralTmpl::apply(const ResolverPtr &resolver, cb_t cb) {
-  return cb(true, content);
+void LiteralTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  auto copy = content->copy(true);
+  resolver->resolve(*copy);
+  return done(HTTP_OK, copy);
 }

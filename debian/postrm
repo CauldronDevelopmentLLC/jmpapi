@@ -3,44 +3,38 @@
 NAME=jmpapi
 
 case "$1" in
-    remove)
-        if [ -x insserv ]; then
-            # Stop the service
-            service $NAME stop || true
+  remove)
+    # Stop the service
+    service $NAME stop || true
 
-            # Uninstall init.d script
-            insserv -r $NAME
-        else
-            # Stop the service
-            invoke-rc.d $NAME stop || true
+    # Uninstall service
+    if [ -e /etc/systemd/system/$NAME.service ]; then
+      rm -f /etc/systemd/system/$NAME.service
+      systemctl daemon-reload
+    fi
+    ;;
 
-            # Uninstall init.d script
-            update-rc.d -f $NAME remove
-        fi
-        ;;
+  purge)
+    rm -rf /etc/$NAME /etc/default/$NAME /var/lib/$NAME /var/log/$NAME
 
-    purge)
-        # Remove files
-        rm -rf /etc/$NAME /etc/default/$NAME /var/lib/$NAME /var/log/$NAME
+    # Remove user if it exists
+    if getent passwd $NAME >/dev/null; then
+      echo -n "Removing system user $NAME..."
+      if userdel $NAME 2>/dev/null; then
+        echo "done"
+      else
+        echo "failed"
+      fi
+    fi
 
-        # Remove user if it exists
-        if getent passwd $NAME >/dev/null; then
-            echo -n "Removing system user $NAME..."
-            if userdel $NAME 2>/dev/null; then
-                echo "done"
-            else
-                echo "failed"
-            fi
-        fi
-
-        # Remove group if it exists
-        if getent group $NAME >/dev/null; then
-            echo -n "Removing system group $NAME..."
-            if groupdel $NAME 2>/dev/null; then
-                echo "done"
-            else
-                echo "failed"
-            fi
-        fi
-        ;;
+    # Remove group if it exists
+    if getent group $NAME >/dev/null; then
+      echo -n "Removing system group $NAME..."
+      if groupdel $NAME 2>/dev/null; then
+        echo "done"
+      else
+        echo "failed"
+      fi
+    fi
+    ;;
 esac

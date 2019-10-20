@@ -27,10 +27,8 @@
 
 #pragma once
 
-#include <jmpapi/Headers.h>
-#include <jmpapi/ProxyRequest.h>
+#include <jmpapi/tmpl/Template.h>
 
-#include <cbang/json/Value.h>
 #include <cbang/event/HTTPRequestHandler.h>
 
 
@@ -38,10 +36,10 @@ namespace JmpAPI {
   class App;
 
   class ProxyHandler : public cb::Event::HTTPRequestHandler {
-    ProxyRequest request;
+    cb::SmartPointer<Template> tmpl;
 
   public:
-    ProxyHandler(const cb::JSON::Value &config);
+    ProxyHandler(const cb::JSON::ValuePtr &config);
 
     // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);

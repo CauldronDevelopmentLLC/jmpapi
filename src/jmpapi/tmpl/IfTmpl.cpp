@@ -25,22 +25,34 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "IfTmpl.h"
+#include "SimpleWithTmpl.h"
+#include "WithTmpl.h"
 
-#include "Template.h"
+using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-namespace JmpAPI {
-  class ConditionTmpl : public Template {
-    std::string ctx;
-    cb::JSON::ValuePtr value;
-    cb::SmartPointer<Template> child;
+IfTmpl::IfTmpl(const SmartPointer<Template> &ifTmpl,
+               const SmartPointer<Template> &thenTmpl,
+               const SmartPointer<Template> &elseTmpl) :
+  ifTmpl(ifTmpl), thenTmpl(thenTmpl), elseTmpl(elseTmpl) {}
 
-  public:
-    ConditionTmpl(const cb::JSON::ValuePtr &config,
-                  const cb::SmartPointer<Template> child);
 
-    // From Template
-    void apply(const ResolverPtr &resolver, cb_t cb);
-  };
+void IfTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+  auto cb =
+    [this, resolver, done] (Event::HTTPStatus status,
+                            const JSON::ValuePtr &data) {
+      if (status == HTTP_OK && data.isSet() && data->toBoolean()) {
+        if (thenTmpl.isSet()) thenTmpl->apply(resolver, done);
+        else done(HTTP_OK, resolver->getContext());
+
+      } else {
+        if (elseTmpl.isSet()) elseTmpl->apply(resolver, done);
+        else done(HTTP_NOT_FOUND, 0);
+      }
+    };
+
+  ifTmpl->apply(resolver, cb);
 }

@@ -4,37 +4,30 @@ NAME=jmpapi
 ETC=/etc/$NAME
 RUN=/var/run/$NAME
 LOG=/var/log/$NAME
-CONFIG=$ETC/jmpapi.yaml
 DOC=/usr/share/doc/$NAME
 
 case "$1" in
-    reconfigure|configure)
-        # Install default config if one does not exist
-        if [ ! -f $CONFIG ]; then
-            ln -s $DOC/api/jmpapi-auth.yaml $ETC/
-            ln -s $DOC/api/jmpapi-docs.yaml $ETC/
+  reconfigure|configure)
+    # Install default config if one does not exist
+    if [ ! -d $ETC ]; then
+      install -m 644 -o jmpapi -D $DOC/api/jmpapi-example.yaml $ETC/jmpapi.yaml
+      install -m 644 -o jmpapi -D $DOC/api/local-example.yaml $ETC/local.yaml
 
-            cp $DOC/api/jmpapi-example.yaml $CONFIG
-            chmod a-r $CONFIG # May contain secrets
-        fi
+      ln -s $DOC/api/jmpapi-auth.yaml $ETC/
+      ln -s $DOC/api/jmpapi-docs.yaml $ETC/
+    fi
 
-        # Setup permissions
-        chown -R $NAME:root $ETC $RUN $LOG
-        chmod -R u+rw,g-w,o-w $ETC $RUN $LOG
+    # Create directories
+    test -d $RUN || mkdir -m 755 $RUN
+    test -d $LOG || mkdir -m 755 $LOG
 
-        if [ -x insserv ]; then
-            # Install the init.d script
-            insserv -d $NAME
+    # Install the service
+    if [ ! -e /etc/systemd/system/$NAME.service ]; then
+      ln -sf /usr/share/$NAME/$NAME.service /etc/systemd/system/
+    fi
+    systemctl daemon-reload
 
-            # Restart the service
-            service $NAME start || true
-
-        else
-            # Install the init.d script
-            update-rc.d $NAME defaults 95
-
-            # Start the service
-            invoke-rc.d $NAME start || true
-        fi
-        ;;
+    # Restart the service
+    service $NAME start || true
+    ;;
 esac

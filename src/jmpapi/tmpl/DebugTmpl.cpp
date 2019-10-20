@@ -25,44 +25,46 @@
 
 \******************************************************************************/
 
-#pragma once
+#include "DebugTmpl.h"
 
-#include <cbang/String.h>
-#include <cbang/json/Dict.h>
-#include <cbang/event/Request.h>
+#include <cbang/log/Logger.h>
 
-#include <functional>
-
-
-namespace JmpAPI {
-  class Resolver;
-  typedef cb::SmartPointer<Resolver> ResolverPtr;
-  typedef cb::SmartPointer<cb::Event::Request> RequestPtr;
+using namespace std;
+using namespace cb;
+using namespace JmpAPI;
 
 
-  class Resolver : virtual public cb::RefCounted {
-    RequestPtr req;
-    cb::JSON::ValuePtr ctx;
-    ResolverPtr parent;
+namespace {
+  void log(const string &prefix, Event::HTTPStatus status,
+           const JSON::ValuePtr &data) {
+    if (data.isSet())
+      LOG_DEBUG(3, prefix << "STATUS:" << status << " DATA:" << *data);
+    else LOG_DEBUG(3, prefix << "STATUS:" << status << " DATA: <null>");
+  }
+}
 
-  public:
-    Resolver() {}
-    Resolver(const RequestPtr &req);
-    Resolver(const cb::JSON::ValuePtr &ctx, const ResolverPtr &parent);
-    virtual ~Resolver() {}
 
-    Resolver &getRoot();
-    RequestPtr getRequest() const {return req;}
-    const cb::JSON::ValuePtr &getContext() const {return ctx;}
-    const cb::JSON::ValuePtr &getArgs() const;
+DebugTmpl::DebugTmpl(const JSON::ValuePtr &config,
+                     const SmartPointer<Template> child) :
+  ctx(Template::parse(config)), child(child) {}
 
-    ResolverPtr makeChild(const cb::JSON::ValuePtr &ctx);
 
-    virtual cb::JSON::ValuePtr select(const std::string &name) const;
-    std::string format(const std::string &s,
-                       cb::String::format_cb_t cb = 0) const;
-    std::string format(const std::string &s,
-                       const std::string &defaultValue) const;
-    void resolve(cb::JSON::Value &value) const;
-  };
+void DebugTmpl::apply(const ResolverPtr &resolver, cb_t _done) {
+  auto done =
+    [this, resolver, _done] (Event::HTTPStatus status,
+                            const JSON::ValuePtr &data) {
+      log("< ", status, data);
+      _done(status, data);
+    };
+
+  auto cb =
+    [this, resolver, done] (Event::HTTPStatus status,
+                            const JSON::ValuePtr &data) {
+      log("> ", status, data);
+
+      if (child.isSet()) child->apply(resolver, done);
+      else done(status, resolver->getContext());
+    };
+
+  ctx->apply(resolver, cb);
 }

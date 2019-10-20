@@ -1,0 +1,14 @@
+---
+# This file will be merged into the main `jmpapi.yaml` configuration. It is
+# intended to hold local configuration secrets and should only be readable by
+# the `jmpapi` user.
+
+options:
+  http-addresses: ["127.0.0.1:7000"]
+
+  google-client-id: "Enter Google Client ID Here"
+  google-redirect-base: http://localhost:7000
+  google-client-secret: "Enter Google Client Secret Here"
+
+  db-user: "Enter DB user here"
+  db-pass: "Enter DB password here"

@@ -35,7 +35,8 @@ module.exports = {
 
   data: function () {
     return {
-      open: true,
+      selected: false,
+      open: false,
       expand: true
     }
   },
@@ -46,7 +47,42 @@ module.exports = {
   },
 
 
+  computed: {
+    klass: function () {
+      var klass = this.open ? 'opened' : 'closed';
+      if (this.selected) klass += ' highlight';
+      return klass;
+    }
+  },
+
+
+  mounted: function () {
+    window.addEventListener('hashchange', this.update);
+    this.update();
+
+    // Open if an endpoint method is selected
+    for (var path in this.config.endpoints) {
+      var endpoint = this.config.endpoints[path];
+
+      for (var method in endpoint) {
+        var config = endpoint[method];
+
+        if (method + '-' + path == location.hash.substr(1)) {
+          this.open = true;
+          return;
+        }
+      }
+    }
+  },
+
+
   methods: {
+    update: function () {
+      this.selected = location.hash.substr(1) == this.name;
+      if (this.selected) this.open = true;
+    },
+
+
     toggle: function () {
       for (var i = 0; i < this.$children.length; i++)
         this.$children[i].open = this.expand;

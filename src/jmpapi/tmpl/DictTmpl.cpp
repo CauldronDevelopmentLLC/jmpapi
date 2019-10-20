@@ -42,7 +42,7 @@ DictTmpl::DictTmpl(const JSON::ValuePtr &tmpl) {
 
 void DictTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   // Handle empty template
-  if (fields.empty()) return done(true, new JSON::Dict);
+  if (fields.empty()) return done(HTTP_OK, new JSON::Dict);
 
   struct Result {
     unsigned long count;
@@ -66,10 +66,20 @@ void DictTmpl::apply(const ResolverPtr &resolver, cb_t done) {
     string key = fields[i].first;
 
     auto child_cb =
-      [result, key] (bool ok, const JSON::ValuePtr &data) {
-        if (!ok) result->pass = false;
-        result->data->insert(key, data);
-        if (!--result->count) result->done(result->pass, result->data);
+      [result, key] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+        if (!result->pass) return;
+
+        if (status != HTTP_NOT_FOUND) {
+          if (status != HTTP_OK) {
+            result->pass = false;
+            result->done(status, data);
+            return;
+          }
+
+          if (data.isSet()) result->data->insert(key, data);
+        }
+
+        if (!--result->count) result->done(HTTP_OK, result->data);
       };
 
     fields[i].second->apply(resolver, child_cb);

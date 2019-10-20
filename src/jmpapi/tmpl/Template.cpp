@@ -27,12 +27,20 @@
 
 #include "Template.h"
 
-#include "ContextTmpl.h"
+#include "SimpleWithTmpl.h"
+#include "WithTmpl.h"
 #include "LiteralTmpl.h"
 #include "DictTmpl.h"
-#include "ListTmpl.h"
-#include "ProxyTmpl.h"
-#include "ConditionTmpl.h"
+#include "EachTmpl.h"
+#include "RequestTmpl.h"
+#include "IfTmpl.h"
+#include "StatusTmpl.h"
+#include "DebugTmpl.h"
+#include "OnTmpl.h"
+#include "AndTmpl.h"
+#include "OrTmpl.h"
+#include "NotTmpl.h"
+#include "EqualTmpl.h"
 
 using namespace std;
 using namespace cb;
@@ -41,21 +49,35 @@ using namespace JmpAPI;
 
 SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
   if (tmpl.isNull()) return 0;
-  if (tmpl->isString()) return new ContextTmpl(tmpl->getString(), 0);
+  if (!tmpl->isDict() && !tmpl->isList())
+    return new SimpleWithTmpl(tmpl->asString(), 0);
 
   SmartPointer<Template> child;
-  if (tmpl->has("literal"))       child = new LiteralTmpl(tmpl->get("literal"));
-  else if (tmpl->hasDict("dict")) child = new DictTmpl(tmpl->get("dict"));
-  else if (tmpl->hasDict("list")) child = new ListTmpl(tmpl->get("list"));
-  else if (tmpl->has("url"))      child = new ProxyTmpl(tmpl);
+  auto set =
+    [&] (const SmartPointer<Template> &c) {
+      if (child.isSet())
+        THROW("Invalid template, can only have one of 'literal', 'dict', "
+              "'list', 'request', 'on', 'and', 'or', 'not', 'equal' or 'if': "
+              << *tmpl);
+      child = c;
+    };
 
-  if (tmpl->hasString("context"))
-    child = new ContextTmpl(tmpl->getString("context"), child);
+  if (tmpl->has("literal"))  set(new LiteralTmpl(tmpl->get("literal")));
+  if (tmpl->hasDict("dict")) set(new DictTmpl(tmpl->get("dict")));
+  if (tmpl->hasDict("each")) set(new EachTmpl(tmpl->get("each")));
+  if (tmpl->has("request"))  set(new RequestTmpl(tmpl->get("request")));
+  if (tmpl->has("and"))      set(new AndTmpl(tmpl->get("and")));
+  if (tmpl->has("or"))       set(new OrTmpl(tmpl->get("or")));
+  if (tmpl->has("not"))      set(new NotTmpl(tmpl->get("not")));
+  if (tmpl->has("equal"))    set(new EqualTmpl(tmpl->get("equal")));
+  if (tmpl->has("if"))
+    set(new IfTmpl(parse(tmpl->get("if")), parse(tmpl->get("then", 0)),
+                   parse(tmpl->get("else", 0))));
 
-  if (tmpl->has("condition"))
-    child = new ConditionTmpl(tmpl->get("condition"), child);
-
-  if (!child.isSet()) THROW("Invalid template: " << *tmpl);
+  if (tmpl->has("debug"))  child = new DebugTmpl(tmpl->get("debug"),   child);
+  if (tmpl->has("with"))   child = new WithTmpl(tmpl->get("with"),     child);
+  if (tmpl->has("status")) child = new StatusTmpl(tmpl->get("status"), child);
+  if (tmpl->has("on"))     child = new OnTmpl(tmpl->get("on"),         child);
 
   return child;
 }

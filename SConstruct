@@ -70,9 +70,9 @@ if 'package' in COMMAND_LINE_TARGETS:
 
         documents = docs,
         programs = [str(prog[0])],
-        init_d = [['scripts/' + name + '.init.d', name]],
         changelog = 'ChangeLog',
-        platform_independent = ['http'] + map(str, Glob('src/sql/*.sql')),
+        platform_independent = [
+            'http', 'scripts/jmpapi.service'] + map(str, Glob('src/sql/*.sql')),
 
         deb_directory = 'debian',
         deb_section = 'science',

@@ -41,6 +41,6 @@ namespace JmpAPI {
     DictTmpl(const cb::JSON::ValuePtr &tmpl);
 
     // From Template
-    void apply(const ResolverPtr &resolver, cb_t cb);
+    void apply(const ResolverPtr &resolver, cb_t done);
   };
 }

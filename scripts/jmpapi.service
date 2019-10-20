@@ -1,0 +1,13 @@
+[Unit]
+Description=A high performance easy to setup JSON over HTTP API server.
+After=network.target
+
+[Service]
+User=jmpapi
+ExecStart=/usr/bin/jmpapi /etc/jmpapi/jmpapi.yaml /etc/jmpapi/local.yaml --log /var/log/jmpapi/log.txt --log-rotate --log-rotate-dir=/var/log/jmpapi
+Restart=always
+StandardOutput=null
+UMask=0002
+
+[Install]
+WantedBy=multi-user.target

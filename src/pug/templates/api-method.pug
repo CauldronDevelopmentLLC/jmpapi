@@ -24,7 +24,7 @@
 //-/////////////////////////////////////////////////////////////////////////////
 
 script#api-method-template(type="text/x-template")
-  .api-method(:class="open ? 'opened' : 'closed'")
+  .api-method(:class="klass")
     a(:name="name")
     .api-path(@click="open = !open",
       :title="'Click to ' + (open ? 'collapase.' : 'expand.')")

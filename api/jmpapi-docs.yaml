@@ -2,8 +2,8 @@
 title: Documentation
 
 help: >
-  The documentation endpoint returns JSON data describing this %(global.name)s
-  API.  It is used to automatically create this page.
+  The documentation endpoint returns JSON data describing this API.  It is used
+  to automatically create this page.
 
 endpoints:
   /api:
