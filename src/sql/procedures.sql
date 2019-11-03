@@ -5,7 +5,7 @@ DELIMITER //
 
 
 -- Functions
-CREATE FUNCTION EmailIsValid(addr VARCHAR(100))
+CREATE FUNCTION EmailIsValid(addr VARCHAR(128))
   RETURNS BOOLEAN
   DETERMINISTIC
 BEGIN
@@ -353,8 +353,7 @@ END //
 
 CREATE PROCEDURE GroupMemberList(IN _group VARCHAR(64))
 BEGIN
-  SELECT uid id, u.name, avatar, created, last_used
-    FROM user_groups ug
+  SELECT uid id, u.name, u.email, avatar, created, last_used FROM user_groups ug
     JOIN groups g ON g.id = ug.gid AND g.name = _group
     JOIN users u ON u.id = ug.uid;
 END //
@@ -362,7 +361,7 @@ END //
 
 CREATE PROCEDURE GroupNonmemberList(IN _group VARCHAR(64))
 BEGIN
-  SELECT u.id, u.name, u.avatar, u.created, u.last_used FROM users u
+  SELECT u.id, u.name, u.email, u.avatar, u.created, u.last_used FROM users u
     JOIN groups g ON g.name = _group
     LEFT JOIN user_groups ug ON ug.uid = u.id AND ug.gid = g.id
     WHERE ug.uid IS NULL;

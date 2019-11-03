@@ -41,12 +41,14 @@ script#admin-group-template(type="text/x-template")
             tr
               th Avatar
               th User
+              th Email
               th Actions
 
           tbody
             tr(v-for="user in members")
               td.avatar: img(:src="user.avatar")
               td.name {{user.name}}
+              td.email {{user.email}}
               td.actions
                 .fa.fa-minus(@click="group_user_remove(user)",
                   title="Remove user from group.")
@@ -59,12 +61,14 @@ script#admin-group-template(type="text/x-template")
             tr
               th Avatar
               th User
+              th Email
               th Actions
 
           tbody
             tr(v-for="user in nonmembers")
               td.avatar: img(:src="user.avatar")
               td.name {{user.name}}
+              td.email {{user.email}}
               td.actions
                 .fa.fa-plus(@click="group_user_add(user)",
                   title="Add user to group.")
