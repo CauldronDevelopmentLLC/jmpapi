@@ -143,6 +143,8 @@ void App::beforeDroppingPrivileges() {
 
 
 void App::afterCommandLineParse() {
+  ServerApplication::afterCommandLineParse();
+
   // Load config
   const vector<string> &configs = cmdLine.getPositionalArgs();
   for (unsigned i = 0; i < configs.size(); i++)

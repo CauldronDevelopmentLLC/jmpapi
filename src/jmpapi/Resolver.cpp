@@ -124,6 +124,8 @@ string Resolver::format(const string &s,
         }
       }
 
+      // TODO There is something wrong with matching bools: %(test)b
+
       if (default_cb) return default_cb(type, index, name, matched);
 
       matched = false;
