@@ -56,29 +56,22 @@ db_pass = getpass('Password: ')
 
 
 # Connect to DB
-from mysql.connector import connect
-from mysql.connector.errors import Error as MySQLError
+from pymysql import connect
 
 db = connect(host = options.host, user = options.user, password = db_pass,
              database = options.db)
-db.start_transaction()
+db.begin()
 cur = db.cursor()
 
 
 # Get schema version
-def version_to_str(v):
-    return '.'.join(map(str, v))
-
-def version_from_str(s):
-    return tuple(map(int, s.split('.')))
-
 version = None
 try:
     cur.execute('SELECT value FROM config WHERE name = "version"')
 
     if cur.with_rows:
-        version = version_from_str(cur.fetchone()[0])
-        print('DB version', version_to_str(version))
+        version = int(cur.fetchone()[0])
+        print('DB version', version)
 
 except: pass
 
@@ -92,7 +85,7 @@ updates = []
 
 for path in glob(options.path + '/update-*.sql'):
     m = updateRE.match(path)
-    v = version_from_str(m.group(1))
+    v = int(m.group(1))
     updates.append((v, path))
 
 updates = sorted(updates)
@@ -100,14 +93,14 @@ updates = sorted(updates)
 
 # Latest version
 if len(updates): latest = updates[-1]
-else: latest = (0, 0, 0)
+else: latest = 0
 
 
 # Update
 def exec_file(filename):
     sql = open(filename, 'r').read()
 
-    results = cur.execute(sql, multi = True)
+    results = cur.executemany(sql, ())
     if results:
         for result in results:
             if result.with_rows:
@@ -117,21 +110,20 @@ def exec_file(filename):
 if version is None or options.reset:
     # Init DB
     exec_file(options.path + '/schema.sql')
-    exec_file(options.path + '/triggers.sql')
     exec_file(options.path + '/procedures.sql')
 
 else:
     # Apply DB updates
     for v, path in updates:
         if version < v:
-            print('Applying update', version_to_str(v))
+            print('Applying update', v)
             exec_file(path)
 
 
 # Update version
 if version is None or version < latest or options.reset:
-    sql = 'REPLACE INTO jmpapi_config (name, value) VALUES ("version", "%s")'
-    cur.execute(sql % version_to_str(latest))
+    sql = 'REPLACE INTO config (name, value) VALUES ("version", "%s")'
+    cur.execute(sql % latest)
 
 
 # Commit

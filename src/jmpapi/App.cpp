@@ -50,7 +50,7 @@ using namespace std;
 
 
 App::App() :
-  ServerApplication("JmpAPI", App::_hasFeature), dns(base),
+  ServerApplication("JmpAPI", App::_hasFeature), base(true), dns(base),
   client(base, dns, new SSLContext), googleAuth(options), githubAuth(options),
   facebookAuth(options), dbHost("localhost"), dbUser("jmpapi"),
   dbName("jmpapi"), dbPort(3306), dbTimeout(5), server(*this),

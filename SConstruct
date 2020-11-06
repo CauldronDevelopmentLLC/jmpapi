@@ -3,8 +3,8 @@ import os
 env = Environment(ENV = os.environ)
 try:
     env.Tool('config', toolpath = [os.environ.get('CBANG_HOME')])
-except Exception, e:
-    raise Exception, 'CBANG_HOME not set?\n' + str(e)
+except Exception as e:
+    raise Exception('CBANG_HOME not set?\n' + str(e))
 
 env.CBLoadTools('compiler cbang dist build_info packager')
 
@@ -49,7 +49,7 @@ Default(prog)
 Clean(prog, ['build', 'config.log'])
 
 # Dist
-docs = ['README.md'] + map(lambda x: (str(x), str(x)), Glob('api/*.yaml'))
+docs = ['README.md'] + list(map(lambda x: (str(x), str(x)), Glob('api/*.yaml')))
 tar = env.TarBZ2Dist(name, docs + [prog])
 Alias('dist', tar)
 AlwaysBuild(tar)
@@ -71,8 +71,8 @@ if 'package' in COMMAND_LINE_TARGETS:
         documents = docs,
         programs = [str(prog[0])],
         changelog = 'ChangeLog',
-        platform_independent = [
-            'http', 'scripts/jmpapi.service'] + map(str, Glob('src/sql/*.sql')),
+        platform_independent = ['http', 'scripts/jmpapi.service'] + \
+          list(map(str, Glob('src/sql/*.sql'))),
 
         deb_directory = 'debian',
         deb_section = 'science',

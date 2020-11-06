@@ -53,7 +53,6 @@ namespace JmpAPI {
 
     void init();
 
-
     // From cb::Event::HTTPHandler
     cb::SmartPointer<cb::Event::Request> createRequest
     (cb::Event::RequestMethod method, const cb::URI &uri,

@@ -5,22 +5,25 @@ login.
 
 # Prerequisites
   - [C!](https://github.com/CauldronDevelopmentLLC/cbang)
-  - [libre2](https://code.google.com/p/re2/)
-  - [mariadb](https://mariadb.org/)
-  - [node.js](https://nodejs.org/)
 
-In Debian Linux, after installing C!, you can install the prerequsites as
-follows:
+In Debian Linux, after installing C!, you can install the packaged prerequsites
+as follows:
 
-    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
     sudo apt-get update
     sudo apt-get install -y libre2-dev libmariadbclient-dev mariadb-server \
-      python3-mysql.connector ssl-cert nodejs build-essential
+      python3-pymysql ssl-cert nodejs build-essential
 
 # Build
 
     export CBANG_HOME=/path/to/cbang
     scons
+
+# Install
+
+    scons package
+    sudo dpkg -i jmpapi_0.2.4_amd64.deb
+
+Next edit or install the API configuration files in ``/etc/jmpapi/``.
 
 # Create the DB and user
 
@@ -32,6 +35,10 @@ follows:
     exit
     ./scripts/update_db.py
 
+
+# Start the API server
+
+    sudo service jmpapi start
 
 # OAuth2 Setup
 
@@ -50,7 +57,6 @@ your site.
 The OAuth2 secret must be protected so make sure that the JmpAPI configuration
 file which contains the secrets is readable only by ``root``.
 
-
 ## GitHub
 
 To obtain OAuth2 credentials from GitHub.  Login in and either go to your
@@ -59,6 +65,7 @@ select ``OAuth Apps`` and click ``New OAuth App``.  Set the client ID and
 secret from this page as ``github-client-id`` and ``github-client-secret``.
 
 ## Facebook
-
+TODO
 
 ## Google
+TODO

@@ -1,7 +1,7 @@
 {
   "name": "jmpapi",
-  "version": "0.2.3",
-  "description": "A high performance JSON over HTTP API server with MariaDB backend built-in federated login.",
+  "version": "0.2.4",
+  "description": "A high performance JSON over HTTP API server with MariaDB backend, built-in federated login and automatic documentation.",
   "repository": "https://github.com/CauldronDevelopmentLLC/jmpapi",
   "author": {
     "name": "Joseph Coffland",

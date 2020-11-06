@@ -31,7 +31,6 @@
 
 #include <cbang/event/Buffer.h>
 #include <cbang/event/Event.h>
-#include <cbang/event/HTTP.h>
 
 #include <cbang/json/JSON.h>
 #include <cbang/log/Logger.h>
@@ -293,7 +292,7 @@ void Transaction::session(MariaDB::EventDB::state_t state) {
     }
 
     // Restart request processing
-    Event::HTTP::dispatch(app.getServer(), *this);
+    app.getServer().dispatch(this);
     break;
 
   default: returnOk(state); return; // For error handling
