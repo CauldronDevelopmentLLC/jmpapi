@@ -1,0 +1,47 @@
+#!/bin/bash -e
+
+sudo apt-get update
+sudo apt-get install -y libmariadb-dev libmariadb-dev-compat libssl-dev curl \
+  build-essential scons
+
+if ! which npm; then
+  curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
+  sudo apt-get install -y nodejs
+fi
+
+ROOT="$(cd $(dirname "$0")/..; pwd)"
+
+# SCons options
+if [ "$SCONS_OPTIONS" == "" ]; then
+    export SCONS_OPTIONS="$ROOT/scons-options.py"
+
+    if [ ! -e "$SCONS_OPTIONS" ]; then
+        (
+            echo strict=1
+            echo debug=1
+            echo jobs=24
+
+            if [ "$(which ccache)" != "" ]; then
+                echo ccache=1
+            fi
+
+        ) > "$SCONS_OPTIONS"
+    fi
+fi
+
+# C!
+if [ "$CBANG_HOME" == "" ]; then
+    export CBANG_HOME="$ROOT/cbang"
+
+    if [ ! -e "$CBANG_HOME" ]; then
+        git clone https://github.com/cauldrondevelopmentllc/cbang "$CBANG_HOME"
+    else
+        git -C "$CBANG_HOME" fetch
+        git -C "$CBANG_HOME" reset --hard FETCH_HEAD
+    fi
+fi
+
+# Build
+scons -C "$CBANG_HOME"
+scons -C "$ROOT"
+scons -C "$ROOT" package

@@ -10,8 +10,8 @@ In Debian Linux, after installing C!, you can install the packaged prerequsites
 as follows:
 
     sudo apt-get update
-    sudo apt-get install -y libre2-dev libmariadbclient-dev mariadb-server \
-      python3-pymysql ssl-cert nodejs build-essential
+    sudo apt-get install -y libmariadb-dev libmariadb-dev-compat mariadb-server \
+      python3-pymysql libssl-dev ssl-cert npm build-essential scons
 
 # Build
 
@@ -21,7 +21,7 @@ as follows:
 # Install
 
     scons package
-    sudo dpkg -i jmpapi_0.2.4_amd64.deb
+    sudo dpkg -i jmpapi_0.2.5_amd64.deb
 
 Next edit or install the API configuration files in ``/etc/jmpapi/``.
 
