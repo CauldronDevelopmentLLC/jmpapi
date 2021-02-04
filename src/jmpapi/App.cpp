@@ -66,6 +66,13 @@ App::App() :
   options.add("session-cookie", "Session cookie name")->setDefault("sid");
   options.popCategory();
 
+  options.pushCategory("SSL");
+  options.add("ssl-ca-certificates", "Path to trusted SSL CA certificates file"
+    )->setDefault("/etc/ssl/certs/ca-certificates.crt");
+  options.add("ssl-cipher-list", "Allowed OpenSSL ciphers"
+              )->setDefault("HIGH:!aNULL:!PSK:!SRP:!MD5:!RC4");
+  options.popCategory();
+
   options.pushCategory("Debugging");
   options.add("debug-libevent", "Enable verbose libevent debugging"
               )->setDefault(false);
@@ -158,6 +165,19 @@ void App::afterCommandLineParse() {
 
   // Apply options
   if (config->hasDict("options")) options.read(*config->get("options"));
+
+  // Configure SSL
+  SSLContext &sslCtx = *client.getSSLContext();
+
+  string caCertsFile = options["ssl-ca-certificates"];
+  if (!caCertsFile.empty())
+    sslCtx.loadVerifyLocationsFile(caCertsFile);
+
+  string sslCipherList = options["ssl-cipher-list"];
+  if (!sslCipherList.empty()) {
+    sslCtx.setCipherList(sslCipherList);
+    server.getSSLContext()->setCipherList(sslCipherList);
+  }
 
   ServerApplication::afterCommandLineParse();
 }
