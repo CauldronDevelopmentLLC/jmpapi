@@ -53,6 +53,7 @@ parser.add_option('-p', '--path', dest = 'path', help = 'Path to DB schema',
 # Ask pass
 from getpass import getpass
 db_pass = getpass('Password: ')
+if db_pass == '': db_pass = None
 
 
 # Connect to DB

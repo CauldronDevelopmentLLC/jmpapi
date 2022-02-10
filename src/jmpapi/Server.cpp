@@ -43,7 +43,6 @@
 #include <jmpapi/handler/CORSHandler.h>
 
 #include <cbang/event/Request.h>
-#include <cbang/event/ACLHandler.h>
 #include <cbang/event/HTTPHandlerGroup.h>
 #include <cbang/event/HTTPURLPatternMatcher.h>
 #include <cbang/event/HTTPMethodMatcher.h>

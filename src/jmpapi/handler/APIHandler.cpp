@@ -133,7 +133,7 @@ JSON::ValuePtr APIHandler::loadEndpoint(const string &pattern,
   copyExistingKeys(keys, _endpoint, *endpoint);
 
   // Get URL args from endpoint pattern
-  Event::HTTPURLPatternMatcher matcher(pattern, 0);
+  Event::HTTPURLPatternMatcher matcher(pattern, new HTTPRequestHandler);
   const set<string> &urlArgs = matcher.getArgs();
   JSON::ValuePtr endpointArgs = _endpoint.get("args", new JSON::Dict);
 

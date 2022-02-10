@@ -26,8 +26,6 @@
 \******************************************************************************/
 
 #include "IfTmpl.h"
-#include "SimpleWithTmpl.h"
-#include "WithTmpl.h"
 
 using namespace std;
 using namespace cb;

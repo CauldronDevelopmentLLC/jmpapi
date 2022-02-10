@@ -103,7 +103,7 @@ SmartPointer<JSON::Writer> Transaction::getJSONWriter() {
     if (app.getOptions()["jsonp"].hasValue()) {
       string callback = app.getOptions()["jsonp"];
       if (getArgs()->hasString(callback))
-        return writer = Request::getJSONPWriter(getArg(callback));
+        return writer = Request::getJSONPWriter(getArgs()->getString(callback));
     }
 
     writer = Request::getJSONWriter();
