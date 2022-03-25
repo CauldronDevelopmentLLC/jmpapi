@@ -38,11 +38,11 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-Resolver::Resolver(const RequestPtr &req) : req(req) {}
-
-
 Resolver::Resolver(const JSON::ValuePtr &ctx, const ResolverPtr &parent) :
   req(parent->req), ctx(ctx), parent(parent) {}
+
+
+Resolver::Resolver(const RequestPtr &req) : req(req) {}
 
 
 Resolver &Resolver::getRoot() {

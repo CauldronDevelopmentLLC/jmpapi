@@ -28,7 +28,6 @@
 #include "Server.h"
 #include "App.h"
 #include "Transaction.h"
-#include "Resolver.h"
 
 #include <jmpapi/handler/EndpointHandler.h>
 #include <jmpapi/handler/StatusHandler.h>

@@ -45,10 +45,10 @@ namespace JmpAPI {
     cb::JSON::ValuePtr ctx;
     ResolverPtr parent;
 
-  public:
-    Resolver() {}
-    Resolver(const RequestPtr &req);
     Resolver(const cb::JSON::ValuePtr &ctx, const ResolverPtr &parent);
+
+  public:
+    Resolver(const RequestPtr &req);
     virtual ~Resolver() {}
 
     Resolver &getRoot();

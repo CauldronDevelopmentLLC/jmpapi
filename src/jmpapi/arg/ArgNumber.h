@@ -51,7 +51,8 @@ namespace JmpAPI {
       T n;
 
       if (value.isNumber()) n = (T)value.getNumber();
-      else if (value.isString()) n = cb::String::parse<T>(value.getString());
+      else if (value.isString())
+        n = cb::String::parse<T>(value.getString(), true);
       else THROW("Must be a number or string");
 
       if (!isnan(min) && n < (T)min) THROW("Must be greater than " << (T)min);
