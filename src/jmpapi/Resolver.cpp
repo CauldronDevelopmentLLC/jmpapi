@@ -107,24 +107,13 @@ JSON::ValuePtr Resolver::select(const string &name) const {
 
 string Resolver::format(const string &s,
                         cb::String::format_cb_t default_cb) const {
-  std::set<string> exclude;
-
   String::format_cb_t cb =
     [&] (char type, int index, const string &name, bool &matched) {
-      if (exclude.find(name) == exclude.end()) {
+      // Do not allow recursive refs, user input could contain var refs
+      auto value = select(name);
+      if (value.isSet()) return value->format(type);
 
-        auto value = select(name);
-        if (value.isSet())  {
-          // Allow recursive refs but avoid infinite loops
-          exclude.insert(name);
-          string s = String(value->format(type)).format(cb);
-          exclude.erase(name);
-
-          return s;
-        }
-      }
-
-      // TODO There is something wrong with matching bools: %(test)b
+      // TODO Is there something wrong with matching bools?: %(test)b
 
       if (default_cb) return default_cb(type, index, name, matched);
 
