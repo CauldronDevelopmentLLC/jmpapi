@@ -76,6 +76,7 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   else if (type == "bool")   add(new ArgBoolean);
   else if (type == "email")  add(new ArgPattern(EMAIL_RE));
   else if (type == "time")   add(new ArgPattern(ISO8601_RE));
+  else if (type == "date")   add(new ArgPattern(DATE_RE));
   else if (type == "uri")    add(new ArgURI);
 
   else if (type == "string") {
