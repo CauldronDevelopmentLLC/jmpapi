@@ -2,7 +2,6 @@
 
 NAME=jmpapi
 ETC=/etc/$NAME
-RUN=/var/run/$NAME
 LOG=/var/log/$NAME
 DOC=/usr/share/doc/$NAME
 
@@ -17,17 +16,19 @@ case "$1" in
       ln -s $DOC/api/jmpapi-docs.yaml $ETC/
     fi
 
-    # Create directories
-    test -d $RUN || mkdir -m 755 $RUN
-    test -d $LOG || mkdir -m 755 $LOG
+    # Create log dir
+    test -d $LOG || mkdir -m 775 $LOG && chgrp $NAME $LOG
 
     # Install the service
-    if [ ! -e /etc/systemd/system/$NAME.service ]; then
-      ln -sf /usr/share/$NAME/$NAME.service /etc/systemd/system/
-    fi
+    for SERVICE in jmpapi.service jmpapi@.service; do
+      if [ ! -e /etc/systemd/system/$SERVICE ]; then
+        ln -sf  /usr/share/$NAME/$SERVICE /etc/systemd/system/
+      fi
+    done
     systemctl daemon-reload
 
-    # Restart the service
-    service $NAME start || true
+    # Restart services
+    systemctl try-restart jmpapi
+    systemctl try-restart jmpapi@*
     ;;
 esac

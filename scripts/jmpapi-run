@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+
+if [ "$1" == "" ]; then
+  LOG=/var/log/jmpapi/log.txt
+  HOME=/etc/jmpapi
+
+else
+  LOG=/var/log/jmpapi/$1.txt
+  HOME=/etc/jmpapi/$1
+fi
+
+if [ ! -e $HOME/jmpapi.yaml ]; then
+  >&2 echo "File does not exist $HOME/jmpapi.yaml"
+  exit 1
+fi
+
+ARGS=$HOME/jmpapi.yaml
+
+if [ -e $HOME/local.yaml ]; then
+  ARGS+=" $HOME/local.yaml"
+fi
+
+ARGS+=" --log $LOG --log-rotate --log-rotate-dir=/var/log/jmpapi"
+
+export PATH=$HOME/bin:$PATH
+
+/usr/bin/jmpapi $ARGS &

@@ -54,7 +54,6 @@ tar = env.TarBZ2Dist(name, docs + [prog])
 Alias('dist', tar)
 AlwaysBuild(tar)
 
-
 if 'package' in COMMAND_LINE_TARGETS:
     pkg = env.Packager(
         name,
@@ -69,10 +68,11 @@ if 'package' in COMMAND_LINE_TARGETS:
         prefix = '/usr',
 
         documents = docs,
-        programs = [str(prog[0])],
+        programs = [str(prog[0]), 'scripts/jmpapi-run'],
         changelog = 'ChangeLog',
-        platform_independent = ['http', 'scripts/jmpapi.service'] + \
-          list(map(str, Glob('src/sql/*.sql'))),
+        platform_independent = [
+            'http', 'scripts/jmpapi.service', 'scripts/jmpapi@.service'] + \
+            list(map(str, Glob('src/sql/*.sql'))),
 
         deb_directory = 'debian',
         deb_section = 'science',

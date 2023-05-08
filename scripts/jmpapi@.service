@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=jmpapi
 Type=forking
-ExecStart=/usr/bin/jmpapi-run
+ExecStart=/usr/bin/jmpapi-run %i
 Restart=always
 StandardOutput=null
 UMask=0002

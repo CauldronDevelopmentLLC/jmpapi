@@ -131,12 +131,6 @@ SmartPointer<MariaDB::EventDB> App::getDBConnection(bool blocking) {
 }
 
 
-void App::loadConfig(const string &path) {
-  LOG_INFO(1, "Loading config " << path);
-  config->merge(*JSON::YAMLReader::parse(path));
-}
-
-
 void App::beforeDroppingPrivileges() {
   // Libevent debugging
   if (options["debug-libevent"].toBoolean()) Event::Event::enableDebugLogging();
@@ -152,16 +146,10 @@ void App::beforeDroppingPrivileges() {
 void App::afterCommandLineParse() {
   // Load config
   const vector<string> &configs = cmdLine.getPositionalArgs();
-  for (unsigned i = 0; i < configs.size(); i++)
-    if (SystemUtilities::isDirectory(configs[i])) {
-      vector<string> paths;
-      SystemUtilities::listDirectory(paths, configs[i]);
-      sort(paths.begin(), paths.end());
-
-      for (unsigned j = 0; j < paths.size(); j++)
-        loadConfig(paths[j]);
-
-    } else loadConfig(configs[i]);
+  for (unsigned i = 0; i < configs.size(); i++) {
+    LOG_INFO(1, "Loading config " << configs[i]);
+    config->merge(*JSON::YAMLReader::parse(configs[i]));
+  }
 
   // Apply options
   if (config->hasDict("options")) options.read(*config->get("options"));

@@ -35,6 +35,7 @@
 #include <jmpapi/handler/ProxyHandler.h>
 #include <jmpapi/handler/APIHandler.h>
 #include <jmpapi/handler/ArgsHandler.h>
+#include <jmpapi/handler/ArgFilterHandler.h>
 #include <jmpapi/handler/PassHandler.h>
 #include <jmpapi/handler/HeadersHandler.h>
 #include <jmpapi/handler/RedirectHandler.h>
@@ -165,6 +166,19 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
   if (api.has("allow") || api.has("deny"))
     group->addHandler(createAccessHandler(api));
 
+  // Args
+  JSON::ValuePtr args = new JSON::Dict;
+
+  const set<string> &implicitArgs = matcher->getArgs();
+  for (auto it = implicitArgs.begin(); it != implicitArgs.end(); it++)
+    args->insertDict(*it);
+
+  if (api.has("args")) args->merge(*api.get("args"));
+
+  // Arg filter
+  if (api.has("arg-filter"))
+    group->addHandler(new ArgFilterHandler(*api.get("arg-filter")));
+
   // Methods
   unsigned endpoints = 0;
   for (unsigned i = 0; i < api.size(); i++) {
@@ -186,15 +200,14 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
       methodGroup->addHandler(createAccessHandler(*config));
 
     // Args
-    JSON::ValuePtr args = new JSON::Dict;
-    if (api.has("args")) args->merge(*api.get("args"));
-    if (config->has("args")) args->merge(*config->get("args"));
+    JSON::ValuePtr endpointArgs = args->copy(true);
+    if (config->has("args")) endpointArgs->merge(*config->get("args"));
+    methodGroup->addHandler(new ArgsHandler(endpointArgs));
 
-    const set<string> &implicitArgs = matcher->getArgs();
-    for (auto it = implicitArgs.begin(); it != implicitArgs.end(); it++)
-      if (!args->has(*it)) args->insertDict(*it);
-
-    if (args->size()) methodGroup->addHandler(new ArgsHandler(args));
+    // Arg filter
+    if (config->has("arg-filter"))
+      methodGroup->addHandler
+        (new ArgFilterHandler(*config->get("arg-filter")));
 
     // Headers
     if (config->has("headers") && !handler.isInstance<HeadersHandler>())
@@ -206,8 +219,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
   }
 
   // Handle arg constraints when there are no endpoints
-  if (!endpoints && api.has("args"))
-    group->addHandler(new ArgsHandler(api.get("args")));
+  if (!endpoints) group->addHandler(new ArgsHandler(args));
 
   return matcher;
 }
