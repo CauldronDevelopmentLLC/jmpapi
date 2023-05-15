@@ -175,10 +175,6 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
 
   if (api.has("args")) args->merge(*api.get("args"));
 
-  // Arg filter
-  if (api.has("arg-filter"))
-    group->addHandler(new ArgFilterHandler(*api.get("arg-filter")));
-
   // Methods
   unsigned endpoints = 0;
   for (unsigned i = 0; i < api.size(); i++) {
@@ -204,14 +200,13 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     if (config->has("args")) endpointArgs->merge(*config->get("args"));
     methodGroup->addHandler(new ArgsHandler(endpointArgs));
 
-    // Arg filter
-    if (config->has("arg-filter"))
-      methodGroup->addHandler
-        (new ArgFilterHandler(*config->get("arg-filter")));
-
     // Headers
     if (config->has("headers") && !handler.isInstance<HeadersHandler>())
       methodGroup->addHandler(new HeadersHandler(config->get("headers")));
+
+    // Arg filter
+    if (config->has("arg-filter"))
+      handler = new ArgFilterHandler(app, *config->get("arg-filter"), handler);
 
     // Method(s)
     methodGroup->addHandler(handler);

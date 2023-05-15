@@ -292,7 +292,7 @@ void Transaction::session(MariaDB::EventDB::state_t state) {
     }
 
     // Restart request processing
-    app.getServer().dispatch(this);
+    app.getServer().dispatch(*this);
     break;
 
   default: returnOk(state); return; // For error handling

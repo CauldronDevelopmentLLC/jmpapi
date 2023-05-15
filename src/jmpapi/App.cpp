@@ -51,9 +51,9 @@ using namespace std;
 
 App::App() :
   ServerApplication("JmpAPI", App::_hasFeature), base(true), dns(base),
-  client(base, dns, new SSLContext), googleAuth(options), githubAuth(options),
-  facebookAuth(options), dbHost("localhost"), dbUser("jmpapi"),
-  dbName("jmpapi"), dbPort(3306), dbTimeout(5), server(*this),
+  client(base, dns, new SSLContext), procPool(base), googleAuth(options),
+  githubAuth(options), facebookAuth(options), dbHost("localhost"),
+  dbUser("jmpapi"), dbName("jmpapi"), dbPort(3306), dbTimeout(5), server(*this),
   config(new JSON::Dict) {
 
   cmdLine.setAllowPositionalArgs(true);
@@ -174,6 +174,7 @@ void App::afterCommandLineParse() {
 void App::run() {
   try {
     base.dispatch();
+    procPool.shutdown();
     LOG_INFO(1, "Clean exit");
   } CATCH_ERROR;
 }

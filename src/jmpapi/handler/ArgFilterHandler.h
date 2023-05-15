@@ -28,18 +28,21 @@
 #pragma once
 
 #include <cbang/event/HTTPRequestHandler.h>
-#include <cbang/log/LogLineBuffer.h>
-#include <cbang/os/Subprocess.h>
+
+#include <vector>
 
 
 namespace JmpAPI {
-  class ArgFilterHandler :
-    public cb::Event::HTTPRequestHandler, public cb::Subprocess {
+  class App;
+
+  class ArgFilterHandler : public cb::Event::HTTPRequestHandler {
+    App &app;
+    cb::SmartPointer<cb::Event::HTTPRequestHandler> child;
     std::vector<std::string> cmd;
-    cb::LogLineBuffer errLog;
 
   public:
-    ArgFilterHandler(const cb::JSON::Value &config);
+    ArgFilterHandler(App &app, const cb::JSON::Value &config,
+                     cb::SmartPointer<cb::Event::HTTPRequestHandler> &child);
 
     // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);

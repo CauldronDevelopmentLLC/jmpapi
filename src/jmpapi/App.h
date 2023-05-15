@@ -43,6 +43,7 @@
 #include <cbang/event/Base.h>
 #include <cbang/event/DNSBase.h>
 #include <cbang/event/Client.h>
+#include <cbang/event/SubprocessPool.h>
 
 namespace cb {
   namespace Event {class Event;}
@@ -55,6 +56,7 @@ namespace JmpAPI {
     cb::Event::Base base;
     cb::Event::DNSBase dns;
     cb::Event::Client client;
+    cb::Event::SubprocessPool procPool;
 
     cb::GoogleOAuth2 googleAuth;
     cb::GitHubOAuth2 githubAuth;
@@ -79,6 +81,7 @@ namespace JmpAPI {
     cb::Event::Base &getEventBase() {return base;}
     cb::Event::DNSBase &getEventDNS() {return dns;}
     cb::Event::Client &getEventClient() {return client;}
+    cb::Event::SubprocessPool &getProcPool() {return procPool;}
 
     cb::GoogleOAuth2 &getGoogleAuth() {return googleAuth;}
     cb::GitHubOAuth2 &getGitHubAuth() {return githubAuth;}

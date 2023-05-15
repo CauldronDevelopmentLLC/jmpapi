@@ -25,33 +25,43 @@
 
 \******************************************************************************/
 
-#include "ArgFilterHandler.h"
-#include "ArgFilterProcess.h"
+#pragma once
 
-#include <jmpapi/App.h>
+#include <cbang/event/AsyncSubprocess.h>
+#include <cbang/event/StreamEventBuffer.h>
+#include <cbang/event/StreamLogger.h>
+#include <cbang/event/HTTPRequestHandler.h>
 
-using namespace std;
-using namespace cb;
-using namespace JmpAPI;
+#include <vector>
 
-
-ArgFilterHandler::ArgFilterHandler(
-  App &app, const JSON::Value &config,
-  SmartPointer<Event::HTTPRequestHandler> &child) : app(app), child(child) {
-
-  if (config.isString()) Subprocess::parse(config.toString(), cmd);
-  else {
-    if (!config.isList()) THROW("Invalid arg-filter config");
-
-    for (unsigned i = 0; i < config.size(); i++)
-      cmd.push_back(config.getAsString(i));
+namespace cb {
+  namespace Event {
+    class Base;
+    class Request;
   }
 }
 
 
-bool ArgFilterHandler::operator()(Event::Request &req) {
-  app.getProcPool().enqueue(
-    new ArgFilterProcess(app.getEventBase(), child, cmd, req));
+namespace JmpAPI {
+  class ArgFilterProcess : public cb::Event::AsyncSubprocess {
+    cb::Event::Base &base;
+    cb::SmartPointer<cb::Event::HTTPRequestHandler> child;
+    std::vector<std::string> cmd;
+    cb::Event::Request &req;
 
-  return true;
+    cb::SmartPointer<cb::Event::StreamEventBuffer> inStr;
+    cb::SmartPointer<cb::Event::StreamEventBuffer> outStr;
+    cb::SmartPointer<cb::Event::StreamLogger>      errStr;
+
+  public:
+    ArgFilterProcess(
+      cb::Event::Base &base,
+      cb::SmartPointer<cb::Event::HTTPRequestHandler> child,
+      const std::vector<std::string> &cmd, cb::Event::Request &req) :
+      base(base), child(child), cmd(cmd), req(req) {}
+
+    // From AsyncSubprocess
+    void exec();
+    void done();
+  };
 }
