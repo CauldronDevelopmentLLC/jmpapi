@@ -60,8 +60,7 @@ ArgAuth::ArgAuth(bool allow, const JSON::ValuePtr &config) : allow(allow) {
 
 
 
-void ArgAuth::operator()(Event::Request &req,
-                         const JSON::Value &_value) const {
+void ArgAuth::operator()(Event::Request &req, JSON::Value &_value) const {
   SmartPointer<Session> session = req.getSession();
   if (session.isNull()) unauthorized();
 

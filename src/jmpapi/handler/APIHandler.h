@@ -46,8 +46,9 @@ namespace JmpAPI {
   protected:
     cb::JSON::ValuePtr loadCategories(const cb::JSON::Value &cats);
     cb::JSON::ValuePtr loadCategory(const cb::JSON::Value &cat);
-    cb::JSON::ValuePtr loadEndpoint(const std::string &pattern,
-                                    const cb::JSON::Value &endpoint);
+    void loadEndpoints(const cb::JSON::ValuePtr &endpoints,
+                       const std::string &pattern,
+                       const cb::JSON::Value &config);
     cb::JSON::ValuePtr loadMethod(const cb::JSON::Value &method,
                                   const std::set<std::string> &urlArgs,
                                   const cb::JSON::Value &endpointArgs);

@@ -36,8 +36,7 @@ namespace JmpAPI {
   class ArgURI : public ArgConstraint {
   public:
     // From ArgConstraint
-    void operator()(cb::Event::Request &req,
-                    const cb::JSON::Value &value) const {
+    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const {
       cb::URI(value.asString());
     }
   };

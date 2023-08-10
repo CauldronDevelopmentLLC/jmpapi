@@ -39,6 +39,6 @@ namespace JmpAPI {
   public:
     virtual ~ArgConstraint() {}
     virtual void operator()(cb::Event::Request &req,
-                            const cb::JSON::Value &value) const = 0;
+                            cb::JSON::Value &value) const = 0;
   };
 }

@@ -31,8 +31,6 @@
 #include <cbang/event/Request.h>
 #include <cbang/event/HTTPURLPatternMatcher.h>
 #include <cbang/event/RequestMethod.h>
-#include <cbang/json/KeywordFilter.h>
-#include <cbang/json/KeywordsFilter.h>
 
 using namespace JmpAPI;
 using namespace cb;
@@ -116,7 +114,7 @@ JSON::ValuePtr APIHandler::loadCategory(const JSON::Value &_cat) {
       const JSON::Value &_endpoint = *_endpoints.get(i);
       if (_endpoint.getBoolean("hide", false)) continue;
 
-      endpoints->insert(pattern, loadEndpoint(pattern, _endpoint));
+      loadEndpoints(endpoints, pattern, _endpoint);
     }
   }
 
@@ -124,36 +122,39 @@ JSON::ValuePtr APIHandler::loadCategory(const JSON::Value &_cat) {
 }
 
 
-JSON::ValuePtr APIHandler::loadEndpoint(const string &pattern,
-                                        const JSON::Value &_endpoint) {
-  JSON::ValuePtr endpoint = new JSON::Dict;
+void APIHandler::loadEndpoints(
+  const JSON::ValuePtr &endpoints, const string &pattern,
+  const JSON::Value &config) {
+  JSON::ValuePtr methods = new JSON::Dict;
+  endpoints->insert(pattern, methods);
 
-  // Copy keys
-  const char *keys[] = {"help", "allow", "deny", 0};
-  copyExistingKeys(keys, _endpoint, *endpoint);
+  // TODO apply "help", "allow" and "deny" to child endpoints
 
   // Get URL args from endpoint pattern
   Event::HTTPURLPatternMatcher matcher(pattern, new HTTPRequestHandler);
   const set<string> &urlArgs = matcher.getArgs();
-  JSON::ValuePtr endpointArgs = _endpoint.get("args", new JSON::Dict);
+  JSON::ValuePtr endpointArgs = config.get("args", new JSON::Dict);
 
   // Load methods
-  for (unsigned i = 0; i < _endpoint.size(); i++) {
-    const string &key = _endpoint.keyAt(i);
+  for (unsigned i = 0; i < config.size(); i++) {
+    const auto &key     = config.keyAt(i);
+    const auto &_config = *config.get(i);
 
-    // Ignore non-methods
-    if (!isMethod(key)) continue;
+    if (!_config.isDict()) continue;
 
     // Hide some handlers in docs
-    const JSON::Value &_method = *_endpoint.get(i);
-    string handler = _method.getString("handler", "");
+    string handler = _config.getString("handler", "");
     bool hide = handler == "pass" || handler == "session";
-    if (_method.getBoolean("hide", hide)) continue;
+    if (_config.getBoolean("hide", hide)) continue;
 
-    endpoint->insert(key, loadMethod(_method, urlArgs, *endpointArgs));
+    // TODO include parent pattern args
+    if (!key.empty() && key[0] == '/')
+      loadEndpoints(endpoints, pattern + key, _config);
+
+    // Ignore non-methods
+    else if (isMethod(key))
+      methods->insert(key, loadMethod(_config, urlArgs, *endpointArgs));
   }
-
-  return endpoint;
 }
 
 

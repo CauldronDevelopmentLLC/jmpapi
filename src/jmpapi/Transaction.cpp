@@ -45,8 +45,8 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-Transaction::Transaction(App &app, RequestMethod method, const URI &uri,
-                         const Version &version) :
+Transaction::Transaction(App &app, Event::RequestMethod method,
+                         const URI &uri, const Version &version) :
   Request(method, uri, version), Event::OAuth2Login(app.getEventClient()),
   app(app), currentField(0) {}
 
@@ -130,7 +130,7 @@ void Transaction::sendJSONError(Event::HTTPStatus code, const string &msg) {
     return;
   }
 
-  resetOutput();
+  getOutputBuffer().clear();
 
   if (!code) code = HTTP_INTERNAL_SERVER_ERROR;
 
@@ -195,7 +195,7 @@ void Transaction::processProfile(Event::Request &req,
 
 
 bool Transaction::apiLogin(const JSON::ValuePtr &config) {
-  auto &args = *parseArgs();
+  auto &args = *getArgs();
   this->config = config;
 
   string provider = args.getString("provider", "");
@@ -525,7 +525,7 @@ void Transaction::returnOk(MariaDB::EventDB::state_t state) {
     break;
 
   case MariaDB::EventDB::EVENTDB_RETRY:
-    if (!isReplying()) resetOutput();
+    if (!isReplying()) getOutputBuffer().clear();
     break;
 
   case MariaDB::EventDB::EVENTDB_ERROR: {

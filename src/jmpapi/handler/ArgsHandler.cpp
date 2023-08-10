@@ -29,54 +29,11 @@
 
 #include <cbang/event/Request.h>
 
-using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-ArgsHandler::ArgsHandler(const JSON::ValuePtr &args) {
-  for (unsigned i = 0; i < args->size(); i++)
-    validators[args->keyAt(i)] = new ArgValidator(args->get(i));
-}
-
-
 bool ArgsHandler::operator()(Event::Request &req) {
-  auto &args = *req.parseArgs();
-  set<string> found;
-
-  for (unsigned i = 0; i < args.size(); i++) {
-    const string &name = args.keyAt(i);
-
-    found.insert(name);
-
-    auto it = validators.find(name);
-    if (it == validators.end()) continue; // Ignore unrecognized args
-
-    try {
-      (*it->second)(req, *args.get(i));
-
-    } catch (const Exception &e) {
-      if (e.getCode() == HTTP_UNAUTHORIZED)
-        THROWX("Access denied", HTTP_UNAUTHORIZED);
-
-      THROWX("Invalid argument '" << name << "=" << args.getAsString(i)
-              << "': " << e.getMessage(), HTTP_BAD_REQUEST);
-    }
-  }
-
-  // Make sure all required arguments were found and handle defaults
-  vector<string> missing;
-  for (auto it = validators.begin(); it != validators.end(); it++)
-    if (found.find(it->first) == found.end()) {
-      const ArgValidator &av = *it->second;
-
-      if (av.hasDefault()) args.insert(it->first, av.getDefault());
-      else if (!av.isOptional()) missing.push_back(it->first);
-    }
-
-  if (!missing.empty())
-    THROWX("Missing argument" << (1 < missing.size() ? "s" : "") << ": "
-            << String::join(missing, ", "), HTTP_BAD_REQUEST);
-
+  validator(req, *req.getArgs());
   return false;
 }

@@ -41,7 +41,7 @@
 
 #include <algorithm>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 
 using namespace JmpAPI;

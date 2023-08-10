@@ -27,6 +27,7 @@
 
 #include "ArgValidator.h"
 
+#include "ArgDict.h"
 #include "ArgPattern.h"
 #include "ArgEnum.h"
 #include "ArgNumber.h"
@@ -58,10 +59,17 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
 
   string type = config->getString("type", "");
 
-  // Implicit type
-  if (type.empty()) type = config->has("enum") ? "enum" : "string";
+  // Implicit types
+  if (type.empty()) {
+    if      (config->has("dict")) type = "dict";
+    else if (config->has("enum")) type = "enum";
+    else                          type = "string";
 
-  if      (type == "enum")   add(new ArgEnum(config));
+    config->insert("type", type);
+  }
+
+  if      (type == "dict")   add(new ArgDict(config->get("dict")));
+  else if (type == "enum")   add(new ArgEnum(config));
   else if (type == "number") add(new ArgNumber<double>(config));
   else if (type == "int")    add(new ArgNumber<int64_t>(config));
   else if (type == "s64")    add(new ArgNumber<int64_t>(config));
@@ -86,8 +94,8 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   } else THROW("Unknown argument type '" << type << "'");
 
   if (config->has("pattern")) add(new ArgPattern(config->getString("pattern")));
-  if (config->has("allow")) add(new ArgAuth(true, config->get("allow")));
-  if (config->has("deny")) add(new ArgAuth(false, config->get("deny")));
+  if (config->has("allow"))   add(new ArgAuth(true,  config->get("allow")));
+  if (config->has("deny"))    add(new ArgAuth(false, config->get("deny")));
 }
 
 
@@ -96,8 +104,7 @@ void ArgValidator::add(const SmartPointer<ArgConstraint> &constraint) {
 }
 
 
-void ArgValidator::operator()(Event::Request &req,
-                              const JSON::Value &value) const {
+void ArgValidator::operator()(Event::Request &req, JSON::Value &value) const {
   for (unsigned i = 0; i < constraints.size(); i++)
     (*constraints[i])(req, value);
 }

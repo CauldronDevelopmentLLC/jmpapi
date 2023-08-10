@@ -30,7 +30,6 @@
 #include "Server.h"
 
 #include <cbang/ServerApplication.h>
-#include <cbang/openssl/KeyPair.h>
 #include <cbang/db/maria/EventDB.h>
 
 #include <cbang/net/IPAddress.h>

@@ -41,8 +41,7 @@ namespace JmpAPI {
       min(config->getU32("min")) {}
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req,
-                    const cb::JSON::Value &value) const {
+    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const {
       if (value.asString().length() < min)
         THROW("Must be at least " << min << " chars long");
     }

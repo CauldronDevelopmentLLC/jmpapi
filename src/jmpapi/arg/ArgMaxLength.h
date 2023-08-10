@@ -41,8 +41,7 @@ namespace JmpAPI {
       max(config->getU32("max")) {}
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req,
-                    const cb::JSON::Value &value) const {
+    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const {
       if (max < value.asString().length())
         THROW("Must be no more than " << max << " chars long");
     }

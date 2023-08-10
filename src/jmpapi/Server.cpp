@@ -29,6 +29,7 @@
 #include "App.h"
 #include "Transaction.h"
 
+#include <jmpapi/handler/ArgsParser.h>
 #include <jmpapi/handler/EndpointHandler.h>
 #include <jmpapi/handler/StatusHandler.h>
 #include <jmpapi/handler/QueryHandler.h>
@@ -154,51 +155,62 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
 
 
 SmartPointer<Event::HTTPRequestHandler>
-Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
+Server::createValidationHandler(const JSON::Value &config) {
+  SmartPointer<Event::HTTPHandlerGroup> group = new Event::HTTPHandlerGroup;
+
+  // Endpoint Auth
+  if (config.has("allow") || config.has("deny"))
+    group->addHandler(createAccessHandler(config));
+
+  // Args
+  if (config.has("args"))
+    group->addHandler(new ArgsHandler(config.get("args")));
+
+  return group;
+}
+
+
+SmartPointer<Event::HTTPRequestHandler>
+Server::createAPIHandler(const string &pattern, const JSON::Value &api,
+  const HTTPRequestHandlerPtr &parentValidation) {
   LOG_INFO(1, "Adding endpoint " << pattern);
+
+  // Patterns
+  SmartPointer<Event::HTTPHandlerGroup> patterns = new Event::HTTPHandlerGroup;
 
   // Group
   SmartPointer<Event::HTTPHandlerGroup> group = new Event::HTTPHandlerGroup;
-  SmartPointer<Event::HTTPURLPatternMatcher> matcher =
+  SmartPointer<Event::HTTPURLPatternMatcher> root =
     new Event::HTTPURLPatternMatcher(pattern, group);
+  patterns->addHandler(root);
 
-  // Endpoint Auth
-  if (api.has("allow") || api.has("deny"))
-    group->addHandler(createAccessHandler(api));
+  // Request validation
+  auto validation = group->addGroup();
+  if (parentValidation.isSet()) group->addHandler(parentValidation);
+  validation->addHandler(createValidationHandler(api));
 
-  // Args
-  JSON::ValuePtr args = new JSON::Dict;
-
-  const set<string> &implicitArgs = matcher->getArgs();
-  for (auto it = implicitArgs.begin(); it != implicitArgs.end(); it++)
-    args->insertDict(*it);
-
-  if (api.has("args")) args->merge(*api.get("args"));
-
-  // Methods
-  unsigned endpoints = 0;
+  // Children
   for (unsigned i = 0; i < api.size(); i++) {
-    const string &key = api.keyAt(i);
+    auto &key    = api.keyAt(i);
+    auto &config = api.get(i);
+
+    // Child
+    if (!key.empty() && key[0] == '/') {
+      auto child = createAPIHandler(pattern + key, *config, validation);
+      patterns->addHandler(child);
+      continue;
+    }
+
+    // Methods
     unsigned methods = parseMethods(key);
     if (!methods) continue; // Ignore non-methods
 
-    auto &config = api.get(i);
     auto handler = createEndpoint(config);
-
     if (handler.isNull()) continue;
-    endpoints++;
 
     SmartPointer<Event::HTTPHandlerGroup> methodGroup =
       new Event::HTTPHandlerGroup;
-
-    // Auth
-    if (config->has("allow") || config->has("deny"))
-      methodGroup->addHandler(createAccessHandler(*config));
-
-    // Args
-    JSON::ValuePtr endpointArgs = args->copy(true);
-    if (config->has("args")) endpointArgs->merge(*config->get("args"));
-    methodGroup->addHandler(new ArgsHandler(endpointArgs));
+    methodGroup->addHandler(createValidationHandler(*config));
 
     // Headers
     if (config->has("headers") && !handler.isInstance<HeadersHandler>())
@@ -213,10 +225,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api) {
     group->addHandler(new Event::HTTPMethodMatcher(methods, methodGroup));
   }
 
-  // Handle arg constraints when there are no endpoints
-  if (!endpoints) group->addHandler(new ArgsHandler(args));
-
-  return matcher;
+  return patterns;
 }
 
 
@@ -249,6 +258,9 @@ void Server::loadCategories(const JSON::Value &cats) {
 
 void Server::init() {
   Event::WebServer::init();
+
+  // Always parse args
+  addHandler(new ArgsParser);
 
   // Load API
   auto &config = *app.getConfig();

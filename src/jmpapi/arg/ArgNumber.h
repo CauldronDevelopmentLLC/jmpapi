@@ -46,8 +46,7 @@ namespace JmpAPI {
       min(config->getNumber("min", NAN)), max(config->getNumber("max", NAN)) {}
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req,
-                    const cb::JSON::Value &value) const {
+    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const {
       T n;
 
       if (value.isNumber()) n = (T)value.getNumber();
@@ -55,8 +54,10 @@ namespace JmpAPI {
         n = cb::String::parse<T>(value.getString(), true);
       else THROW("Must be a number or string");
 
-      if (!isnan(min) && n < (T)min) THROW("Must be greater than " << (T)min);
-      if (!isnan(max) && (T)max < n) THROW("Must be less than " << (T)max);
+      if (!std::isnan(min) && n < (T)min)
+        THROW("Must be greater than " << (T)min);
+      if (!std::isnan(max) && (T)max < n)
+        THROW("Must be less than " << (T)max);
 
       if (value.isNumber()) {
         double x = value.getNumber();

@@ -55,7 +55,7 @@ void ArgFilterProcess::exec() {
     base, getPipeErr(), SSTR("PID:" << getPID() << ':'),
     CBANG_LOG_DOMAIN, CBANG_LOG_WARNING_LEVEL);
 
-  inStr->add(req.parseArgs()->toString());
+  inStr->add(req.getArgs()->toString());
   inStr->write();
 }
 

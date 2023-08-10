@@ -60,7 +60,7 @@ namespace JmpAPI {
     cb::SmartPointer<cb::JSON::Writer> writer;
 
   public:
-    Transaction(App &app, RequestMethod method, const cb::URI &uri,
+    Transaction(App &app, cb::Event::RequestMethod method, const cb::URI &uri,
                 const cb::Version &version);
 
     App &getApp() {return app;}

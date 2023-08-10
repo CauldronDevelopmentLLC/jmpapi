@@ -36,7 +36,7 @@ namespace cb {namespace Event {class Request;}}
 
 
 namespace JmpAPI {
-  class ArgValidator {
+  class ArgValidator : public ArgConstraint {
     bool optional;
     cb::JSON::ValuePtr defaultValue;
     std::vector<cb::SmartPointer<ArgConstraint> > constraints;
@@ -51,7 +51,7 @@ namespace JmpAPI {
 
     void add(const cb::SmartPointer<ArgConstraint> &constraint);
 
-    void operator()(cb::Event::Request &req,
-                    const cb::JSON::Value &value) const;
+    // From ArgConstraint
+    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const;
   };
 }

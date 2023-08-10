@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <jmpapi/arg/ArgValidator.h>
+#include <jmpapi/arg/ArgDict.h>
 
 #include <cbang/event/HTTPRequestHandler.h>
 #include <cbang/json/Value.h>
@@ -38,10 +38,10 @@
 
 namespace JmpAPI {
   class ArgsHandler : public cb::Event::HTTPRequestHandler {
-    std::map<std::string, cb::SmartPointer<ArgValidator> > validators;
+    ArgDict validator;
 
   public:
-    ArgsHandler(const cb::JSON::ValuePtr &args);
+    ArgsHandler(const cb::JSON::ValuePtr &args) : validator(args) {}
 
     // From cb::Event::HTTPRequestHandler
     bool operator()(cb::Event::Request &req);

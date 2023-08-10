@@ -42,7 +42,6 @@ namespace JmpAPI {
     ArgAuth(bool allow, const cb::JSON::ValuePtr &config);
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req,
-                    const cb::JSON::Value &_value) const;
+    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const;
   };
 }

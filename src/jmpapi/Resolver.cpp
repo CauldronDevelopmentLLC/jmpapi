@@ -52,9 +52,7 @@ Resolver &Resolver::getRoot() {
 
 const JSON::ValuePtr &Resolver::getArgs() const {
   if (req.isNull()) THROW("No request");
-  auto &args = req->getArgs();
-  if (args->empty()) req->parseArgs();
-  return args;
+  return req->getArgs();
 }
 
 
