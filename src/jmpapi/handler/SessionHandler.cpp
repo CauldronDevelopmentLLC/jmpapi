@@ -27,7 +27,10 @@
 
 #include "SessionHandler.h"
 
+#include <jmpapi/App.h>
 #include <jmpapi/Transaction.h>
+
+#include <cbang/log/Logger.h>
 
 using namespace JmpAPI;
 using namespace cb;
@@ -39,5 +42,27 @@ SessionHandler::SessionHandler(const JSON::Value &config) :
 
 
 bool SessionHandler::operator()(Event::Request &req) {
-  return req.cast<Transaction>().lookupSession(sql);
+  // Check if Session is already loaded
+  if (req.getSession().isSet()) return false;
+
+  // Check if we have a session ID
+  auto &tran = req.cast<Transaction>();
+  auto &app  = tran.getApp();
+  string sid = req.getSessionID(app.getSessionCookieName());
+  if (sid.empty()) return false;
+
+  // Lookup Session in SessionManager
+  try {
+    req.setSession(app.getSessionManager().lookupSession(sid));
+    LOG_DEBUG(3, "User: " << req.getUser());
+
+    return false;
+  } catch (const Exception &) {}
+
+  // Lookup Session in DB
+  if (sql.empty()) return false;
+  req.setSession(new Session(sid, req.getClientIP()));
+  tran.query(&Transaction::session, sql);
+
+  return true;
 }

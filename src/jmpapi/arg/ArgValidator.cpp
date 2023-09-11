@@ -43,7 +43,7 @@ using namespace cb;
 using namespace std;
 
 
-#define EMAIL_CHARS "a-zA-Z0-9!#$%&*+/=?^_`{|}~-"
+#define EMAIL_CHARS "\\w!#$%&*+/=?^`{|}~-"
 #define EMAIL_RE \
   "^[" EMAIL_CHARS "][." EMAIL_CHARS "]*@[." EMAIL_CHARS "]*[" EMAIL_CHARS "]$"
 
@@ -86,12 +86,13 @@ ArgValidator::ArgValidator(const JSON::ValuePtr &config) :
   else if (type == "time")   add(new ArgPattern(ISO8601_RE));
   else if (type == "date")   add(new ArgPattern(DATE_RE));
   else if (type == "uri")    add(new ArgURI);
+  else if (type != "string")
+    THROW("Unsupported argument type '" << type << "'");
 
-  else if (type == "string") {
+  if (type == "string" || type == "email" || type == "uri") {
     if (config->hasNumber("min")) add(new ArgMinLength(config));
     if (config->hasNumber("max")) add(new ArgMaxLength(config));
-
-  } else THROW("Unknown argument type '" << type << "'");
+  }
 
   if (config->has("pattern")) add(new ArgPattern(config->getString("pattern")));
   if (config->has("allow"))   add(new ArgAuth(true,  config->get("allow")));

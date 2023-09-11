@@ -33,14 +33,14 @@ using namespace JmpAPI;
 
 
 QueryHandler::QueryHandler(const JSON::Value &config) :
-  sql(config.getString("sql")), pass(config.getBoolean("pass", false)) {
+  sql(config.getString("sql")) {
 
   if (config.hasList("fields")) fields = config.get("fields");
 
   string ret = config.getString("return", fields.isNull() ? "ok" : "fields");
 
   if      (ret == "ok")     replyCB = &Transaction::returnOk;
-  else if (ret == "hlist")  replyCB = &Transaction::returnHeadList;
+  else if (ret == "hlist")  replyCB = &Transaction::returnHList;
   else if (ret == "list")   replyCB = &Transaction::returnList;
   else if (ret == "fields") replyCB = &Transaction::returnFields;
   else if (ret == "dict")   replyCB = &Transaction::returnDict;
@@ -48,13 +48,15 @@ QueryHandler::QueryHandler(const JSON::Value &config) :
   else if (ret == "bool")   replyCB = &Transaction::returnBool;
   else if (ret == "u64")    replyCB = &Transaction::returnU64;
   else if (ret == "s64")    replyCB = &Transaction::returnS64;
+  else if (ret == "pass")   replyCB = &Transaction::returnPass;
   else THROW("Unsupported query return type '" << ret << "'");
+
+  pass = ret == "pass";
 }
 
 
 bool QueryHandler::operator()(Event::Request &req) {
   req.cast<Transaction>().setFields(fields);
   req.cast<Transaction>().query(replyCB, sql);
-
   return !pass;
 }

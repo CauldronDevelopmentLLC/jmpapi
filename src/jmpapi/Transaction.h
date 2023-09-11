@@ -66,8 +66,6 @@ namespace JmpAPI {
     App &getApp() {return app;}
 
     void setSessionCookie();
-    bool lookupSession(const std::string &sql);
-
     void setFields(const cb::JSON::ValuePtr &fields);
 
     typedef typename cb::MariaDB::EventDB::Callback<Transaction>::member_t
@@ -86,24 +84,24 @@ namespace JmpAPI {
                         const cb::JSON::ValuePtr &profile);
 
     // Event::WebServer request callbacks
-    bool apiLogin(const cb::JSON::ValuePtr &config);
+    bool apiLogin (const cb::JSON::ValuePtr &config);
     bool apiLogout(const cb::JSON::ValuePtr &config);
 
     // MariaDB::EventDB callbacks
-    void session(cb::MariaDB::EventDB::state_t state);
-    void login(cb::MariaDB::EventDB::state_t state =
-               cb::MariaDB::EventDB::EVENTDB_DONE);
-    void logout(cb::MariaDB::EventDB::state_t state =
-                cb::MariaDB::EventDB::EVENTDB_DONE);
+    typedef cb::MariaDB::EventDB::state_t state_t;
+    void session(state_t state);
+    void login  (state_t state = cb::MariaDB::EventDB::EVENTDB_DONE);
+    void logout (state_t state = cb::MariaDB::EventDB::EVENTDB_DONE);
 
-    void returnHeadList(cb::MariaDB::EventDB::state_t state);
-    void returnList(cb::MariaDB::EventDB::state_t state);
-    void returnBool(cb::MariaDB::EventDB::state_t state);
-    void returnU64(cb::MariaDB::EventDB::state_t state);
-    void returnS64(cb::MariaDB::EventDB::state_t state);
-    void returnFields(cb::MariaDB::EventDB::state_t state);
-    void returnDict(cb::MariaDB::EventDB::state_t state);
-    void returnOne(cb::MariaDB::EventDB::state_t state);
-    void returnOk(cb::MariaDB::EventDB::state_t state);
+    void returnHList (state_t state);
+    void returnList  (state_t state);
+    void returnBool  (state_t state);
+    void returnU64   (state_t state);
+    void returnS64   (state_t state);
+    void returnFields(state_t state);
+    void returnDict  (state_t state);
+    void returnOne   (state_t state);
+    void returnOk    (state_t state);
+    void returnPass  (state_t state);
   };
 }

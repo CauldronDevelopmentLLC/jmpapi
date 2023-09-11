@@ -52,32 +52,8 @@ Transaction::Transaction(App &app, Event::RequestMethod method,
 
 
 void Transaction::setSessionCookie() {
-  setCookie(app.getSessionCookieName(), getSession()->getID(), "", "/");
-}
-
-
-bool Transaction::lookupSession(const string &sql) {
-  // Check if Session is already loaded
-  if (!getSession().isNull()) return false;
-
-  // Check if we have a session ID
-  string sid = getSessionID(app.getSessionCookieName());
-  if (sid.empty()) return false;
-
-  // Lookup Session in SessionManager
-  try {
-    setSession(app.getSessionManager().lookupSession(sid));
-    LOG_DEBUG(3, "User: " << getUser());
-
-    return false;
-  } catch (const Exception &) {}
-
-  // Lookup Session in DB
-  if (sql.empty()) return false;
-  setSession(new Session(sid, getClientIP()));
-  query(&Transaction::session, sql);
-
-  return true;
+  setCookie(app.getSessionCookieName(), getSession()->getID(), "", "/",
+            0, 0, false, true, "None");
 }
 
 
@@ -155,7 +131,7 @@ void Transaction::write() {
 
 void Transaction::processProfile(Event::Request &req,
                                  const JSON::ValuePtr &profile) {
-  if (!profile.isNull()) {
+  if (profile.isSet()) {
     try {
       string provider = profile->getString("provider");
 
@@ -198,7 +174,8 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
   auto &args = *getArgs();
   this->config = config;
 
-  string provider = args.getString("provider", "");
+  string provider =
+    args.getString("provider", config->getString("provider", ""));
   if (provider.empty()) {
     if (getSession().isNull() || !getSession()->hasGroup("authenticated")) {
       sendJSONError(HTTP_UNAUTHORIZED, "Not logged in");
@@ -208,17 +185,28 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
     getSession()->write(*getJSONWriter()); // Respond with Session JSON
 
   } else if (provider == "providers") {
+    // Respond with list of login providers
     getJSONWriter()->beginList();
     if (app.getGoogleAuth().isConfigured()) writer->append("google");
     if (app.getGitHubAuth().isConfigured()) writer->append("github");
     if (app.getFacebookAuth().isConfigured()) writer->append("facebook");
     writer->endList();
 
+  } else if (provider == "none") {
+    // Open new Session
+    setSession(app.getSessionManager().openSession(getClientIP()));
+
+    // DB login
+    if (!config->hasString("sql")) login();
+    else query(&Transaction::login, config->getString("sql"));
+
+    return true;
+
   } else {
     // Get OAuth2 login provider
     OAuth2 *auth = 0;
-    if (provider == "google") auth = &app.getGoogleAuth();
-    else if (provider == "github") auth = &app.getGitHubAuth();
+    if      (provider == "google")   auth = &app.getGoogleAuth();
+    else if (provider == "github")   auth = &app.getGitHubAuth();
     else if (provider == "facebook") auth = &app.getFacebookAuth();
 
     if (!auth || !auth->isConfigured()) {
@@ -229,11 +217,13 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
 
     OAuth2Login::setOAuth2(SmartPointer<OAuth2>::Phony(auth));
 
+    // Handle OAuth login response
     const URI &uri = getURI();
-    if (uri.has("state") && !getSession().isNull())
-      return OAuth2Login::requestToken
-        (*this, getSession()->getID(),
-         getSession()->getString("redirect_uri", ""));
+    if (uri.has("state") && getSession().isSet()) {
+      string redirect = getSession()->getString("redirect_uri", "");
+      return
+        OAuth2Login::requestToken(*this, getSession()->getID(), redirect);
+    }
 
     // Open new Session
     setSession(app.getSessionManager().openSession(getClientIP()));
@@ -349,7 +339,7 @@ void Transaction::logout(MariaDB::EventDB::state_t state) {
 }
 
 
-void Transaction::returnHeadList(MariaDB::EventDB::state_t state) {
+void Transaction::returnHList(MariaDB::EventDB::state_t state) {
   if (state == MariaDB::EventDB::EVENTDB_ROW) {
     if (writer.isNull()) {
       getJSONWriter()->beginList();
@@ -523,6 +513,15 @@ void Transaction::returnOk(MariaDB::EventDB::state_t state) {
   case MariaDB::EventDB::EVENTDB_DONE:
     reply();
     break;
+
+  default: return returnPass(state);
+  }
+}
+
+
+void Transaction::returnPass(MariaDB::EventDB::state_t state) {
+  switch (state) {
+  case MariaDB::EventDB::EVENTDB_DONE: break;
 
   case MariaDB::EventDB::EVENTDB_RETRY:
     if (!isReplying()) getOutputBuffer().clear();

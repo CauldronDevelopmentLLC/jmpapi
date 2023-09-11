@@ -38,7 +38,7 @@
 namespace JmpAPI {
   class QueryHandler : public cb::Event::HTTPRequestHandler {
     std::string sql;
-    bool pass;
+    bool pass = false;
     cb::JSON::ValuePtr fields;
     Transaction::event_db_member_functor_t replyCB;
 
