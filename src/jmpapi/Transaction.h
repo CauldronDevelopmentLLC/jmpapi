@@ -90,6 +90,7 @@ namespace JmpAPI {
     // MariaDB::EventDB callbacks
     typedef cb::MariaDB::EventDB::state_t state_t;
     void session(state_t state);
+    void loginReturnSession(state_t state = cb::MariaDB::EventDB::EVENTDB_DONE);
     void login  (state_t state = cb::MariaDB::EventDB::EVENTDB_DONE);
     void logout (state_t state = cb::MariaDB::EventDB::EVENTDB_DONE);
 

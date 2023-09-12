@@ -187,8 +187,8 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
   } else if (provider == "providers") {
     // Respond with list of login providers
     getJSONWriter()->beginList();
-    if (app.getGoogleAuth().isConfigured()) writer->append("google");
-    if (app.getGitHubAuth().isConfigured()) writer->append("github");
+    if (app.getGoogleAuth()  .isConfigured()) writer->append("google");
+    if (app.getGitHubAuth()  .isConfigured()) writer->append("github");
     if (app.getFacebookAuth().isConfigured()) writer->append("facebook");
     writer->endList();
 
@@ -197,8 +197,8 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
     setSession(app.getSessionManager().openSession(getClientIP()));
 
     // DB login
-    if (!config->hasString("sql")) login();
-    else query(&Transaction::login, config->getString("sql"));
+    if (!config->hasString("sql")) loginReturnSession();
+    else query(&Transaction::loginReturnSession, config->getString("sql"));
 
     return true;
 
@@ -286,6 +286,17 @@ void Transaction::session(MariaDB::EventDB::state_t state) {
     break;
 
   default: returnOk(state); return; // For error handling
+  }
+}
+
+
+void Transaction::loginReturnSession(MariaDB::EventDB::state_t state) {
+  switch (state) {
+  case MariaDB::EventDB::EVENTDB_DONE:
+    if (!config->hasString("redirect"))
+      getSession()->write(*getJSONWriter()); // Respond with Session JSON
+
+  default: return login(state);
   }
 }
 
