@@ -32,7 +32,6 @@
 #include <cbang/ServerApplication.h>
 #include <cbang/db/maria/EventDB.h>
 
-#include <cbang/net/IPAddress.h>
 #include <cbang/net/SessionManager.h>
 
 #include <cbang/auth/GoogleOAuth2.h>
