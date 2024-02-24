@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS providers (
 
 
 INSERT INTO providers
-  VALUES ('google'), ('github'), ('facebook'), ('twitter')
+  VALUES ('google'), ('github'), ('facebook'), ('twitter'), ('passphrase')
   ON DUPLICATE KEY UPDATE name = name;
 
 
@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS associations (
   email        VARCHAR(128) NOT NULL,
   name         VARCHAR(128),
   avatar       VARCHAR(256),
+  enabled      BOOLEAN DEFAULT TRUE,
   uid          INT,
   created      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_used    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
