@@ -38,8 +38,8 @@
 #include <cbang/auth/GitHubOAuth2.h>
 #include <cbang/auth/FacebookOAuth2.h>
 
+#include <cbang/dns/Base.h>
 #include <cbang/event/Base.h>
-#include <cbang/event/DNSBase.h>
 #include <cbang/event/Client.h>
 #include <cbang/event/SubprocessPool.h>
 
@@ -52,7 +52,7 @@ namespace cb {
 namespace JmpAPI {
   class App : public cb::ServerApplication {
     cb::Event::Base base;
-    cb::Event::DNSBase dns;
+    cb::DNS::Base dns;
     cb::Event::Client client;
     cb::Event::SubprocessPool procPool;
 
@@ -77,7 +77,7 @@ namespace JmpAPI {
     static bool _hasFeature(int feature);
 
     cb::Event::Base &getEventBase() {return base;}
-    cb::Event::DNSBase &getEventDNS() {return dns;}
+    cb::DNS::Base &getEventDNS() {return dns;}
     cb::Event::Client &getEventClient() {return client;}
     cb::Event::SubprocessPool &getProcPool() {return procPool;}
 

@@ -68,7 +68,7 @@ namespace {
 
     String::tokenize(String::toUpper(s), tokens, "| \n\r\t");
     for (unsigned i = 0; i < tokens.size(); i++)
-      methods |= HTTP::RequestMethod::parse
+      methods |= Event::RequestMethod::parse
         (tokens[i], Event::RequestMethod::HTTP_UNKNOWN);
 
     return methods;
