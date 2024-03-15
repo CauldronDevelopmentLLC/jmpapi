@@ -64,7 +64,7 @@ void EqualTmpl::apply(const ResolverPtr &resolver, cb_t done) {
     });
 
   auto cb =
-    [this, resolver, done, result] (Event::HTTPStatus status,
+    [this, resolver, done, result] (HTTP::Status status,
                                     const JSON::ValuePtr &data) {
       if (!result->pass) return;
 

@@ -46,7 +46,7 @@ namespace JmpAPI {
       min(config->getNumber("min", NAN)), max(config->getNumber("max", NAN)) {}
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const {
+    void operator()(cb::HTTP::Request &req, cb::JSON::Value &value) const {
       T n;
 
       if (value.isNumber()) n = (T)value.getNumber();

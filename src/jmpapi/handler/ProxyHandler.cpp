@@ -39,9 +39,9 @@ ProxyHandler::ProxyHandler(const JSON::ValuePtr &config) :
   tmpl(new RequestTmpl(config)) {}
 
 
-bool ProxyHandler::operator()(Event::Request &req) {
+bool ProxyHandler::operator()(HTTP::Request &req) {
   auto cb =
-    [&req] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+    [&req] (HTTP::Status status, const JSON::ValuePtr &data) {
       if (data.isSet()) {
         if (!req.outHas("Content-Type"))
           req.outSet("Content-Type", "application/json");

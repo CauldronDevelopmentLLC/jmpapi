@@ -28,8 +28,8 @@
 #include "CORSHandler.h"
 
 #include <cbang/String.h>
-#include <cbang/event/Request.h>
-#include <cbang/event/RequestMethod.h>
+#include <cbang/http/Request.h>
+#include <cbang/http/Method.h>
 
 using namespace std;
 using namespace cb;
@@ -79,7 +79,7 @@ CORSHandler::CORSHandler(const JSON::Value &config) :
 }
 
 
-bool CORSHandler::operator()(Event::Request &req) {
+bool CORSHandler::operator()(HTTP::Request &req) {
   // Add headers
   HeadersHandler::operator()(req);
 

@@ -28,7 +28,7 @@
 #include "Headers.h"
 
 #include <cbang/String.h>
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 using namespace std;
 using namespace cb;
@@ -47,7 +47,7 @@ void Headers::add(const string &key, const string &value) {
 }
 
 
-void Headers::set(Event::Request &req) {
+void Headers::set(HTTP::Request &req) {
   for (auto it = begin(); it != end(); it++)
     req.outSet(it->first, it->second);
 }

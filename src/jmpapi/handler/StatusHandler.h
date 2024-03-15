@@ -27,19 +27,19 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 #include <cbang/json/Value.h>
 
 
 namespace JmpAPI {
-  class StatusHandler : public cb::Event::HTTPRequestHandler {
-    cb::Event::HTTPStatus code;
+  class StatusHandler : public cb::HTTP::RequestHandler {
+    cb::HTTP::Status code;
 
   public:
-    StatusHandler(cb::Event::HTTPStatus code);
+    StatusHandler(cb::HTTP::Status code);
     StatusHandler(const std::string &code);
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

@@ -37,7 +37,7 @@ namespace JmpAPI {
 
   public:
     // From ArgConstraint
-    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const {
+    void operator()(cb::HTTP::Request &req, cb::JSON::Value &value) const {
       if (value.isString()) cb::String::parseBool(value.asString());
       else if (!value.isBoolean() && !value.isNumber()) THROW("Not a boolean");
     }

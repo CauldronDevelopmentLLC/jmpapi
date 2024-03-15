@@ -37,7 +37,7 @@ using namespace JmpAPI;
 
 ArgFilterHandler::ArgFilterHandler(
   App &app, const JSON::Value &config,
-  SmartPointer<Event::HTTPRequestHandler> &child) : app(app), child(child) {
+  SmartPointer<HTTP::RequestHandler> &child) : app(app), child(child) {
 
   if (config.isString()) Subprocess::parse(config.toString(), cmd);
   else {
@@ -49,7 +49,7 @@ ArgFilterHandler::ArgFilterHandler(
 }
 
 
-bool ArgFilterHandler::operator()(Event::Request &req) {
+bool ArgFilterHandler::operator()(HTTP::Request &req) {
   app.getProcPool().enqueue(
     new ArgFilterProcess(app.getEventBase(), child, cmd, req));
 

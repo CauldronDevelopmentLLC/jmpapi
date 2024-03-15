@@ -52,6 +52,6 @@ namespace JmpAPI {
     void add(const cb::SmartPointer<ArgConstraint> &constraint);
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const;
+    void operator()(cb::HTTP::Request &req, cb::JSON::Value &value) const;
   };
 }

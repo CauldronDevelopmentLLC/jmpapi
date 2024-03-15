@@ -29,18 +29,18 @@
 
 #include "ArgValidator.h"
 
-#include <cbang/event/Enum.h>
+#include <cbang/http/Enum.h>
 
 #include <map>
 
 namespace JmpAPI {
-  class ArgDict : public ArgConstraint, public cb::Event::Enum {
+  class ArgDict : public ArgConstraint, public cb::HTTP::Enum {
     std::map<std::string, cb::SmartPointer<ArgValidator> > validators;
 
   public:
     ArgDict(const cb::JSON::ValuePtr &args);
 
     // From ArgConstraint
-    void operator()(cb::Event::Request &req, cb::JSON::Value &value) const;
+    void operator()(cb::HTTP::Request &req, cb::JSON::Value &value) const;
   };
 }

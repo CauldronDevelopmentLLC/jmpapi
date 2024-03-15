@@ -31,13 +31,13 @@
 
 #include <jmpapi/Headers.h>
 
-#include <cbang/event/Enum.h>
+#include <cbang/http/Enum.h>
 
 
 namespace JmpAPI {
   class RequestTmpl : public Template {
     std::string url;
-    cb::Event::RequestMethod method;
+    cb::HTTP::Method method;
     Headers headers;
     cb::SmartPointer<Template> dataTmpl;
     cb::SmartPointer<Template> child;

@@ -27,13 +27,13 @@
 
 #include "ArgsHandler.h"
 
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 using namespace cb;
 using namespace JmpAPI;
 
 
-bool ArgsHandler::operator()(Event::Request &req) {
+bool ArgsHandler::operator()(HTTP::Request &req) {
   validator(req, *req.getArgs());
   return false;
 }

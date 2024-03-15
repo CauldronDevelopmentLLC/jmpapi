@@ -45,10 +45,11 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-Transaction::Transaction(App &app, Event::RequestMethod method,
-                         const URI &uri, const Version &version) :
-  Request(method, uri, version), Event::OAuth2Login(app.getEventClient()),
-  app(app), currentField(0) {}
+Transaction::Transaction(
+  App &app, const cb::SmartPointer<cb::HTTP::Conn> &connection,
+  HTTP::Method method, const URI &uri, const Version &version) :
+  Request(connection, method, uri, version),
+  HTTP::OAuth2Login(app.getEventClient()), app(app), currentField(0) {}
 
 
 void Transaction::setSessionCookie() {
@@ -89,12 +90,12 @@ SmartPointer<JSON::Writer> Transaction::getJSONWriter() {
 }
 
 
-void Transaction::sendError(Event::HTTPStatus  code, const string &msg) {
+void Transaction::sendError(HTTP::Status  code, const string &msg) {
   sendJSONError(code, msg);
 }
 
 
-void Transaction::sendJSONError(Event::HTTPStatus code, const string &msg) {
+void Transaction::sendJSONError(HTTP::Status code, const string &msg) {
   // Release JSON writer
   writer.release();
 
@@ -129,7 +130,7 @@ void Transaction::write() {
 }
 
 
-void Transaction::processProfile(Event::Request &req,
+void Transaction::processProfile(HTTP::Request &req,
                                  const JSON::ValuePtr &profile) {
   if (profile.isSet()) {
     try {
@@ -194,7 +195,7 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
 
   } else if (provider == "none") {
     // Open new Session
-    setSession(app.getSessionManager().openSession(getClientIP()));
+    setSession(app.getSessionManager().openSession(getClientAddr()));
 
     // DB login
     if (!config->hasString("sql")) loginReturnSession();
@@ -226,7 +227,7 @@ bool Transaction::apiLogin(const JSON::ValuePtr &config) {
     }
 
     // Open new Session
-    setSession(app.getSessionManager().openSession(getClientIP()));
+    setSession(app.getSessionManager().openSession(getClientAddr()));
     setSessionCookie(); // Needed to pass anti-forgery
 
     string sid = getSession()->getID();
@@ -539,7 +540,7 @@ void Transaction::returnPass(MariaDB::EventDB::state_t state) {
     break;
 
   case MariaDB::EventDB::EVENTDB_ERROR: {
-    Event::HTTPStatus error = HTTP_INTERNAL_SERVER_ERROR;
+    HTTP::Status error = HTTP_INTERNAL_SERVER_ERROR;
 
     switch (db->getErrorNumber()) {
     case ER_SIGNAL_NOT_FOUND: case ER_FILE_NOT_FOUND:

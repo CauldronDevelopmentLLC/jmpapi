@@ -28,7 +28,7 @@
 #pragma once
 
 #include <cbang/json/Value.h>
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 #include <vector>
 #include <algorithm>
@@ -42,6 +42,6 @@ namespace JmpAPI {
     Headers(const cb::JSON::ValuePtr &hdrs);
 
     void add(const std::string &key, const std::string &value);
-    void set(cb::Event::Request &req);
+    void set(cb::HTTP::Request &req);
   };
 }

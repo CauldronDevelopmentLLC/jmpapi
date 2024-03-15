@@ -33,7 +33,7 @@
 namespace JmpAPI {
   class StatusTmpl : public Template {
     cb::SmartPointer<Template> child;
-    cb::Event::HTTPStatus status;
+    cb::HTTP::Status status;
 
   public:
     StatusTmpl(const cb::JSON::ValuePtr &config,

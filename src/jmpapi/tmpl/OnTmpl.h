@@ -34,7 +34,7 @@
 
 namespace JmpAPI {
   class OnTmpl : public Template {
-    std::set<cb::Event::HTTPStatus> on;
+    std::set<cb::HTTP::Status> on;
     cb::SmartPointer<Template> child;
 
   public:

@@ -27,13 +27,13 @@
 
 #include "ArgsParser.h"
 
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 using namespace JmpAPI;
 using namespace cb;
 
 
-bool ArgsParser::operator()(Event::Request &req) {
+bool ArgsParser::operator()(HTTP::Request &req) {
   req.parseArgs();
   return false;
 }

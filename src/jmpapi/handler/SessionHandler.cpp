@@ -41,7 +41,7 @@ SessionHandler::SessionHandler(const JSON::Value &config) :
   sql(config.getString("sql")) {}
 
 
-bool SessionHandler::operator()(Event::Request &req) {
+bool SessionHandler::operator()(HTTP::Request &req) {
   // Check if Session is already loaded
   if (req.getSession().isSet()) return false;
 
@@ -61,7 +61,7 @@ bool SessionHandler::operator()(Event::Request &req) {
 
   // Lookup Session in DB
   if (sql.empty()) return false;
-  req.setSession(new Session(sid, req.getClientIP()));
+  req.setSession(new Session(sid, req.getClientAddr()));
   tran.query(&Transaction::session, sql);
 
   return true;

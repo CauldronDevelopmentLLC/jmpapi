@@ -35,7 +35,7 @@ using namespace JmpAPI;
 
 
 namespace {
-  void log(const string &prefix, Event::HTTPStatus status,
+  void log(const string &prefix, HTTP::Status status,
            const JSON::ValuePtr &data) {
     if (data.isSet())
       LOG_DEBUG(3, prefix << "STATUS:" << status << " DATA:" << *data);
@@ -51,14 +51,14 @@ DebugTmpl::DebugTmpl(const JSON::ValuePtr &config,
 
 void DebugTmpl::apply(const ResolverPtr &resolver, cb_t _done) {
   auto done =
-    [this, resolver, _done] (Event::HTTPStatus status,
+    [this, resolver, _done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
       log("< ", status, data);
       _done(status, data);
     };
 
   auto cb =
-    [this, resolver, done] (Event::HTTPStatus status,
+    [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
       log("> ", status, data);
 

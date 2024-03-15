@@ -27,19 +27,19 @@
 
 #include "RedirectHandler.h"
 
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 using namespace JmpAPI;
 using namespace cb;
 using namespace std;
 
 
-RedirectHandler::RedirectHandler(Event::HTTPStatus code,
+RedirectHandler::RedirectHandler(HTTP::Status code,
                                  const string &location) :
   StatusHandler(code), location(location) {}
 
 
-bool RedirectHandler::operator()(Event::Request &req) {
+bool RedirectHandler::operator()(HTTP::Request &req) {
   req.outSet("Location", location);
   return StatusHandler::operator()(req);
 }

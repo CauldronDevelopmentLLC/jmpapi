@@ -30,7 +30,7 @@
 #include <jmpapi/Resolver.h>
 
 #include <cbang/json/Value.h>
-#include <cbang/event/Enum.h>
+#include <cbang/http/Enum.h>
 
 #include <functional>
 
@@ -38,11 +38,11 @@
 namespace JmpAPI {
   class App;
 
-  class Template : public cb::Event::Enum {
+  class Template : public cb::HTTP::Enum {
   public:
     virtual ~Template() {}
 
-    typedef std::function<void (cb::Event::HTTPStatus status,
+    typedef std::function<void (cb::HTTP::Status status,
                                 const cb::JSON::ValuePtr &data)> cb_t;
     virtual void apply(const ResolverPtr &resolver, cb_t done) = 0;
 

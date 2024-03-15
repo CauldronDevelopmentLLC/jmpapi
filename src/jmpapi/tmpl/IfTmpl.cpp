@@ -40,7 +40,7 @@ IfTmpl::IfTmpl(const SmartPointer<Template> &ifTmpl,
 
 void IfTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   auto cb =
-    [this, resolver, done] (Event::HTTPStatus status,
+    [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
       if (status == HTTP_OK && data.isSet() && data->toBoolean()) {
         if (thenTmpl.isSet()) thenTmpl->apply(resolver, done);

@@ -66,7 +66,7 @@ void DictTmpl::apply(const ResolverPtr &resolver, cb_t done) {
     string key = fields[i].first;
 
     auto child_cb =
-      [result, key] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+      [result, key] (HTTP::Status status, const JSON::ValuePtr &data) {
         if (!result->pass) return;
 
         if (status != HTTP_NOT_FOUND) {

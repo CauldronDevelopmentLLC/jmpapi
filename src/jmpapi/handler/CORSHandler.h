@@ -29,7 +29,7 @@
 
 #include "HeadersHandler.h"
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 #include <cbang/json/Value.h>
 #include <cbang/net/URI.h>
 #include <cbang/util/Regex.h>
@@ -45,7 +45,7 @@ namespace JmpAPI {
   public:
     CORSHandler(const cb::JSON::Value &config);
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

@@ -29,19 +29,19 @@
 
 #include <jmpapi/tmpl/Template.h>
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 
 
 namespace JmpAPI {
   class App;
 
-  class ProxyHandler : public cb::Event::HTTPRequestHandler {
+  class ProxyHandler : public cb::HTTP::RequestHandler {
     cb::SmartPointer<Template> tmpl;
 
   public:
     ProxyHandler(const cb::JSON::ValuePtr &config);
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

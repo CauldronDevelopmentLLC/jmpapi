@@ -49,10 +49,10 @@ OnTmpl::OnTmpl(const JSON::ValuePtr &config,
 
 void OnTmpl::add(const JSON::Value &status) {
   if (status.isString())
-    on.insert(Event::HTTPStatus::parse(status.getString()));
+    on.insert(HTTP::Status::parse(status.getString()));
 
   else if (status.isNumber())
-    on.insert((Event::HTTPStatus::enum_t)status.getNumber());
+    on.insert((HTTP::Status::enum_t)status.getNumber());
 
   else THROW("Invalid 'on' status: " << status);
 }
@@ -60,7 +60,7 @@ void OnTmpl::add(const JSON::Value &status) {
 
 void OnTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   auto cb =
-    [this, done] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+    [this, done] (HTTP::Status status, const JSON::ValuePtr &data) {
       if (on.find(status) == on.end())
         done(HTTP_OK, JSON::False::instancePtr());
       else done(HTTP_OK, JSON::True::instancePtr());

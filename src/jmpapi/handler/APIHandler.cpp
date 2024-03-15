@@ -28,9 +28,9 @@
 #include "APIHandler.h"
 
 #include <cbang/String.h>
-#include <cbang/event/Request.h>
-#include <cbang/event/HTTPURLPatternMatcher.h>
-#include <cbang/event/RequestMethod.h>
+#include <cbang/http/Request.h>
+#include <cbang/http/URLPatternMatcher.h>
+#include <cbang/http/Method.h>
 
 using namespace JmpAPI;
 using namespace cb;
@@ -55,9 +55,9 @@ namespace {
 
     String::tokenize(String::toUpper(s), tokens, "| \n\r\t");
     for (unsigned i = 0; i < tokens.size(); i++)
-      if (Event::RequestMethod::parse
-          (tokens[i], Event::RequestMethod::HTTP_UNKNOWN) ==
-          Event::RequestMethod::HTTP_UNKNOWN) return false;
+      if (HTTP::Method::parse
+          (tokens[i], HTTP::Method::HTTP_UNKNOWN) ==
+          HTTP::Method::HTTP_UNKNOWN) return false;
 
     return !tokens.empty();
   }
@@ -74,7 +74,7 @@ APIHandler::APIHandler(const JSON::Value &config) :
 }
 
 
-bool APIHandler::operator()(Event::Request &req) {
+bool APIHandler::operator()(HTTP::Request &req) {
   SmartPointer<JSON::Writer> writer = req.getJSONWriter();
   api->write(*writer);
   writer->close();
@@ -131,7 +131,7 @@ void APIHandler::loadEndpoints(
   // TODO apply "help", "allow" and "deny" to child endpoints
 
   // Get URL args from endpoint pattern
-  Event::HTTPURLPatternMatcher matcher(pattern, new HTTPRequestHandler);
+  HTTP::URLPatternMatcher matcher(pattern, new HTTP::RequestHandler);
   const set<string> &urlArgs = matcher.getArgs();
   JSON::ValuePtr endpointArgs = config.get("args", new JSON::Dict);
 

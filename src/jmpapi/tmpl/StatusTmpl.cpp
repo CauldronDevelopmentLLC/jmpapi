@@ -35,10 +35,10 @@ using namespace JmpAPI;
 StatusTmpl::StatusTmpl(const JSON::ValuePtr &config,
                        const SmartPointer<Template> child) : child(child) {
   if (config->isString())
-    status = Event::HTTPStatus::parse(config->getString());
+    status = HTTP::Status::parse(config->getString());
 
   else if (config->isNumber())
-    status = (Event::HTTPStatus::enum_t)config->getNumber();
+    status = (HTTP::Status::enum_t)config->getNumber();
 
   else THROW("Invalid template: " << *config);
 }
@@ -46,7 +46,7 @@ StatusTmpl::StatusTmpl(const JSON::ValuePtr &config,
 
 void StatusTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   auto cb =
-    [this, done] (Event::HTTPStatus, const JSON::ValuePtr &data) {
+    [this, done] (HTTP::Status, const JSON::ValuePtr &data) {
       done(status, data);
     };
 

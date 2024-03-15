@@ -48,7 +48,7 @@ void OrTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   SmartPointer<size_t> count = new size_t(children.size());
 
   auto cb =
-    [this, resolver, done, count] (Event::HTTPStatus status,
+    [this, resolver, done, count] (HTTP::Status status,
                                     const JSON::ValuePtr &data) {
       if (!*count) return;
 

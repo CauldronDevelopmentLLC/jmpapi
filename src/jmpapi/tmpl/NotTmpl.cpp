@@ -40,7 +40,7 @@ NotTmpl::NotTmpl(const JSON::ValuePtr &config) : child(parse(config)) {}
 
 void NotTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   auto cb =
-    [this, resolver, done] (Event::HTTPStatus status,
+    [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
       if (status == HTTP_OK && data.isSet() && data->toBoolean())
         done(HTTP_OK, JSON::False::instancePtr());

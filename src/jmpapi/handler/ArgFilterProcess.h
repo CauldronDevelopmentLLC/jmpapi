@@ -30,7 +30,7 @@
 #include <cbang/event/AsyncSubprocess.h>
 #include <cbang/event/StreamEventBuffer.h>
 #include <cbang/event/StreamLogger.h>
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 
 #include <vector>
 
@@ -45,9 +45,9 @@ namespace cb {
 namespace JmpAPI {
   class ArgFilterProcess : public cb::Event::AsyncSubprocess {
     cb::Event::Base &base;
-    cb::SmartPointer<cb::Event::HTTPRequestHandler> child;
+    cb::SmartPointer<cb::HTTP::RequestHandler> child;
     std::vector<std::string> cmd;
-    cb::Event::Request &req;
+    cb::HTTP::Request &req;
 
     cb::SmartPointer<cb::Event::StreamEventBuffer> inStr;
     cb::SmartPointer<cb::Event::StreamEventBuffer> outStr;
@@ -56,8 +56,8 @@ namespace JmpAPI {
   public:
     ArgFilterProcess(
       cb::Event::Base &base,
-      cb::SmartPointer<cb::Event::HTTPRequestHandler> child,
-      const std::vector<std::string> &cmd, cb::Event::Request &req) :
+      cb::SmartPointer<cb::HTTP::RequestHandler> child,
+      const std::vector<std::string> &cmd, cb::HTTP::Request &req) :
       base(base), child(child), cmd(cmd), req(req) {}
 
     // From AsyncSubprocess

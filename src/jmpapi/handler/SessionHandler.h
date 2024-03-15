@@ -27,20 +27,20 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 
 
 namespace cb {namespace JSON {class Value;}}
 
 
 namespace JmpAPI {
-  class SessionHandler : public cb::Event::HTTPRequestHandler {
+  class SessionHandler : public cb::HTTP::RequestHandler {
     std::string sql;
 
   public:
     SessionHandler(const cb::JSON::Value &config);
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

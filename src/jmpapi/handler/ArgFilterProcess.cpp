@@ -29,9 +29,9 @@
 
 #include <cbang/Catch.h>
 #include <cbang/event/Base.h>
-#include <cbang/event/Request.h>
-#include <cbang/event/HTTPRequestErrorHandler.h>
-#include <cbang/event/Enum.h>
+#include <cbang/http/Request.h>
+#include <cbang/http/RequestErrorHandler.h>
+#include <cbang/http/Enum.h>
 #include <cbang/log/Logger.h>
 #include <cbang/json/Reader.h>
 
@@ -75,15 +75,15 @@ void ArgFilterProcess::done() {
       if (results->hasDict("data"))
         req.getArgs()->merge(results->getDict("data"));
 
-      (HTTPRequestErrorHandler(*child))(req);
+      (HTTP::RequestErrorHandler(*child))(req);
       return;
     }
 
     if (results->hasString("error")) LOG_WARNING(results->getString("error"));
-    req.sendError((Event::HTTPStatus::enum_t)code);
+    req.sendError((HTTP::Status::enum_t)code);
     return;
 
   } CATCH_ERROR;
 
-  req.sendError(Enum::HTTP_INTERNAL_SERVER_ERROR);
+  req.sendError(HTTP::Enum::HTTP_INTERNAL_SERVER_ERROR);
 }

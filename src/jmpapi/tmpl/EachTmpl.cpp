@@ -63,7 +63,7 @@ void EachTmpl::apply(const ResolverPtr &resolver, cb_t done) {
 
   for (unsigned i = 0; i < ctx->size(); i++) {
     auto cb =
-      [this, result, done, i] (Event::HTTPStatus status,
+      [this, result, done, i] (HTTP::Status status,
                                const JSON::ValuePtr &data) {
         if (!result->pass) return;
 

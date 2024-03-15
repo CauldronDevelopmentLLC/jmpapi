@@ -29,7 +29,7 @@
 
 #include <jmpapi/arg/ArgDict.h>
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 #include <cbang/json/Value.h>
 
 #include <set>
@@ -37,13 +37,13 @@
 
 
 namespace JmpAPI {
-  class ArgsHandler : public cb::Event::HTTPRequestHandler {
+  class ArgsHandler : public cb::HTTP::RequestHandler {
     ArgDict validator;
 
   public:
     ArgsHandler(const cb::JSON::ValuePtr &args) : validator(args) {}
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

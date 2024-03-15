@@ -105,7 +105,7 @@ void ArgValidator::add(const SmartPointer<ArgConstraint> &constraint) {
 }
 
 
-void ArgValidator::operator()(Event::Request &req, JSON::Value &value) const {
+void ArgValidator::operator()(HTTP::Request &req, JSON::Value &value) const {
   for (unsigned i = 0; i < constraints.size(); i++)
     (*constraints[i])(req, value);
 }

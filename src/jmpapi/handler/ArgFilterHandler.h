@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 
 #include <vector>
 
@@ -35,16 +35,16 @@
 namespace JmpAPI {
   class App;
 
-  class ArgFilterHandler : public cb::Event::HTTPRequestHandler {
+  class ArgFilterHandler : public cb::HTTP::RequestHandler {
     App &app;
-    cb::SmartPointer<cb::Event::HTTPRequestHandler> child;
+    cb::SmartPointer<cb::HTTP::RequestHandler> child;
     std::vector<std::string> cmd;
 
   public:
     ArgFilterHandler(App &app, const cb::JSON::Value &config,
-                     cb::SmartPointer<cb::Event::HTTPRequestHandler> &child);
+                     cb::SmartPointer<cb::HTTP::RequestHandler> &child);
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

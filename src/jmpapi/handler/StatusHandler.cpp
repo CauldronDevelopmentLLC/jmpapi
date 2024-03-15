@@ -27,22 +27,22 @@
 
 #include "StatusHandler.h"
 
-#include <cbang/event/Request.h>
-#include <cbang/event/RequestMethod.h>
+#include <cbang/http/Request.h>
+#include <cbang/http/Method.h>
 
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-StatusHandler::StatusHandler(Event::HTTPStatus code) : code(code) {}
+StatusHandler::StatusHandler(HTTP::Status code) : code(code) {}
 
 
 StatusHandler::StatusHandler(const std::string &code) :
-  code(Event::HTTPStatus::parse(code)) {}
+  code(HTTP::Status::parse(code)) {}
 
 
-bool StatusHandler::operator()(Event::Request &req) {
+bool StatusHandler::operator()(HTTP::Request &req) {
   req.send(code.toString());
   req.reply(code);
 

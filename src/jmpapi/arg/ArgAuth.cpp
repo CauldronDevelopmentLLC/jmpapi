@@ -28,7 +28,7 @@
 #include "ArgAuth.h"
 
 #include <cbang/String.h>
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 using namespace JmpAPI;
 using namespace cb;
@@ -37,7 +37,7 @@ using namespace std;
 
 namespace {
   void unauthorized() {
-    THROWX("Unauthorized", Event::HTTPStatus::HTTP_UNAUTHORIZED);
+    THROWX("Unauthorized", HTTP::Status::HTTP_UNAUTHORIZED);
   }
 }
 
@@ -60,7 +60,7 @@ ArgAuth::ArgAuth(bool allow, const JSON::ValuePtr &config) : allow(allow) {
 
 
 
-void ArgAuth::operator()(Event::Request &req, JSON::Value &_value) const {
+void ArgAuth::operator()(HTTP::Request &req, JSON::Value &_value) const {
   SmartPointer<Session> session = req.getSession();
   if (session.isNull()) unauthorized();
 

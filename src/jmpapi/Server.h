@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cbang/event/WebServer.h>
+#include <cbang/http/WebServer.h>
 #include <cbang/json/Value.h>
 
 
@@ -35,31 +35,30 @@ namespace JmpAPI {
   class App;
   class User;
 
-  class Server : public cb::Event::WebServer,
-                 public cb::Event::HTTPHandlerFactory {
+  class Server : public cb::HTTP::WebServer,
+                 public cb::HTTP::HandlerFactory {
     App &app;
 
   public:
     Server(App &app);
 
-    typedef cb::SmartPointer<cb::Event::HTTPRequestHandler>
-    HTTPRequestHandlerPtr;
+    typedef cb::SmartPointer<cb::HTTP::RequestHandler> RequestHandlerPtr;
 
-    HTTPRequestHandlerPtr createAccessHandler(const cb::JSON::Value &config);
-    HTTPRequestHandlerPtr createEndpoint(const cb::JSON::ValuePtr &config);
-    HTTPRequestHandlerPtr createValidationHandler
-    (const cb::JSON::Value &config);
-    HTTPRequestHandlerPtr createAPIHandler
-    (const std::string &pattern, const cb::JSON::Value &config,
-     const HTTPRequestHandlerPtr &parentValidation = 0);
+    RequestHandlerPtr createAccessHandler(const cb::JSON::Value &config);
+    RequestHandlerPtr createEndpoint(const cb::JSON::ValuePtr &config);
+    RequestHandlerPtr createValidationHandler(const cb::JSON::Value &config);
+    RequestHandlerPtr createAPIHandler(
+      const std::string &pattern, const cb::JSON::Value &config,
+      const RequestHandlerPtr &parentValidation = 0);
     void loadCategory(const std::string &name, const cb::JSON::Value &cat);
     void loadCategories(const cb::JSON::Value &cats);
 
     void init();
 
     // From cb::Event::HTTPHandler
-    cb::SmartPointer<cb::Event::Request> createRequest
-    (cb::Event::RequestMethod method, const cb::URI &uri,
-     const cb::Version &version);
+    cb::SmartPointer<cb::HTTP::Request> createRequest(
+      const cb::SmartPointer<cb::HTTP::Conn> &connection,
+      cb::HTTP::Method method, const cb::URI &uri,
+      const cb::Version &version);
   };
 }

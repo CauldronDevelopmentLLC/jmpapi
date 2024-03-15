@@ -42,7 +42,7 @@ void WithTmpl::apply(const ResolverPtr &resolver, cb_t done) {
   if (child.isNull()) return ctx->apply(resolver, done);
 
   auto cb =
-    [this, resolver, done] (Event::HTTPStatus status,
+    [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
       child->apply(resolver->makeChild(data), done);
     };

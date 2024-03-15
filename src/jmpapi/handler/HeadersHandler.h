@@ -29,17 +29,17 @@
 
 #include <jmpapi/Headers.h>
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 
 
 namespace JmpAPI {
-  class HeadersHandler : public cb::Event::HTTPRequestHandler, public Headers {
+  class HeadersHandler : public cb::HTTP::RequestHandler, public Headers {
   public:
     HeadersHandler() {}
     HeadersHandler(const cb::JSON::ValuePtr &hdrs) : Headers(hdrs) {}
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req) {
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req) {
       set(req);
       return false;
     }

@@ -30,7 +30,7 @@
 #include <jmpapi/App.h>
 #include <jmpapi/Transaction.h>
 
-#include <cbang/event/Client.h>
+#include <cbang/http/Client.h>
 #include <cbang/json/JSON.h>
 #include <cbang/log/Logger.h>
 
@@ -40,15 +40,15 @@ using namespace JmpAPI;
 
 
 namespace {
-  Event::HTTPStatus conErrToStatus(Event::ConnectionError err) {
+  HTTP::Status conErrToStatus(Event::ConnectionError err) {
     switch (err) {
-    case Event::Enum::CONN_ERR_TIMEOUT:
-      return Event::Enum::HTTP_GATEWAY_TIME_OUT;
+    case HTTP::Enum::CONN_ERR_TIMEOUT:
+      return HTTP::Enum::HTTP_GATEWAY_TIME_OUT;
 
-    case Event::Enum::CONN_ERR_CONNECT:
-      return Event::Enum::HTTP_SERVICE_UNAVAILABLE;
+    case HTTP::Enum::CONN_ERR_CONNECT:
+      return HTTP::Enum::HTTP_SERVICE_UNAVAILABLE;
 
-    default: return Event::Enum::HTTP_BAD_GATEWAY;
+    default: return HTTP::Enum::HTTP_BAD_GATEWAY;
     }
   }
 }
@@ -56,7 +56,7 @@ namespace {
 
 RequestTmpl::RequestTmpl(const JSON::ValuePtr &config) :
   url(config->getString("url")),
-  method(Event::RequestMethod::parse(config->getString("method", "UNKNOWN"))),
+  method(HTTP::Method::parse(config->getString("method", "UNKNOWN"))),
   headers(config->get("request-headers", 0)),
   dataTmpl(Template::parse(config->get("data", 0))),
   child(Template::parse(config)) {}
@@ -74,7 +74,7 @@ void RequestTmpl::apply(const ResolverPtr &resolver, cb_t done) {
     };
 
   auto cb =
-    [this, done, error_cb, resolver] (Event::Request &outReq) {
+    [this, done, error_cb, resolver] (HTTP::Request &outReq) {
       JSON::ValuePtr data;
 
       try {
@@ -110,7 +110,7 @@ void RequestTmpl::apply(const ResolverPtr &resolver, cb_t done) {
 
   // Use config method if specified otherwise use method caller used
   auto req = resolver->getRequest();
-  Event::RequestMethod method = this->method ? this->method : req->getMethod();
+  HTTP::Method method = this->method ? this->method : req->getMethod();
 
   auto &client = req->cast<Transaction>().getApp().getEventClient();
   auto outReq = client.call(resolver->format(url), method, cb);
@@ -121,7 +121,7 @@ void RequestTmpl::apply(const ResolverPtr &resolver, cb_t done) {
       outReq->outSet("Content-Type", "application/json");
 
     auto cb =
-      [outReq, done] (Event::HTTPStatus status, const JSON::ValuePtr &data) {
+      [outReq, done] (HTTP::Status status, const JSON::ValuePtr &data) {
         if (status == HTTP_OK) {
           LOG_DEBUG(3, "Sending: " << *data);
           outReq->getOutputBuffer().add(data->toString());

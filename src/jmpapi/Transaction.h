@@ -29,8 +29,8 @@
 
 #include "Headers.h"
 
-#include <cbang/event/Request.h>
-#include <cbang/event/OAuth2Login.h>
+#include <cbang/http/Request.h>
+#include <cbang/http/OAuth2Login.h>
 #include <cbang/db/maria/EventDB.h>
 #include <cbang/json/Value.h>
 
@@ -45,7 +45,7 @@ namespace cb {
 namespace JmpAPI {
   class App;
 
-  class Transaction : public cb::Event::Request, public cb::Event::OAuth2Login {
+  class Transaction : public cb::HTTP::Request, public cb::HTTP::OAuth2Login {
     App &app;
     cb::JSON::ValuePtr config;
 
@@ -60,8 +60,10 @@ namespace JmpAPI {
     cb::SmartPointer<cb::JSON::Writer> writer;
 
   public:
-    Transaction(App &app, cb::Event::RequestMethod method, const cb::URI &uri,
-                const cb::Version &version);
+    Transaction(
+      App &app, const cb::SmartPointer<cb::HTTP::Conn> &connection,
+      cb::HTTP::Method method, const cb::URI &uri,
+      const cb::Version &version);
 
     App &getApp() {return app;}
 
@@ -72,18 +74,18 @@ namespace JmpAPI {
     event_db_member_functor_t;
     void query(event_db_member_functor_t member, const std::string &s);
 
-    // From cb::Event::Request
+    // From cb::HTTP::Request
     cb::SmartPointer<cb::JSON::Writer> getJSONWriter();
-    void sendError(cb::Event::HTTPStatus code, const std::string &msg);
-    void sendJSONError(cb::Event::HTTPStatus code = HTTP_INTERNAL_SERVER_ERROR,
+    void sendError(cb::HTTP::Status code, const std::string &msg);
+    void sendJSONError(cb::HTTP::Status code = HTTP_INTERNAL_SERVER_ERROR,
                        const std::string &msg = "");
     void write();
 
-    // From cb::Event::OAuth2Login
-    void processProfile(cb::Event::Request &req,
+    // From cb::HTTP::OAuth2Login
+    void processProfile(cb::HTTP::Request &req,
                         const cb::JSON::ValuePtr &profile);
 
-    // Event::WebServer request callbacks
+    // HTTP::WebServer request callbacks
     bool apiLogin (const cb::JSON::ValuePtr &config);
     bool apiLogout(const cb::JSON::ValuePtr &config);
 

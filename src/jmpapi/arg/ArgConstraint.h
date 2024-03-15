@@ -31,14 +31,14 @@
 
 #include <cbang/json/Value.h>
 
-namespace cb {namespace Event {class Request;}}
+namespace cb {namespace HTTP {class Request;}}
 
 
 namespace JmpAPI {
   class ArgConstraint {
   public:
     virtual ~ArgConstraint() {}
-    virtual void operator()(cb::Event::Request &req,
+    virtual void operator()(cb::HTTP::Request &req,
                             cb::JSON::Value &value) const = 0;
   };
 }

@@ -43,13 +43,13 @@
 #include <jmpapi/handler/SessionHandler.h>
 #include <jmpapi/handler/CORSHandler.h>
 
-#include <cbang/event/Request.h>
-#include <cbang/event/HTTPHandlerGroup.h>
-#include <cbang/event/HTTPURLPatternMatcher.h>
-#include <cbang/event/HTTPMethodMatcher.h>
-#include <cbang/event/HTTPAccessHandler.h>
-#include <cbang/event/FileHandler.h>
-#include <cbang/event/IndexHTMLHandler.h>
+#include <cbang/http/Request.h>
+#include <cbang/http/HandlerGroup.h>
+#include <cbang/http/URLPatternMatcher.h>
+#include <cbang/http/MethodMatcher.h>
+#include <cbang/http/AccessHandler.h>
+#include <cbang/http/FileHandler.h>
+#include <cbang/http/IndexHandler.h>
 
 #include <cbang/openssl/SSLContext.h>
 #include <cbang/json/Value.h>
@@ -63,13 +63,13 @@ using namespace JmpAPI;
 
 namespace {
   unsigned parseMethods(const std::string &s) {
-    unsigned methods = Event::RequestMethod::HTTP_UNKNOWN;
+    unsigned methods = HTTP::Method::HTTP_UNKNOWN;
     vector<string> tokens;
 
     String::tokenize(String::toUpper(s), tokens, "| \n\r\t");
     for (unsigned i = 0; i < tokens.size(); i++)
-      methods |= Event::RequestMethod::parse
-        (tokens[i], Event::RequestMethod::HTTP_UNKNOWN);
+      methods |= HTTP::Method::parse
+        (tokens[i], HTTP::Method::HTTP_UNKNOWN);
 
     return methods;
   }
@@ -77,9 +77,9 @@ namespace {
 
 
 Server::Server(App &app) :
-  Event::WebServer(app.getOptions(), app.getEventBase(), new SSLContext,
-                   SmartPointer<HTTPHandlerFactory>::Phony(this)),
-  Event::HTTPHandlerFactory(false), app(app) {
+  HTTP::WebServer(app.getOptions(), app.getEventBase(), new SSLContext,
+                  SmartPointer<HTTP::HandlerFactory>::Phony(this)),
+  HTTP::HandlerFactory(false), app(app) {
   app.getOptions()["http-addresses"].setDefault("");
   app.getOptions()["https-addresses"].setDefault("");
   app.getOptions()["certificate-file"].clearDefault();
@@ -87,10 +87,10 @@ Server::Server(App &app) :
 }
 
 
-SmartPointer<Event::HTTPRequestHandler>
+SmartPointer<HTTP::RequestHandler>
 Server::createAccessHandler(const JSON::Value &config) {
-  SmartPointer<Event::HTTPAccessHandler> handler =
-    new Event::HTTPAccessHandler;
+  SmartPointer<HTTP::AccessHandler> handler =
+    new HTTP::AccessHandler;
 
   if (config.has("allow")) {
     JSON::ValuePtr list = config.get("allow");
@@ -116,7 +116,7 @@ Server::createAccessHandler(const JSON::Value &config) {
 }
 
 
-SmartPointer<Event::HTTPRequestHandler>
+SmartPointer<HTTP::RequestHandler>
 Server::createEndpoint(const JSON::ValuePtr &config) {
   string type = config->getString("handler", "");
 
@@ -139,12 +139,12 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
   if (type == "status") {
     if (config->hasNumber("code"))
       return new StatusHandler
-        ((Event::HTTPStatus::enum_t)config->getU8("code"));
+        ((HTTP::Status::enum_t)config->getU8("code"));
     return new StatusHandler(config->getString("code"));
   }
 
   if (type == "redirect")
-    return new RedirectHandler((Event::HTTPStatus::enum_t)
+    return new RedirectHandler((HTTP::Status::enum_t)
                                config->getU32("code", 301),
                                config->getString("location"));
 
@@ -154,9 +154,9 @@ Server::createEndpoint(const JSON::ValuePtr &config) {
 }
 
 
-SmartPointer<Event::HTTPRequestHandler>
+SmartPointer<HTTP::RequestHandler>
 Server::createValidationHandler(const JSON::Value &config) {
-  SmartPointer<Event::HTTPHandlerGroup> group = new Event::HTTPHandlerGroup;
+  SmartPointer<HTTP::HandlerGroup> group = new HTTP::HandlerGroup;
 
   // Endpoint Auth
   if (config.has("allow") || config.has("deny"))
@@ -170,18 +170,18 @@ Server::createValidationHandler(const JSON::Value &config) {
 }
 
 
-SmartPointer<Event::HTTPRequestHandler>
+SmartPointer<HTTP::RequestHandler>
 Server::createAPIHandler(const string &pattern, const JSON::Value &api,
-  const HTTPRequestHandlerPtr &parentValidation) {
+                         const RequestHandlerPtr &parentValidation) {
   LOG_INFO(1, "Adding endpoint " << pattern);
 
   // Patterns
-  SmartPointer<Event::HTTPHandlerGroup> patterns = new Event::HTTPHandlerGroup;
+  SmartPointer<HTTP::HandlerGroup> patterns = new HTTP::HandlerGroup;
 
   // Group
-  SmartPointer<Event::HTTPHandlerGroup> group = new Event::HTTPHandlerGroup;
-  SmartPointer<Event::HTTPURLPatternMatcher> root =
-    new Event::HTTPURLPatternMatcher(pattern, group);
+  SmartPointer<HTTP::HandlerGroup> group = new HTTP::HandlerGroup;
+  SmartPointer<HTTP::URLPatternMatcher> root =
+    new HTTP::URLPatternMatcher(pattern, group);
   patterns->addHandler(root);
 
   // Request validation
@@ -208,8 +208,8 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api,
     auto handler = createEndpoint(config);
     if (handler.isNull()) continue;
 
-    SmartPointer<Event::HTTPHandlerGroup> methodGroup =
-      new Event::HTTPHandlerGroup;
+    SmartPointer<HTTP::HandlerGroup> methodGroup =
+      new HTTP::HandlerGroup;
     methodGroup->addHandler(createValidationHandler(*config));
 
     // Headers
@@ -222,7 +222,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api,
 
     // Method(s)
     methodGroup->addHandler(handler);
-    group->addHandler(new Event::HTTPMethodMatcher(methods, methodGroup));
+    group->addHandler(new HTTP::MethodMatcher(methods, methodGroup));
   }
 
   return patterns;
@@ -230,7 +230,7 @@ Server::createAPIHandler(const string &pattern, const JSON::Value &api,
 
 
 void Server::loadCategory(const string &name, const JSON::Value &cat) {
-  SmartPointer<Event::HTTPHandlerGroup> group = new Event::HTTPHandlerGroup;
+  SmartPointer<HTTP::HandlerGroup> group = new HTTP::HandlerGroup;
   string base = cat.getString("base", "");
 
   // Category Auth
@@ -257,7 +257,7 @@ void Server::loadCategories(const JSON::Value &cats) {
 
 
 void Server::init() {
-  Event::WebServer::init();
+  HTTP::WebServer::init();
 
   // Always parse args
   addHandler(new ArgsParser);
@@ -270,7 +270,7 @@ void Server::init() {
   string root = app.getOptions()["http-root"].toString("");
   if (!root.empty()) {
     LOG_INFO(1, "Adding file handler at " << root);
-    addHandler(new Event::IndexHTMLHandler(new Event::FileHandler(root)));
+    addHandler(new HTTP::IndexHandler(new HTTP::FileHandler(root)));
   }
 
   // Not found
@@ -278,7 +278,8 @@ void Server::init() {
 }
 
 
-SmartPointer<Event::Request> Server::createRequest
-(Event::RequestMethod method, const URI &uri, const Version &version) {
-  return new Transaction(app, method, uri, version);
+SmartPointer<HTTP::Request> Server::createRequest(
+  const SmartPointer<HTTP::Conn> &connection, HTTP::Method method,
+  const URI &uri, const Version &version) {
+  return new Transaction(app, connection, method, uri, version);
 }

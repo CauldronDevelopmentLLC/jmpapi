@@ -40,7 +40,7 @@
 
 #include <cbang/dns/Base.h>
 #include <cbang/event/Base.h>
-#include <cbang/event/Client.h>
+#include <cbang/http/Client.h>
 #include <cbang/event/SubprocessPool.h>
 
 namespace cb {
@@ -53,7 +53,7 @@ namespace JmpAPI {
   class App : public cb::ServerApplication {
     cb::Event::Base base;
     cb::DNS::Base dns;
-    cb::Event::Client client;
+    cb::HTTP::Client client;
     cb::Event::SubprocessPool procPool;
 
     cb::GoogleOAuth2 googleAuth;
@@ -78,7 +78,7 @@ namespace JmpAPI {
 
     cb::Event::Base &getEventBase() {return base;}
     cb::DNS::Base &getEventDNS() {return dns;}
-    cb::Event::Client &getEventClient() {return client;}
+    cb::HTTP::Client &getEventClient() {return client;}
     cb::Event::SubprocessPool &getProcPool() {return procPool;}
 
     cb::GoogleOAuth2 &getGoogleAuth() {return googleAuth;}

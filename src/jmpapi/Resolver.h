@@ -29,7 +29,7 @@
 
 #include <cbang/String.h>
 #include <cbang/json/Dict.h>
-#include <cbang/event/Request.h>
+#include <cbang/http/Request.h>
 
 #include <functional>
 
@@ -37,7 +37,7 @@
 namespace JmpAPI {
   class Resolver;
   typedef cb::SmartPointer<Resolver> ResolverPtr;
-  typedef cb::SmartPointer<cb::Event::Request> RequestPtr;
+  typedef cb::SmartPointer<cb::HTTP::Request> RequestPtr;
 
 
   class Resolver : virtual public cb::RefCounted {

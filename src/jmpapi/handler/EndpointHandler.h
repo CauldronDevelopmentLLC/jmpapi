@@ -29,12 +29,12 @@
 
 #include <jmpapi/Transaction.h>
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 #include <cbang/json/Value.h>
 
 
 namespace JmpAPI {
-  class EndpointHandler : public cb::Event::HTTPRequestHandler {
+  class EndpointHandler : public cb::HTTP::RequestHandler {
   public:
     typedef bool (Transaction::*member_t)(const cb::JSON::ValuePtr &config);
 
@@ -46,8 +46,8 @@ namespace JmpAPI {
     EndpointHandler(member_t member, const cb::JSON::ValuePtr &config) :
       member(member), config(config) {}
 
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req) {
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req) {
       return (req.cast<Transaction>().*member)(config);
     }
   };

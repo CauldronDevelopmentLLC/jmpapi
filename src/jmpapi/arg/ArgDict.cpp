@@ -38,7 +38,7 @@ ArgDict::ArgDict(const JSON::ValuePtr &args) {
 }
 
 
-void ArgDict::operator()(Event::Request &req, JSON::Value &value) const {
+void ArgDict::operator()(HTTP::Request &req, JSON::Value &value) const {
   if (!value.isDict()) THROWX("Invalid arguments", HTTP_BAD_REQUEST);
 
   set<string> found;

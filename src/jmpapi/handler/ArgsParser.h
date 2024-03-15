@@ -27,13 +27,13 @@
 
 #pragma once
 
-#include <cbang/event/HTTPRequestHandler.h>
+#include <cbang/http/RequestHandler.h>
 
 
 namespace JmpAPI {
-  class ArgsParser : public cb::Event::HTTPRequestHandler {
+  class ArgsParser : public cb::HTTP::RequestHandler {
   public:
-    // From cb::Event::HTTPRequestHandler
-    bool operator()(cb::Event::Request &req);
+    // From cb::HTTP::RequestHandler
+    bool operator()(cb::HTTP::Request &req);
   };
 }

@@ -55,7 +55,7 @@ QueryHandler::QueryHandler(const JSON::Value &config) :
 }
 
 
-bool QueryHandler::operator()(Event::Request &req) {
+bool QueryHandler::operator()(HTTP::Request &req) {
   req.cast<Transaction>().setFields(fields);
   req.cast<Transaction>().query(replyCB, sql);
   return !pass;
