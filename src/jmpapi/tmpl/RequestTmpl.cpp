@@ -86,7 +86,7 @@ void RequestTmpl::apply(const ResolverPtr &resolver, cb_t done) {
           string response = outReq.getInput();
 
           try {
-            data = JSON::Reader::parseString(response);
+            data = JSON::Reader::parse(response);
 
           } catch (Exception &e) {
             JSON::ValuePtr err = new JSON::Dict;

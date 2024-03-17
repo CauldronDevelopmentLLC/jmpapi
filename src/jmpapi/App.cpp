@@ -148,7 +148,7 @@ void App::afterCommandLineParse() {
   const vector<string> &configs = cmdLine.getPositionalArgs();
   for (unsigned i = 0; i < configs.size(); i++) {
     LOG_INFO(1, "Loading config " << configs[i]);
-    config->merge(*JSON::YAMLReader::parse(configs[i]));
+    config->merge(*JSON::YAMLReader::parseFile(configs[i]));
   }
 
   // Apply options

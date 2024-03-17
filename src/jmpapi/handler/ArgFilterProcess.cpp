@@ -68,7 +68,7 @@ void ArgFilterProcess::done() {
     string output = outStr->toString();
     if (output.empty()) THROW("No output from arg-filter");
 
-    auto results  = JSON::Reader::parseString(output);
+    auto results  = JSON::Reader::parse(output);
     unsigned code = results->getU32("code", 200);
 
     if (code == 200) {
