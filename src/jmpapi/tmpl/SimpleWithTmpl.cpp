@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -32,7 +32,7 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-void SimpleWithTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void SimpleWithTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   JSON::ValuePtr result = resolver->select(ctx);
 
   if (child.isSet()) child->apply(resolver->makeChild(result), done);

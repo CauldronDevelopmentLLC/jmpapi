@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -38,7 +38,7 @@ WithTmpl::WithTmpl(const JSON::ValuePtr &config,
 }
 
 
-void WithTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void WithTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   if (child.isNull()) return ctx->apply(resolver, done);
 
   auto cb =

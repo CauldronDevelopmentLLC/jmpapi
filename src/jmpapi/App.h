@@ -1,74 +1,56 @@
 /******************************************************************************\
 
-                          This file is part of JmpAPI.
+                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2019, Cauldron Development LLC
-                              All rights reserved.
+                Copyright (c) 2014-2024, Cauldron Development LLC
+                               All rights reserved.
 
-          The JmpAPI Webserver is free software: you can redistribute
-         it and/or modify it under the terms of the GNU General Public
-          License as published by the Free Software Foundation, either
-        version 2 of the License, or (at your option) any later version.
+           The JmpAPI Webserver is free software: you can redistribute
+          it and/or modify it under the terms of the GNU General Public
+           License as published by the Free Software Foundation, either
+         version 2 of the License, or (at your option) any later version.
 
-          The JmpAPI Webserver is distributed in the hope that it will
-         be useful, but WITHOUT ANY WARRANTY; without even the implied
-            warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-         PURPOSE.  See the GNU General Public License for more details.
+           The JmpAPI Webserver is distributed in the hope that it will
+          be useful, but WITHOUT ANY WARRANTY; without even the implied
+             warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+          PURPOSE.  See the GNU General Public License for more details.
 
-       You should have received a copy of the GNU General Public License
-                     along with this software.  If not, see
-                        <http://www.gnu.org/licenses/>.
+        You should have received a copy of the GNU General Public License
+                      along with this software.  If not, see
+                         <http://www.gnu.org/licenses/>.
 
-                 For information regarding this software email:
-                                Joseph Coffland
-                         joseph@cauldrondevelopment.com
+                  For information regarding this software email:
+                                 Joseph Coffland
+                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
 #pragma once
 
 #include "Server.h"
+#include "API.h"
 
 #include <cbang/ServerApplication.h>
-#include <cbang/db/maria/EventDB.h>
-
-#include <cbang/net/SessionManager.h>
-
-#include <cbang/auth/GoogleOAuth2.h>
-#include <cbang/auth/GitHubOAuth2.h>
-#include <cbang/auth/FacebookOAuth2.h>
 
 #include <cbang/dns/Base.h>
 #include <cbang/event/Base.h>
-#include <cbang/http/Client.h>
 #include <cbang/event/SubprocessPool.h>
+#include <cbang/http/Client.h>
+#include <cbang/openssl/SSLContext.h>
 
-namespace cb {
-  namespace Event {class Event;}
-  namespace MariaDB {class EventDB;}
-}
+namespace cb {namespace Event {class Event;}}
 
 
 namespace JmpAPI {
   class App : public cb::ServerApplication {
     cb::Event::Base base;
     cb::DNS::Base dns;
+    cb::SSLContext sslCtx;
+
     cb::HTTP::Client client;
     cb::Event::SubprocessPool procPool;
-
-    cb::GoogleOAuth2 googleAuth;
-    cb::GitHubOAuth2 githubAuth;
-    cb::FacebookOAuth2 facebookAuth;
-
-    std::string dbHost;
-    std::string dbUser;
-    std::string dbPass;
-    std::string dbName;
-    uint32_t dbPort;
-    unsigned dbTimeout;
-
     Server server;
-    cb::SessionManager sessionManager;
+    API api;
     cb::JSON::ValuePtr config;
 
   public:
@@ -76,22 +58,9 @@ namespace JmpAPI {
 
     static bool _hasFeature(int feature);
 
+    cb::SSLContext &getSSLContext() {return sslCtx;}
+    API &getAPI() {return api;}
     cb::Event::Base &getEventBase() {return base;}
-    cb::DNS::Base &getEventDNS() {return dns;}
-    cb::HTTP::Client &getEventClient() {return client;}
-    cb::Event::SubprocessPool &getProcPool() {return procPool;}
-
-    cb::GoogleOAuth2 &getGoogleAuth() {return googleAuth;}
-    cb::GitHubOAuth2 &getGitHubAuth() {return githubAuth;}
-    cb::FacebookOAuth2 &getFacebookAuth() {return facebookAuth;}
-
-    Server &getServer() {return server;}
-    cb::SessionManager &getSessionManager() {return sessionManager;}
-    std::string getSessionCookieName() const;
-    cb::JSON::ValuePtr getConfig() const {return config;}
-
-    cb::SmartPointer<cb::MariaDB::EventDB>
-    getDBConnection(bool blocking = false);
 
     // From cb::ServerApplication
     void beforeDroppingPrivileges();

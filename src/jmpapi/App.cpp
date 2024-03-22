@@ -1,42 +1,38 @@
 /******************************************************************************\
 
-                          This file is part of JmpAPI.
+                           This file is part of JmpAPI.
 
-               Copyright (c) 2014-2019, Cauldron Development LLC
-                              All rights reserved.
+                Copyright (c) 2014-2024, Cauldron Development LLC
+                               All rights reserved.
 
-          The JmpAPI Webserver is free software: you can redistribute
-         it and/or modify it under the terms of the GNU General Public
-          License as published by the Free Software Foundation, either
-        version 2 of the License, or (at your option) any later version.
+           The JmpAPI Webserver is free software: you can redistribute
+          it and/or modify it under the terms of the GNU General Public
+           License as published by the Free Software Foundation, either
+         version 2 of the License, or (at your option) any later version.
 
-          The JmpAPI Webserver is distributed in the hope that it will
-         be useful, but WITHOUT ANY WARRANTY; without even the implied
-            warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-         PURPOSE.  See the GNU General Public License for more details.
+           The JmpAPI Webserver is distributed in the hope that it will
+          be useful, but WITHOUT ANY WARRANTY; without even the implied
+             warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+          PURPOSE.  See the GNU General Public License for more details.
 
-       You should have received a copy of the GNU General Public License
-                     along with this software.  If not, see
-                        <http://www.gnu.org/licenses/>.
+        You should have received a copy of the GNU General Public License
+                      along with this software.  If not, see
+                         <http://www.gnu.org/licenses/>.
 
-                 For information regarding this software email:
-                                Joseph Coffland
-                         joseph@cauldrondevelopment.com
+                  For information regarding this software email:
+                                 Joseph Coffland
+                          joseph@cauldrondevelopment.com
 
 \******************************************************************************/
 
 #include "App.h"
 
 #include <cbang/Catch.h>
-
-#include <cbang/os/SystemUtilities.h>
-
 #include <cbang/openssl/SSLContext.h>
-#include <cbang/time/Timer.h>
 #include <cbang/time/Time.h>
 #include <cbang/log/Logger.h>
 #include <cbang/event/Event.h>
-#include <cbang/db/maria/EventDB.h>
+#include <cbang/db/maria/Connector.h>
 #include <cbang/json/JSON.h>
 
 #include <algorithm>
@@ -51,19 +47,17 @@ using namespace std;
 
 App::App() :
   ServerApplication("JmpAPI", App::_hasFeature), base(true), dns(base),
-  client(base, dns, new SSLContext), procPool(base), googleAuth(options),
-  githubAuth(options), facebookAuth(options), dbHost("localhost"),
-  dbUser("jmpapi"), dbName("jmpapi"), dbPort(3306), dbTimeout(5), server(*this),
+  client(base, dns, SmartPhony(&sslCtx)), procPool(base), server(*this),
   config(new JSON::Dict) {
+
+  // Seed random number generator
+  srand48(Time::now());
 
   cmdLine.setAllowPositionalArgs(true);
 
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files."
               )->setDefault("/usr/share/jmpapi/http");
-  options.add("jsonp", "Respond with JSONP format data if this argument is "
-              "present in an API call.");
-  options.add("session-cookie", "Session cookie name")->setDefault("sid");
   options.popCategory();
 
   options.pushCategory("SSL");
@@ -78,23 +72,32 @@ App::App() :
               )->setDefault(false);
   options.popCategory();
 
-  options.pushCategory("Database");
-  options.addTarget("db-host", dbHost, "DB host name");
-  options.addTarget("db-user", dbUser, "DB user name");
-  options.addTarget("db-pass", dbPass, "DB password")->setObscured();;
-  options.addTarget("db-name", dbName, "DB name");
-  options.addTarget("db-port", dbPort, "DB port");
-  options.addTarget("db-timeout", dbTimeout, "DB timeout");
-  options.popCategory();
+  options["http-addresses"].setDefault("");
+  options["https-addresses"].setDefault("");
+  options["certificate-file"].clearDefault();
+  options["private-key-file"].clearDefault();
 
-  // Seed random number generator
-  srand48(Time::now());
+  // OAuth2
+  auto oauth2Providers = new OAuth2::Providers;
+  oauth2Providers->loadAll();
+  oauth2Providers->addOptions(options);
+
+  // DB
+  auto connector = new MariaDB::Connector(base);
+  connector->addOptions(options);
+
+  // Setup API
+  api.setClient(SmartPhony(&client));
+  api.setOAuth2Providers(oauth2Providers);
+  api.setSessionManager(new HTTP::SessionManager);
+  api.setDBConnector(connector);
+  api.setProcPool(SmartPhony(&procPool));
 
   // Enable libevent logging
   Event::Event::enableLogging(3);
 
   // Handle exit signal
-  base.newSignal(SIGINT, this, &App::signalEvent)->add();
+  base.newSignal(SIGINT,  this, &App::signalEvent)->add();
   base.newSignal(SIGTERM, this, &App::signalEvent)->add();
 }
 
@@ -102,32 +105,6 @@ App::App() :
 bool App::_hasFeature(int feature) {
   if (feature == FEATURE_SIGNAL_HANDLER) return false;
   return ServerApplication::_hasFeature(feature);
-}
-
-
-string App::getSessionCookieName() const {
-  return options["session-cookie"].toString();
-}
-
-
-SmartPointer<MariaDB::EventDB> App::getDBConnection(bool blocking) {
-  // TODO Limit the total number of active connections
-
-  SmartPointer<MariaDB::EventDB> db = new MariaDB::EventDB(base);
-
-  // Configure
-  db->setConnectTimeout(dbTimeout);
-  db->setReadTimeout(dbTimeout);
-  db->setWriteTimeout(dbTimeout);
-  db->setReconnect(true);
-  if (!blocking) db->enableNonBlocking();
-  db->setCharacterSet("utf8");
-
-  // Connect
-  if (blocking) db->connect(dbHost, dbUser, dbPass, dbName, dbPort);
-  else db->connectNB(dbHost, dbUser, dbPass, dbName, dbPort);
-
-  return db;
 }
 
 
@@ -155,17 +132,17 @@ void App::afterCommandLineParse() {
   if (config->hasDict("options")) options.read(*config->get("options"));
 
   // Configure SSL
-  SSLContext &sslCtx = *client.getSSLContext();
-
   string caCertsFile = options["ssl-ca-certificates"];
-  if (!caCertsFile.empty())
-    sslCtx.loadVerifyLocationsFile(caCertsFile);
+  if (!caCertsFile.empty()) sslCtx.loadVerifyLocationsFile(caCertsFile);
 
   string sslCipherList = options["ssl-cipher-list"];
   if (!sslCipherList.empty()) {
     sslCtx.setCipherList(sslCipherList);
     server.getSSLContext()->setCipherList(sslCipherList);
   }
+
+  // Load API
+  api.load(config);
 
   ServerApplication::afterCommandLineParse();
 }

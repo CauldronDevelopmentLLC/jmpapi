@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -49,7 +49,7 @@ EqualTmpl::EqualTmpl(const JSON::ValuePtr &config) {
 }
 
 
-void EqualTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void EqualTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   struct Result {
     size_t total;
     size_t count;

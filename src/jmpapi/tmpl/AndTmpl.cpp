@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -44,7 +44,7 @@ AndTmpl::AndTmpl(const JSON::ValuePtr &config) {
 }
 
 
-void AndTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void AndTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   SmartPointer<size_t> count = new size_t(children.size());
 
   auto cb =

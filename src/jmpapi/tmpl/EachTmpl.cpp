@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -40,7 +40,7 @@ EachTmpl::EachTmpl(const JSON::ValuePtr &tmpl) :
 }
 
 
-void EachTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void EachTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   auto ctx = resolver->getContext();
   if (ctx.isNull() || !ctx->size()) return done(HTTP_OK, 0);
 

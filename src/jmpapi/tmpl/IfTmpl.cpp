@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -38,10 +38,9 @@ IfTmpl::IfTmpl(const SmartPointer<Template> &ifTmpl,
   ifTmpl(ifTmpl), thenTmpl(thenTmpl), elseTmpl(elseTmpl) {}
 
 
-void IfTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void IfTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   auto cb =
-    [this, resolver, done] (HTTP::Status status,
-                            const JSON::ValuePtr &data) {
+    [this, resolver, done] (HTTP::Status status, const JSON::ValuePtr &data) {
       if (status == HTTP_OK && data.isSet() && data->toBoolean()) {
         if (thenTmpl.isSet()) thenTmpl->apply(resolver, done);
         else done(HTTP_OK, resolver->getContext());

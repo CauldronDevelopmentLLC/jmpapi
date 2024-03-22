@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -29,16 +29,14 @@
 
 #include "Template.h"
 
-#include <jmpapi/Headers.h>
-
-#include <cbang/http/Enum.h>
+#include <cbang/api/Headers.h>
 
 
 namespace JmpAPI {
   class RequestTmpl : public Template {
     std::string url;
     cb::HTTP::Method method;
-    Headers headers;
+    cb::API::Headers headers;
     cb::SmartPointer<Template> dataTmpl;
     cb::SmartPointer<Template> child;
 
@@ -46,6 +44,6 @@ namespace JmpAPI {
     RequestTmpl(const cb::JSON::ValuePtr &config);
 
     // From Template
-    void apply(const ResolverPtr &resolver, cb_t done);
+    void apply(const cb::API::ResolverPtr &resolver, cb_t done);
   };
 }

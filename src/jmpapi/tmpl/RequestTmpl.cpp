@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -27,9 +27,7 @@
 
 #include "RequestTmpl.h"
 
-#include <jmpapi/App.h>
-#include <jmpapi/Transaction.h>
-
+#include <cbang/api/API.h>
 #include <cbang/http/Client.h>
 #include <cbang/json/JSON.h>
 #include <cbang/log/Logger.h>
@@ -56,13 +54,13 @@ namespace {
 
 RequestTmpl::RequestTmpl(const JSON::ValuePtr &config) :
   url(config->getString("url")),
-  method(HTTP::Method::parse(config->getString("method", "UNKNOWN"))),
+  method(HTTP::Method::parse(config->getString("method", "GET"))),
   headers(config->get("request-headers", 0)),
   dataTmpl(Template::parse(config->get("data", 0))),
   child(Template::parse(config)) {}
 
 
-void RequestTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   auto error_cb =
     [done] (const string &msg, const JSON::ValuePtr &data) {
       JSON::ValuePtr err = new JSON::Dict;
@@ -108,12 +106,8 @@ void RequestTmpl::apply(const ResolverPtr &resolver, cb_t done) {
       } catch (std::exception &e) {error_cb(e.what(), data);}
     };
 
-  // Use config method if specified otherwise use method caller used
-  auto req = resolver->getRequest();
-  HTTP::Method method = this->method ? this->method : req->getMethod();
-
-  auto &client = req->cast<Transaction>().getApp().getEventClient();
-  auto outReq = client.call(resolver->format(url), method, cb);
+  auto &client = resolver->getAPI().getClient();
+  auto outReq  = client.call(resolver->format(url), method, cb);
   headers.set(*outReq);
 
   if (dataTmpl.isSet()) {

@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -63,21 +63,21 @@ SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
     };
 
   if (tmpl->has("literal"))  set(new LiteralTmpl(tmpl->get("literal")));
-  if (tmpl->hasDict("dict")) set(new DictTmpl(tmpl->get("dict")));
-  if (tmpl->hasDict("each")) set(new EachTmpl(tmpl->get("each")));
+  if (tmpl->hasDict("dict")) set(new DictTmpl   (tmpl->get("dict")));
+  if (tmpl->hasDict("each")) set(new EachTmpl   (tmpl->get("each")));
   if (tmpl->has("request"))  set(new RequestTmpl(tmpl->get("request")));
-  if (tmpl->has("and"))      set(new AndTmpl(tmpl->get("and")));
-  if (tmpl->has("or"))       set(new OrTmpl(tmpl->get("or")));
-  if (tmpl->has("not"))      set(new NotTmpl(tmpl->get("not")));
-  if (tmpl->has("equal"))    set(new EqualTmpl(tmpl->get("equal")));
+  if (tmpl->has("and"))      set(new AndTmpl    (tmpl->get("and")));
+  if (tmpl->has("or"))       set(new OrTmpl     (tmpl->get("or")));
+  if (tmpl->has("not"))      set(new NotTmpl    (tmpl->get("not")));
+  if (tmpl->has("equal"))    set(new EqualTmpl  (tmpl->get("equal")));
   if (tmpl->has("if"))
     set(new IfTmpl(parse(tmpl->get("if")), parse(tmpl->get("then", 0)),
                    parse(tmpl->get("else", 0))));
 
-  if (tmpl->has("debug"))  child = new DebugTmpl(tmpl->get("debug"),   child);
-  if (tmpl->has("with"))   child = new WithTmpl(tmpl->get("with"),     child);
+  if (tmpl->has("debug"))  child = new DebugTmpl (tmpl->get("debug"),  child);
+  if (tmpl->has("with"))   child = new WithTmpl  (tmpl->get("with"),   child);
   if (tmpl->has("status")) child = new StatusTmpl(tmpl->get("status"), child);
-  if (tmpl->has("on"))     child = new OnTmpl(tmpl->get("on"),         child);
+  if (tmpl->has("on"))     child = new OnTmpl    (tmpl->get("on"),     child);
 
   return child;
 }

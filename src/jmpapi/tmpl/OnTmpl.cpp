@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -58,7 +58,7 @@ void OnTmpl::add(const JSON::Value &status) {
 }
 
 
-void OnTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void OnTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   auto cb =
     [this, done] (HTTP::Status status, const JSON::ValuePtr &data) {
       if (on.find(status) == on.end())

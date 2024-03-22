@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <jmpapi/Resolver.h>
+#include <cbang/api/Resolver.h>
 
 #include <cbang/json/Value.h>
 #include <cbang/http/Enum.h>
@@ -36,15 +36,14 @@
 
 
 namespace JmpAPI {
-  class App;
-
   class Template : public cb::HTTP::Enum {
   public:
     virtual ~Template() {}
 
-    typedef std::function<void (cb::HTTP::Status status,
-                                const cb::JSON::ValuePtr &data)> cb_t;
-    virtual void apply(const ResolverPtr &resolver, cb_t done) = 0;
+    typedef std::function<void (
+    cb::HTTP::Status status, const cb::JSON::ValuePtr &data)> cb_t;
+
+    virtual void apply(const cb::API::ResolverPtr &resolver, cb_t done) = 0;
 
     static cb::SmartPointer<Template> parse(const cb::JSON::ValuePtr &tmpl);
   };

@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -40,7 +40,7 @@ DictTmpl::DictTmpl(const JSON::ValuePtr &tmpl) {
 }
 
 
-void DictTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void DictTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   // Handle empty template
   if (fields.empty()) return done(HTTP_OK, new JSON::Dict);
 

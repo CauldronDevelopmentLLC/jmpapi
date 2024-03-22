@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -38,7 +38,7 @@ using namespace JmpAPI;
 NotTmpl::NotTmpl(const JSON::ValuePtr &config) : child(parse(config)) {}
 
 
-void NotTmpl::apply(const ResolverPtr &resolver, cb_t done) {
+void NotTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
   auto cb =
     [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {

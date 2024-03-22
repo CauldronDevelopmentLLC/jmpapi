@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2019, Cauldron Development LLC
+                Copyright (c) 2014-2024, Cauldron Development LLC
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -49,7 +49,7 @@ DebugTmpl::DebugTmpl(const JSON::ValuePtr &config,
   ctx(Template::parse(config)), child(child) {}
 
 
-void DebugTmpl::apply(const ResolverPtr &resolver, cb_t _done) {
+void DebugTmpl::apply(const API::ResolverPtr &resolver, cb_t _done) {
   auto done =
     [this, resolver, _done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
