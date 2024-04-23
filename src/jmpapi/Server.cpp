@@ -42,13 +42,14 @@ using namespace JmpAPI;
 
 
 Server::Server(App &app) :
-  HTTP::WebServer(
-    app.getOptions(), app.getEventBase(), SmartPhony(&app.getSSLContext())),
-  app(app) {setAutoIndex(false);}
+  HTTP::Server(app.getEventBase(), SmartPhony(&app.getSSLContext())), app(app) {
+  addOptions(app.getOptions());
+  setAutoIndex(false);
+}
 
 
 void Server::init() {
-  HTTP::WebServer::init();
+  HTTP::Server::init(app.getOptions());
 
   // Add API
   addHandler(SmartPhony(&app.getAPI()));

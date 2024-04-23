@@ -32,7 +32,6 @@
 
 #include <cbang/ServerApplication.h>
 
-#include <cbang/dns/Base.h>
 #include <cbang/event/Base.h>
 #include <cbang/event/SubprocessPool.h>
 #include <cbang/http/Client.h>
@@ -44,7 +43,6 @@ namespace cb {namespace Event {class Event;}}
 namespace JmpAPI {
   class App : public cb::ServerApplication {
     cb::Event::Base base;
-    cb::DNS::Base dns;
     cb::SSLContext sslCtx;
 
     cb::HTTP::Client client;

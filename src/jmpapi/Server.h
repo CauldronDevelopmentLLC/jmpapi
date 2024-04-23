@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cbang/http/WebServer.h>
+#include <cbang/http/Server.h>
 #include <cbang/json/Value.h>
 
 
@@ -35,11 +35,14 @@ namespace JmpAPI {
   class App;
   class User;
 
-  class Server : public cb::HTTP::WebServer {
+  class Server : public cb::HTTP::Server {
     App &app;
 
   public:
     Server(App &app);
     void init();
+
+    // From cb::HTTP::Server
+    using cb::HTTP::Server::init;
   };
 }

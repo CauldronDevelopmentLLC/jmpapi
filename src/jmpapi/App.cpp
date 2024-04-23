@@ -46,9 +46,9 @@ using namespace std;
 
 
 App::App() :
-  ServerApplication("JmpAPI", App::_hasFeature), base(true), dns(base),
-  client(base, dns, SmartPhony(&sslCtx)), procPool(base), server(*this),
-  config(new JSON::Dict) {
+  ServerApplication("JmpAPI", App::_hasFeature), base(true),
+  client(base, SmartPhony(&sslCtx)), procPool(base), server(*this),
+  api(options), config(new JSON::Dict) {
 
   // Seed random number generator
   srand48(Time::now());

@@ -32,10 +32,13 @@
 
 namespace JmpAPI {
   class API : public cb::API::API {
-  public:
+    using cb::API::API::API;
+
+  protected:
     // From cb::API::API
     std::string getEndpointType(
       const cb::JSON::ValuePtr &config) const override;
-    RequestHandlerPtr createEndpoint(const cb::JSON::ValuePtr &config) override;
+    cb::HTTP::RequestHandlerPtr createEndpointHandler(
+      const std::string &type, const cb::JSON::ValuePtr &config) override;
   };
 }

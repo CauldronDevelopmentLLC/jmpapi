@@ -40,9 +40,8 @@ string JmpAPI::API::getEndpointType(const JSON::ValuePtr &config) const {
 }
 
 
-API::API::RequestHandlerPtr JmpAPI::API::createEndpoint(
-  const JSON::ValuePtr &config) {
-  string type = getEndpointType(config);
+HTTP::RequestHandlerPtr JmpAPI::API::createEndpointHandler(
+  const std::string &type, const JSON::ValuePtr &config) {
   if (type == "proxy") return new ProxyHandler(*this, config);
-  return cb::API::API::createEndpoint(config);
+  return cb::API::API::createEndpointHandler(type, config);
 }
