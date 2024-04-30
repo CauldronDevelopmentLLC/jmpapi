@@ -33,11 +33,10 @@
 #include <cbang/ServerApplication.h>
 
 #include <cbang/event/Base.h>
+#include <cbang/event/Event.h>
 #include <cbang/event/SubprocessPool.h>
 #include <cbang/http/Client.h>
 #include <cbang/openssl/SSLContext.h>
-
-namespace cb {namespace Event {class Event;}}
 
 
 namespace JmpAPI {
@@ -50,6 +49,7 @@ namespace JmpAPI {
     Server server;
     API api;
     cb::JSON::ValuePtr config;
+    std::map<std::string, cb::Event::EventPtr> events;
 
   public:
     App();
