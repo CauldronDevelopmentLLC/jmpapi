@@ -97,8 +97,8 @@ App::App() :
   Event::Event::enableLogging(3);
 
   // Handle exit signal
-  (events["sigint"]  = base.newSignal(SIGINT,  this, &App::signalEvent))->add();
-  (events["sigterm"] = base.newSignal(SIGTERM, this, &App::signalEvent))->add();
+  ltm.addLTO(base.newSignal(SIGINT,  this, &App::signalEvent))->add();
+  ltm.addLTO(base.newSignal(SIGTERM, this, &App::signalEvent))->add();
 }
 
 

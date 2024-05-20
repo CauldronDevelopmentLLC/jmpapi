@@ -30,10 +30,11 @@
 #include "Template.h"
 
 #include <cbang/api/Headers.h>
+#include <cbang/util/LifetimeManager.h>
 
 
 namespace JmpAPI {
-  class RequestTmpl : public Template {
+  class RequestTmpl : public Template, public cb::LifetimeManager {
     std::string url;
     cb::HTTP::Method method;
     cb::API::Headers headers;
@@ -44,6 +45,6 @@ namespace JmpAPI {
     RequestTmpl(const cb::JSON::ValuePtr &config);
 
     // From Template
-    void apply(const cb::API::ResolverPtr &resolver, cb_t done);
+    void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;
   };
 }

@@ -37,6 +37,7 @@
 #include <cbang/event/SubprocessPool.h>
 #include <cbang/http/Client.h>
 #include <cbang/openssl/SSLContext.h>
+#include <cbang/util/LifetimeManager.h>
 
 
 namespace JmpAPI {
@@ -49,7 +50,7 @@ namespace JmpAPI {
     Server server;
     API api;
     cb::JSON::ValuePtr config;
-    std::map<std::string, cb::Event::EventPtr> events;
+    cb::LifetimeManager ltm;
 
   public:
     App();
@@ -61,11 +62,11 @@ namespace JmpAPI {
     cb::Event::Base &getEventBase() {return base;}
 
     // From cb::ServerApplication
-    void beforeDroppingPrivileges();
+    void beforeDroppingPrivileges() override;
 
     // From cb::Application
-    void afterCommandLineParse();
-    void run();
+    void afterCommandLineParse() override;
+    void run() override;
 
     void signalEvent(cb::Event::Event &e, int signal, unsigned flags);
   };

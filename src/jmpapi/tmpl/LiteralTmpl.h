@@ -38,6 +38,6 @@ namespace JmpAPI {
     LiteralTmpl(const cb::JSON::ValuePtr &content) : content(content) {}
 
     // From Template
-    void apply(const cb::API::ResolverPtr &resolver, cb_t done);
+    void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;
   };
 }

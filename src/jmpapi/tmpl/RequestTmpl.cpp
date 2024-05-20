@@ -107,7 +107,7 @@ void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
     };
 
   auto &client = resolver->getAPI().getClient();
-  auto outReq  = client.call(resolver->format(url), method, cb);
+  auto outReq = addLTO(client.call(resolver->format(url), method, cb));
   headers.set(*outReq);
 
   if (dataTmpl.isSet()) {

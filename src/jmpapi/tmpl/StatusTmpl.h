@@ -40,6 +40,6 @@ namespace JmpAPI {
                const cb::SmartPointer<Template> child);
 
     // From Template
-    void apply(const cb::API::ResolverPtr &resolver, cb_t done);
+    void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;
   };
 }

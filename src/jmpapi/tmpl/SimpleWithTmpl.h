@@ -41,6 +41,6 @@ namespace JmpAPI {
       ctx(ctx), child(child) {}
 
     // From Template
-    void apply(const cb::API::ResolverPtr &resolver, cb_t done);
+    void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;
   };
 }
