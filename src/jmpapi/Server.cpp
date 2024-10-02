@@ -59,11 +59,11 @@ void Server::init() {
   if (!root.empty()) {
     LOG_INFO(1, "Adding file handler at " << root);
     addHandler(new HTTP::IndexHandler(new HTTP::FileHandler(root)));
-  }
 
-  // Send index.html by default
-  string index = root + "/index.html";
-  if (SystemUtilities::exists(index)) addHandler(index);
+    // Send index.html by default
+    string index = root + "/index.html";
+    if (SystemUtilities::exists(index)) addHandler(index);
+  }
 
   // Not found
   addHandler(new cb::API::StatusHandler(HTTP_NOT_FOUND));
