@@ -80,7 +80,7 @@ if 'package' in COMMAND_LINE_TARGETS:
     programs = [str(prog[0]), 'scripts/jmpapi-run'],
     changelog = 'ChangeLog',
     platform_independent = [
-      'http', 'scripts/jmpapi.service', 'scripts/jmpapi@.service'] + \
+      'build/http', 'scripts/jmpapi.service', 'scripts/jmpapi@.service'] + \
       list(map(str, Glob('src/sql/*.sql'))),
 
     deb_directory = 'debian',
