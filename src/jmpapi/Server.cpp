@@ -42,7 +42,7 @@ using namespace JmpAPI;
 
 
 Server::Server(App &app) :
-  HTTP::Server(app.getEventBase(), SmartPhony(&app.getSSLContext())), app(app) {
+  HTTP::Server(app.getEventBase(), PhonyPtr(&app.getSSLContext())), app(app) {
   addOptions(app.getOptions());
   setAutoIndex(false);
 }
@@ -52,7 +52,7 @@ void Server::init() {
   HTTP::Server::init(app.getOptions());
 
   // Add API
-  addHandler(SmartPhony(&app.getAPI()));
+  addHandler(PhonyPtr(&app.getAPI()));
 
   // Root
   string root = app.getOptions()["http-root"].toString("");

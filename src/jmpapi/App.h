@@ -37,7 +37,6 @@
 #include <cbang/event/SubprocessPool.h>
 #include <cbang/http/Client.h>
 #include <cbang/openssl/SSLContext.h>
-#include <cbang/util/LifetimeManager.h>
 
 
 namespace JmpAPI {
@@ -50,7 +49,8 @@ namespace JmpAPI {
     Server server;
     API api;
     cb::JSON::ValuePtr config;
-    cb::LifetimeManager ltm;
+    cb::Event::EventPtr sigintEvent;
+    cb::Event::EventPtr sigtermEvent;
 
   public:
     App();

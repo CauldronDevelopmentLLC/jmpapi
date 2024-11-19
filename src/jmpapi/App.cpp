@@ -47,7 +47,7 @@ using namespace std;
 
 App::App() :
   ServerApplication("JmpAPI", App::_hasFeature), base(true),
-  client(base, SmartPhony(&sslCtx)), procPool(base), server(*this),
+  client(base, PhonyPtr(&sslCtx)), procPool(base), server(*this),
   api(options), config(new JSON::Dict) {
 
   // Seed random number generator
@@ -87,18 +87,18 @@ App::App() :
   connector->addOptions(options);
 
   // Setup API
-  api.setClient(SmartPhony(&client));
+  api.setClient(PhonyPtr(&client));
   api.setOAuth2Providers(oauth2Providers);
   api.setSessionManager(new HTTP::SessionManager);
   api.setDBConnector(connector);
-  api.setProcPool(SmartPhony(&procPool));
+  api.setProcPool(PhonyPtr(&procPool));
 
   // Enable libevent logging
   Event::Event::enableLogging(3);
 
   // Handle exit signal
-  ltm.addLTO(base.newSignal(SIGINT,  this, &App::signalEvent))->add();
-  ltm.addLTO(base.newSignal(SIGTERM, this, &App::signalEvent))->add();
+  (sigintEvent  = base.newSignal(SIGINT,  this, &App::signalEvent))->add();
+  (sigtermEvent = base.newSignal(SIGTERM, this, &App::signalEvent))->add();
 }
 
 

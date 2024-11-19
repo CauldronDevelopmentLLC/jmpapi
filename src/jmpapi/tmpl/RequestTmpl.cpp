@@ -73,6 +73,7 @@ void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
 
   auto cb =
     [this, done, error_cb, resolver] (HTTP::Request &outReq) {
+      activeRequests.erase(&outReq);
       JSON::ValuePtr data;
 
       try {
@@ -107,24 +108,25 @@ void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
     };
 
   auto &client = resolver->getAPI().getClient();
-  auto outReq = addLTO(client.call(resolver->format(url), method, cb));
-  headers.set(*outReq);
+  auto pr = client.call(resolver->format(url), method, cb);
+  activeRequests[pr->getRequest().get()] = pr;
+  headers.set(*pr->getRequest());
 
   if (dataTmpl.isSet()) {
-    if (!outReq->outHas("Content-Type"))
-      outReq->outSet("Content-Type", "application/json");
+    if (!pr->getRequest()->outHas("Content-Type"))
+      pr->getRequest()->outSet("Content-Type", "application/json");
 
     auto cb =
-      [outReq, done] (HTTP::Status status, const JSON::ValuePtr &data) {
+      [pr, done] (HTTP::Status status, const JSON::ValuePtr &data) {
         if (status == HTTP_OK) {
           LOG_DEBUG(3, "Sending: " << *data);
-          outReq->getOutputBuffer().add(data->toString());
-          outReq->send();
+          pr->getRequest()->getOutputBuffer().add(data->toString());
+          pr->send();
 
         } else done(status, data);
       };
 
     dataTmpl->apply(resolver, cb);
 
-  } else outReq->send();
+  } else pr->send();
 }

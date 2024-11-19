@@ -30,16 +30,20 @@
 #include "Template.h"
 
 #include <cbang/api/Headers.h>
-#include <cbang/util/LifetimeManager.h>
+#include <cbang/http/Client.h>
+
+#include <map>
 
 
 namespace JmpAPI {
-  class RequestTmpl : public Template, public cb::LifetimeManager {
+  class RequestTmpl : public Template {
     std::string url;
     cb::HTTP::Method method;
     cb::API::Headers headers;
     cb::SmartPointer<Template> dataTmpl;
     cb::SmartPointer<Template> child;
+
+    std::map<cb::HTTP::Request *, cb::HTTP::Client::RequestPtr> activeRequests;
 
   public:
     RequestTmpl(const cb::JSON::ValuePtr &config);
