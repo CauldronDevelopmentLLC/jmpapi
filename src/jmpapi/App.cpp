@@ -58,6 +58,8 @@ App::App() :
   options.pushCategory("JmpAPI");
   options.add("http-root", "Root directory for static files."
               )->setDefault("/usr/share/jmpapi/http");
+  options.add("favicon", "Path to site icon."
+              )->setDefault("/usr/share/jmpapi/http/favicon.ico");
   options.popCategory();
 
   options.pushCategory("SSL");

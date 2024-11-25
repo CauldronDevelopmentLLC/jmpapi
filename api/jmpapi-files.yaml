@@ -3,6 +3,10 @@ title: Local file access, admin panel & OpenAPI spec
 hide: true
 
 endpoints:
+  /favicon.ico:
+    get:
+      path: '%(options.favicon)s'
+
   /.*:
     get:
       path: '%(options.http-root)s'
