@@ -44,6 +44,7 @@ export default {
   activated() {
     if (!this.$root.loggedin) this.$router.push('/')
     else if (!this.$root.is_admin) this.$root.message('Admin group required.')
+    else this.update()
   },
 
 
@@ -55,9 +56,13 @@ export default {
 
 
   methods: {
+    async update_users()  {this.users  = await this.$api.get('/users')},
+    async update_groups() {this.groups = await this.$api.get('/groups')},
+
+
     async update() {
-      this.groups = await this.$api.get('/groups')
-      this.users  = await this.$api.get('/users')
+      await this.update_groups()
+      await this.update_users()
     },
 
 
@@ -89,7 +94,7 @@ export default {
 
 
     async user_delete(user) {
-      await this.$api.user_delete(user.id, user.name)
+      await this.$api.user_delete(user.id, user.email)
       return this.update()
     },
 
@@ -181,9 +186,9 @@ export default {
         tr(v-if="entry.writable", :title="entry.help")
           th.name {{entry.name}}
           td.value(v-if="entry.writable")
-            input(v-model="entry.value",
-              :type="entry.type == 'bool' ? 'checkbox' : 'number'")
-          td.value(v-if="!entry.writable") {{entry.value}}
+            input(v-if="entry.type == 'bool'", type="checkbox",
+              v-model="entry.value", :true-value="1", :false-value="0")
+            input(v-else, type="number", v-model="entry.value")
           td.actions
             .button.fa.fa-save(
               v-if="entry.writable", @click="config_set(entry)")

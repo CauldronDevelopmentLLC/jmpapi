@@ -1,4 +1,4 @@
-<!--
+/******************************************************************************\
 
                            This file is part of JmpAPI.
 
@@ -23,40 +23,19 @@
                                  Joseph Coffland
                           joseph@cauldrondevelopment.com
 
--->
+\******************************************************************************/
 
-<script>
-import APICategory from './APICategory.vue'
-
-
-export default {
-  components: {'api-category': APICategory},
-
-  data() {
-    return {
-      data: {}
-    }
-  },
+import {createRouter, createWebHistory} from 'vue-router'
+import AdminView  from './AdminView.vue'
+import AdminUser  from './AdminUser.vue'
+import AdminGroup from './AdminGroup.vue'
 
 
-  async mounted() {
-    this.data = await this.$api.get('/api')
-  },
-
-
-  methods: {
-  }
-}
-</script>
-
-<template lang="pug">
-.api-docs
-  h1.api-title: span(v-html="data.header || data.title")
-  p.api-help(v-if="data.help"): span(v-html="data.help")
-
-  api-category(v-for="(config, name) in data.categories", :name="name",
-    :config="config")
-</template>
-
-<style lang="stylus">
-</style>
+export default createRouter({
+  history: createWebHistory('/admin'),
+  routes: [
+    {path: '/',             component: AdminView},
+    {path: '/user/:uid',    component: AdminUser,  props: true},
+    {path: '/group/:group', component: AdminGroup, props: true},
+  ]
+})

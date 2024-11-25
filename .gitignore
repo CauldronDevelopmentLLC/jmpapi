@@ -19,3 +19,5 @@
 /private.pem
 /secrets.yaml
 /*.deb
+
+.vscode

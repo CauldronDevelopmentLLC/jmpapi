@@ -42,11 +42,12 @@ if not env.GetOption('clean') and not 'package' in COMMAND_LINE_TARGETS:
 
 conf.Finish()
 
-# Fronend
+# Frontend
 if not ('package' in COMMAND_LINE_TARGETS or 'dist' in COMMAND_LINE_TARGETS):
   from subprocess import check_call
   check_call(['npm', 'install'])
   check_call(['npm', 'run', 'build'])
+  check_call(['sh', '-c', 'cp -r src/public/* build/http/'])
 
 # Program
 Export('env name')

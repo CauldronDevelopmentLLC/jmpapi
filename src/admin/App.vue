@@ -37,6 +37,7 @@ export default {
   data() {
     return {
       loading:     true,
+      is_admin:    false,
       loggedin:    false,
       providers:   [],
       msg:         '',
@@ -126,7 +127,7 @@ export default {
 
   .message(:class="{error: err, success: msg && !err}") {{msg}}
 
-  router-view(v-if="!loading", v-slot="{Component}")
+  router-view(v-slot="{Component}", v-if="!loading")
     KeepAlive
       component(:is="Component")
 </template>

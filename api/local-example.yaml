@@ -1,10 +1,10 @@
 ---
-# This file will be merged into the main `jmpapi.yaml` configuration. It is
+# This file can be merged into the main `jmpapi.yaml` configuration. It is
 # intended to hold local configuration secrets and should only be readable by
 # the `jmpapi` user.
 
 options:
-  http-addresses: ["127.0.0.1:7000"]
+  https-addresses: [127.0.0.1:7000]
 
   google-client-id: "Enter Google Client ID Here"
   google-redirect-base: http://localhost:7000

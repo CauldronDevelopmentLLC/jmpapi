@@ -39,6 +39,7 @@ namespace JmpAPI {
     std::string getEndpointType(
       const cb::JSON::ValuePtr &config) const override;
     cb::HTTP::RequestHandlerPtr createEndpointHandler(
-      const std::string &type, const cb::JSON::ValuePtr &config) override;
+      const cb::JSON::ValuePtr &types,
+      const cb::JSON::ValuePtr &config) override;
   };
 }

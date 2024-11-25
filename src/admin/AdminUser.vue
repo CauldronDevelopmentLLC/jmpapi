@@ -71,7 +71,7 @@ export default {
 
 
     async user_delete() {
-      await this.$api.user_delete(this.uid, this.user.name)
+      await this.$api.user_delete(this.uid, this.user.email)
       this.back()
     },
 
@@ -79,7 +79,7 @@ export default {
     async user_association_set() {
       let assoc = this.association_new
 
-      await this.$api.user_association_set(this.uid, this.user.name, assoc)
+      await this.$api.user_association_set(this.uid, this.user.email, assoc)
       assoc.email = ''
       this.update_user()
     },
@@ -87,19 +87,19 @@ export default {
 
     async user_association_remove(association) {
       await this.$api.user_association_remove(
-        this.uid, this.user.name, association)
+        this.uid, this.user.email, association)
       this.update_user()
     },
 
 
     async user_group_remove(group) {
-      await this.$api.user_group_remove(this.uid, this.user.name, group.name)
+      await this.$api.user_group_remove(this.uid, this.user.email, group.name)
       group.member = 0
     },
 
 
     async user_group_add(group) {
-      await this.$api.user_group_add(this.uid, this.user.name, group.name)
+      await this.$api.user_group_add(this.uid, this.user.email, group.name)
       group.member = 1
     }
   }
@@ -119,7 +119,7 @@ export default {
   table.user
     tr
       th Email
-      td.email: input(v-model="user.email")
+      td.email {{user.email}}
     tr
       th Name
       td.name: input(v-model="user.name")

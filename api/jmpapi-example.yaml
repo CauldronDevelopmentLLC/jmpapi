@@ -1,6 +1,14 @@
-options:
-  http-root: /usr/share/jmpapi/http
+---
+version: 1.0.0
 
-api:
-  docs: !include jmpapi-docs.yaml
+info:
+  title: JmpAPI Example
+  version: 2.0.0
+  license:
+    name: GNU General Public License v3.0 or later
+    identifier: GPL-3.0-or-later
+  description: Example JmpAPI
+
+apis:
+  local-files: !include jmpapi-files.yaml
   auth: !include jmpapi-auth.yaml

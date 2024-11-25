@@ -1,0 +1,17 @@
+---
+title: Local file access, admin panel & OpenAPI spec
+hide: true
+
+endpoints:
+  /.*:
+    get:
+      path: '%(options.http-root)s'
+      index: 'index.html'
+
+  /admin/.*:
+    get:
+      path: '%(options.http-root)s/admin/index.html'
+
+  /openapi-spec:
+    get:
+      handler: spec

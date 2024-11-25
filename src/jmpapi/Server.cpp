@@ -50,21 +50,6 @@ Server::Server(App &app) :
 
 void Server::init() {
   HTTP::Server::init(app.getOptions());
-
-  // Add API
   addHandler(PhonyPtr(&app.getAPI()));
-
-  // Root
-  string root = app.getOptions()["http-root"].toString("");
-  if (!root.empty()) {
-    LOG_INFO(1, "Adding file handler at " << root);
-    addHandler(new HTTP::IndexHandler(new HTTP::FileHandler(root)));
-
-    // Send index.html by default
-    string index = root + "/index.html";
-    if (SystemUtilities::exists(index)) addHandler(index);
-  }
-
-  // Not found
   addHandler(new cb::API::StatusHandler(HTTP_NOT_FOUND));
 }
