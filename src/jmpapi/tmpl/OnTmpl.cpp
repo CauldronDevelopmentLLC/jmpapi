@@ -39,11 +39,10 @@ OnTmpl::OnTmpl(const JSON::ValuePtr &config,
                const SmartPointer<Template> &child) : child(child) {
   if (config->isString() || config->isNumber()) add(*config);
 
-  else if (config->isList()) {
-    for (unsigned i = 0; i < config->size(); i++)
-      add(*config->get(i));
+  else if (config->isList())
+    for (auto &item: *config) add(*item);
 
-  } else THROW("Invalid template: " << *config);
+  else THROW("Invalid template: " << *config);
 }
 
 

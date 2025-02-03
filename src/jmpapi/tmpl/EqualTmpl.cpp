@@ -41,8 +41,8 @@ EqualTmpl::EqualTmpl(const JSON::ValuePtr &config) {
   if (!config->isList() || !config->size())
     THROW("Invalid 'equal' template, must be an non-empty list");
 
-  for (unsigned i = 0; i < config->size(); i++) {
-    auto child = parse(config->get(i));
+  for (auto item: *config) {
+    auto child = parse(item);
     if (child.isNull()) THROW("Empty child in 'equal': " << *config);
     children.push_back(child);
   }

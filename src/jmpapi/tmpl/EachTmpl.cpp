@@ -62,9 +62,8 @@ void EachTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
     result->data->appendUndefined();
 
   for (unsigned i = 0; i < ctx->size(); i++) {
-    auto cb =
-      [this, result, done, i] (HTTP::Status status,
-                               const JSON::ValuePtr &data) {
+    auto cb = [this, result, done, i] (
+      HTTP::Status status, const JSON::ValuePtr &data) {
         if (!result->pass) return;
 
         if (status != HTTP_NOT_FOUND) {
@@ -80,15 +79,12 @@ void EachTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
         if (!--result->count) {
           JSON::ValuePtr list = new JSON::List;
 
-          for (unsigned j = 0; j < result->data->size(); j++) {
-            auto item = result->data->get(j);
-
+          for (auto item: *result->data)
             if (flatten && item->isList())
-              for (unsigned k = 0; k < item->size(); k++)
-                list->append(item->get(k));
+              for (auto subitem: *item)
+                list->append(subitem);
 
             else if (!item->isUndefined()) list->append(item);
-          }
 
           done(HTTP_OK, list->empty() ? 0 : list);
         }

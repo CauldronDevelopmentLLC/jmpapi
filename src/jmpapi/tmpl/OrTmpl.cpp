@@ -39,8 +39,8 @@ OrTmpl::OrTmpl(const JSON::ValuePtr &config) {
   if (!config->isList() || !config->size())
     THROW("Invalid 'or' template, must be an non-empty list");
 
-  for (unsigned i = 0; i < config->size(); i++)
-    children.push_back(parse(config->get(i)));
+  for (auto item: *config)
+    children.push_back(parse(item));
 }
 
 

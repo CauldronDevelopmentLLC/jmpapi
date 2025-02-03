@@ -35,8 +35,8 @@ using namespace JmpAPI;
 
 
 DictTmpl::DictTmpl(const JSON::ValuePtr &tmpl) {
-  for (unsigned i = 0; i < tmpl->size(); i++)
-    fields.push_back(field_t(tmpl->keyAt(i), Template::parse(tmpl->get(i))));
+  for (auto e: tmpl->entries())
+    fields.push_back(field_t(e.key(), Template::parse(e.value())));
 }
 
 
