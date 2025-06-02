@@ -1,6 +1,6 @@
 {
   "name": "jmpapi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A high performance API server supporting JSON over HTTP(S) with MariaDB backend, OAuth2 federated login, ACME2 automatic SSL certificate acquisition and automatic documentation.",
   "repository": "https://github.com/CauldronDevelopmentLLC/jmpapi",
   "license": "GPL-3.0",
