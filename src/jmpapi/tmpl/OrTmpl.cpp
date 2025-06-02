@@ -35,7 +35,7 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-OrTmpl::OrTmpl(const JSON::ValuePtr &config) {
+OrTmpl::OrTmpl(API &api, const JSON::ValuePtr &config) : Template(api) {
   if (!config->isList() || !config->size())
     THROW("Invalid 'or' template, must be an non-empty list");
 
@@ -44,7 +44,7 @@ OrTmpl::OrTmpl(const JSON::ValuePtr &config) {
 }
 
 
-void OrTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void OrTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   SmartPointer<size_t> count = new size_t(children.size());
 
   auto cb =

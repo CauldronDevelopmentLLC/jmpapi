@@ -35,7 +35,7 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-AndTmpl::AndTmpl(const JSON::ValuePtr &config) {
+AndTmpl::AndTmpl(API &api, const JSON::ValuePtr &config) : Template(api) {
   if (!config->isList() || !config->size())
     THROW("Invalid 'and' template, must be an non-empty list");
 
@@ -44,12 +44,12 @@ AndTmpl::AndTmpl(const JSON::ValuePtr &config) {
 }
 
 
-void AndTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void AndTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   SmartPointer<size_t> count = new size_t(children.size());
 
   auto cb =
-    [this, resolver, done, count] (HTTP::Status status,
-                                   const JSON::ValuePtr &data) {
+    [this, resolver, done, count] (
+      HTTP::Status status, const JSON::ValuePtr &data) {
       if (!*count) return;
 
       if (status != HTTP_OK || !data.isSet() || !data->toBoolean()) {

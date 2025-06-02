@@ -36,8 +36,8 @@ namespace JmpAPI {
     cb::SmartPointer<Template> child;
 
   public:
-    WithTmpl(const cb::JSON::ValuePtr &config,
-             const cb::SmartPointer<Template> child);
+    WithTmpl(API &api, const cb::JSON::ValuePtr &config,
+      const cb::SmartPointer<Template> child);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

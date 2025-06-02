@@ -35,7 +35,8 @@ namespace JmpAPI {
     const cb::JSON::ValuePtr content;
 
   public:
-    LiteralTmpl(const cb::JSON::ValuePtr &content) : content(content) {}
+    LiteralTmpl(API &api, const cb::JSON::ValuePtr &content) :
+      Template(api), content(content) {}
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

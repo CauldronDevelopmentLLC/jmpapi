@@ -36,8 +36,8 @@ namespace JmpAPI {
     cb::HTTP::Status status;
 
   public:
-    StatusTmpl(const cb::JSON::ValuePtr &config,
-               const cb::SmartPointer<Template> child);
+    StatusTmpl(API &api, const cb::JSON::ValuePtr &config,
+      const cb::SmartPointer<Template> child);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

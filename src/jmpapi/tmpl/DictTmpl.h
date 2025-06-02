@@ -38,7 +38,7 @@ namespace JmpAPI {
     std::vector<field_t> fields;
 
   public:
-    DictTmpl(const cb::JSON::ValuePtr &tmpl);
+    DictTmpl(API &api, const cb::JSON::ValuePtr &tmpl);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

@@ -32,18 +32,18 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-IfTmpl::IfTmpl(const SmartPointer<Template> &ifTmpl,
-               const SmartPointer<Template> &thenTmpl,
-               const SmartPointer<Template> &elseTmpl) :
-  ifTmpl(ifTmpl), thenTmpl(thenTmpl), elseTmpl(elseTmpl) {}
+IfTmpl::IfTmpl(API &api, const SmartPointer<Template> &ifTmpl,
+  const SmartPointer<Template> &thenTmpl,
+  const SmartPointer<Template> &elseTmpl) :
+  Template(api), ifTmpl(ifTmpl), thenTmpl(thenTmpl), elseTmpl(elseTmpl) {}
 
 
-void IfTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void IfTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   auto cb =
     [this, resolver, done] (HTTP::Status status, const JSON::ValuePtr &data) {
       if (status == HTTP_OK && data.isSet() && data->toBoolean()) {
         if (thenTmpl.isSet()) thenTmpl->apply(resolver, done);
-        else done(HTTP_OK, resolver->getContext());
+        else done(HTTP_OK, resolver->select("."));
 
       } else {
         if (elseTmpl.isSet()) elseTmpl->apply(resolver, done);

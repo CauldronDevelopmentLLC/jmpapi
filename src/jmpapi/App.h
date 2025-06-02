@@ -35,6 +35,7 @@
 #include <cbang/event/Base.h>
 #include <cbang/event/Event.h>
 #include <cbang/event/SubprocessPool.h>
+#include <cbang/event/ConcurrentPool.h>
 #include <cbang/http/Client.h>
 #include <cbang/openssl/SSLContext.h>
 
@@ -46,6 +47,7 @@ namespace JmpAPI {
 
     cb::HTTP::Client client;
     cb::Event::SubprocessPool procPool;
+    cb::SmartPointer<cb::Event::ConcurrentPool> threadPool;
     Server server;
     API api;
     cb::JSON::ValuePtr config;
@@ -54,12 +56,14 @@ namespace JmpAPI {
 
   public:
     App();
+    ~App();
 
     static bool _hasFeature(int feature);
 
     cb::SSLContext &getSSLContext() {return sslCtx;}
     API &getAPI() {return api;}
     cb::Event::Base &getEventBase() {return base;}
+    Server &getServer() {return server;}
 
     // From cb::ServerApplication
     void beforeDroppingPrivileges() override;

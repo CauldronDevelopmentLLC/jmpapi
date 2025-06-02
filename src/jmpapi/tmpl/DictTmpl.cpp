@@ -34,13 +34,13 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-DictTmpl::DictTmpl(const JSON::ValuePtr &tmpl) {
+DictTmpl::DictTmpl(API &api, const JSON::ValuePtr &tmpl) : Template(api) {
   for (auto e: tmpl->entries())
     fields.push_back(field_t(e.key(), Template::parse(e.value())));
 }
 
 
-void DictTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void DictTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   // Handle empty template
   if (fields.empty()) return done(HTTP_OK, new JSON::Dict);
 

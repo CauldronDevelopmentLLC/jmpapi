@@ -50,7 +50,7 @@ using namespace JmpAPI;
 SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
   if (tmpl.isNull()) return 0;
   if (!tmpl->isDict() && !tmpl->isList())
-    return new SimpleWithTmpl(tmpl->asString(), 0);
+    return new SimpleWithTmpl(api, tmpl->asString(), 0);
 
   SmartPointer<Template> child;
   auto set =
@@ -62,22 +62,26 @@ SmartPointer<Template> Template::parse(const JSON::ValuePtr &tmpl) {
       child = c;
     };
 
-  if (tmpl->has("literal"))  set(new LiteralTmpl(tmpl->get("literal")));
-  if (tmpl->hasDict("dict")) set(new DictTmpl   (tmpl->get("dict")));
-  if (tmpl->hasDict("each")) set(new EachTmpl   (tmpl->get("each")));
-  if (tmpl->has("request"))  set(new RequestTmpl(tmpl->get("request")));
-  if (tmpl->has("and"))      set(new AndTmpl    (tmpl->get("and")));
-  if (tmpl->has("or"))       set(new OrTmpl     (tmpl->get("or")));
-  if (tmpl->has("not"))      set(new NotTmpl    (tmpl->get("not")));
-  if (tmpl->has("equal"))    set(new EqualTmpl  (tmpl->get("equal")));
+  if (tmpl->has("literal"))  set(new LiteralTmpl(api, tmpl->get("literal")));
+  if (tmpl->hasDict("dict")) set(new DictTmpl   (api, tmpl->get("dict")));
+  if (tmpl->hasDict("each")) set(new EachTmpl   (api, tmpl->get("each")));
+  if (tmpl->has("request"))  set(new RequestTmpl(api, tmpl->get("request")));
+  if (tmpl->has("and"))      set(new AndTmpl    (api, tmpl->get("and")));
+  if (tmpl->has("or"))       set(new OrTmpl     (api, tmpl->get("or")));
+  if (tmpl->has("not"))      set(new NotTmpl    (api, tmpl->get("not")));
+  if (tmpl->has("equal"))    set(new EqualTmpl  (api, tmpl->get("equal")));
   if (tmpl->has("if"))
-    set(new IfTmpl(parse(tmpl->get("if")), parse(tmpl->get("then", 0)),
+    set(new IfTmpl(api, parse(tmpl->get("if")), parse(tmpl->get("then", 0)),
                    parse(tmpl->get("else", 0))));
 
-  if (tmpl->has("debug"))  child = new DebugTmpl (tmpl->get("debug"),  child);
-  if (tmpl->has("with"))   child = new WithTmpl  (tmpl->get("with"),   child);
-  if (tmpl->has("status")) child = new StatusTmpl(tmpl->get("status"), child);
-  if (tmpl->has("on"))     child = new OnTmpl    (tmpl->get("on"),     child);
+  if (tmpl->has("debug"))
+    child = new DebugTmpl (api, tmpl->get("debug"),  child);
+  if (tmpl->has("with"))
+    child = new WithTmpl  (api, tmpl->get("with"),   child);
+  if (tmpl->has("status"))
+    child = new StatusTmpl(api, tmpl->get("status"), child);
+  if (tmpl->has("on"))
+    child = new OnTmpl    (api, tmpl->get("on"),     child);
 
   return child;
 }

@@ -46,7 +46,7 @@ namespace JmpAPI {
     std::map<cb::HTTP::Request *, cb::HTTP::Client::RequestPtr> activeRequests;
 
   public:
-    RequestTmpl(const cb::JSON::ValuePtr &config);
+    RequestTmpl(API &api, const cb::JSON::ValuePtr &config);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

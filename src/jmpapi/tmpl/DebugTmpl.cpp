@@ -44,12 +44,12 @@ namespace {
 }
 
 
-DebugTmpl::DebugTmpl(const JSON::ValuePtr &config,
+DebugTmpl::DebugTmpl(API &api, const JSON::ValuePtr &config,
                      const SmartPointer<Template> child) :
-  ctx(Template::parse(config)), child(child) {}
+  Template(api), ctx(Template::parse(config)), child(child) {}
 
 
-void DebugTmpl::apply(const API::ResolverPtr &resolver, cb_t _done) {
+void DebugTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t _done) {
   auto done =
     [this, resolver, _done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
@@ -63,7 +63,7 @@ void DebugTmpl::apply(const API::ResolverPtr &resolver, cb_t _done) {
       log("> ", status, data);
 
       if (child.isSet()) child->apply(resolver, done);
-      else done(status, resolver->getContext());
+      else done(status, resolver->select("."));
     };
 
   ctx->apply(resolver, cb);

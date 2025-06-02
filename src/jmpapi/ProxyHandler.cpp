@@ -40,7 +40,7 @@ using namespace JmpAPI;
 
 
 ProxyHandler::ProxyHandler(API &api, const JSON::ValuePtr &config) :
-  api(api), tmpl(new RequestTmpl(config)) {}
+  api(api), tmpl(new RequestTmpl(api, config)) {}
 
 
 bool ProxyHandler::operator()(HTTP::Request &req) {
@@ -55,7 +55,7 @@ bool ProxyHandler::operator()(HTTP::Request &req) {
       req.reply(status);
     };
 
-  tmpl->apply(new cb::API::Resolver(api, &req), cb);
+  tmpl->apply(new cb::API::Resolver(api, req), cb);
 
   return true;
 }

@@ -27,24 +27,25 @@
 
 #include "WithTmpl.h"
 
+#include <jmpapi/ContextResolver.h>
+
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-WithTmpl::WithTmpl(const JSON::ValuePtr &config,
-                   const SmartPointer<Template> child) :
-  ctx(Template::parse(config)), child(child) {
-}
+WithTmpl::WithTmpl(API &api, const JSON::ValuePtr &config,
+  const SmartPointer<Template> child) :
+  Template(api), ctx(Template::parse(config)), child(child) {}
 
 
-void WithTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void WithTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   if (child.isNull()) return ctx->apply(resolver, done);
 
   auto cb =
     [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {
-      child->apply(resolver->makeChild(data), done);
+      child->apply(new ContextResolver(resolver, data), done);
     };
 
   ctx->apply(resolver, cb);

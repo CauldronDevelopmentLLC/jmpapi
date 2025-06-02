@@ -35,10 +35,11 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-NotTmpl::NotTmpl(const JSON::ValuePtr &config) : child(parse(config)) {}
+NotTmpl::NotTmpl(API &api, const JSON::ValuePtr &config) :
+  Template(api), child(parse(config)) {}
 
 
-void NotTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void NotTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   auto cb =
     [this, resolver, done] (HTTP::Status status,
                             const JSON::ValuePtr &data) {

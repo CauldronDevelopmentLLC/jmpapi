@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2024, Cauldron Development LLC
+                 Copyright (c) 2014-2025, Cauldron Development Oy
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -25,45 +25,22 @@
 
 \******************************************************************************/
 
-#include "OnTmpl.h"
+#pragma once
 
-#include <cbang/json/True.h>
-#include <cbang/json/False.h>
-
-using namespace std;
-using namespace cb;
-using namespace JmpAPI;
+#include <cbang/api/Resolver.h>
 
 
-OnTmpl::OnTmpl(API &api, const JSON::ValuePtr &config,
-  const SmartPointer<Template> &child) : Template(api), child(child) {
-  if (config->isString() || config->isNumber()) add(*config);
+namespace JmpAPI {
+  class ContextResolver : public cb::API::Resolver {
+    cb::API::ResolverPtr root;
+    cb::API::ResolverPtr parent;
+    cb::JSON::ValuePtr ctx;
 
-  else if (config->isList())
-    for (auto &item: *config) add(*item);
+  public:
+    ContextResolver(
+      const cb::API::ResolverPtr &parent, const cb::JSON::ValuePtr &ctx);
 
-  else THROW("Invalid template: " << *config);
-}
-
-
-void OnTmpl::add(const JSON::Value &status) {
-  if (status.isString())
-    on.insert(HTTP::Status::parse(status.getString()));
-
-  else if (status.isNumber())
-    on.insert((HTTP::Status::enum_t)status.getNumber());
-
-  else THROW("Invalid 'on' status: " << status);
-}
-
-
-void OnTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
-  auto cb =
-    [this, done] (HTTP::Status status, const JSON::ValuePtr &data) {
-      if (on.find(status) == on.end())
-        done(HTTP_OK, JSON::False::instancePtr());
-      else done(HTTP_OK, JSON::True::instancePtr());
-    };
-
-  child->apply(resolver, cb);
+    // From cb::API::Resolver
+    cb::JSON::ValuePtr select(const std::string &name) const override;
+  };
 }

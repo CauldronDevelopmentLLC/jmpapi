@@ -11,7 +11,7 @@ endpoints:
     get|put|post|delete:
       handler: session
       help: Look up session by ID.
-      sql: CALL jmpapi.AuthSession(%(session.id)S)
+      sql: CALL jmpapi.AuthSession({session.id})
 
   /((login)|(logout)|(config)|(users)|(groups)).*:
     get|put|post|delete:
@@ -29,14 +29,14 @@ endpoints:
     get:
       handler: login
       sql: >
-        CALL jmpapi.AuthLogin(%(session.id)S, %(session.provider)S,
-          %(session.provider_id)S, %(session.user)S, %(session.name)S,
-          %(session.avatar)S)
+        CALL jmpapi.AuthLogin({session.id}, {session.provider},
+          {session.provider_id}, {session.user}, {session.name},
+          {session.avatar})
 
   /logout:
     put:
       handler: logout
-      sql: CALL jmpapi.AuthLogout(%(session.id)S)
+      sql: CALL jmpapi.AuthLogout({session.id})
       help: Close the currently logged in session.
 
   /config:
@@ -49,12 +49,12 @@ endpoints:
     /{name}:
       get:
         return: one
-        sql: CALL jmpapi.ConfigGet(%(args.name)S)
+        sql: CALL jmpapi.ConfigGet({args.name})
 
       put:
         args:
           value: {}
-        sql: CALL jmpapi.ConfigSet(%(args.name)S, %(args.value)i)
+        sql: CALL jmpapi.ConfigSet({args.name}, {args.value})
 
   /users:
     get:
@@ -80,8 +80,8 @@ endpoints:
         enabled: {type: bool, default: true}
 
       sql: >
-        CALL jmpapi.UserAdd(%(args.provider)S, %(args.provider_id)S,
-          %(args.email)S, %(args.name)S, %(args.avatar)S, %(args.enabled)b);
+        CALL jmpapi.UserAdd({args.provider}, {args.provider_id},
+          {args.email}, {args.name}, {args.avatar}, {args.enabled});
         SELECT @uid;
 
     /{id}:
@@ -93,7 +93,7 @@ endpoints:
       get:
         fields: ["*", associations, groups]
         help: Get user info.
-        sql: CALL jmpapi.UserGet(%(args.id)u)
+        sql: CALL jmpapi.UserGet({args.id})
 
       put:
         help: Update user settings
@@ -103,12 +103,12 @@ endpoints:
           avatar: {optional: true, type: uri}
           enabled: {allow: [$admin], optional: true, type: bool}
         sql: >
-          CALL jmpapi.UserSet(%(args.id)u, %(args.email)S, %(args.name)S,
-            %(args.avatar)S, %(args.enabled)b)
+          CALL jmpapi.UserSet({args.id}, {args.email}, {args.name},
+            {args.avatar}, {args.enabled})
 
       delete:
         help: Delete an existing user.
-        sql: CALL jmpapi.UserDelete(%(args.id)u)
+        sql: CALL jmpapi.UserDelete({args.id})
 
       /associations/{provider}:
         args:
@@ -124,29 +124,29 @@ endpoints:
             name: {optional: true, min: 2}
             avatar: {optional: true, type: uri}
           sql: >
-            CALL jmpapi.UserAssociationAdd(%(args.id)u, %(args.provider)S,
-              %(args.provider_id)S, %(args.email)S, %(args.name)S,
-              %(args.avatar)S)
+            CALL jmpapi.UserAssociationAdd({args.id}, {args.provider},
+              {args.provider_id}, {args.email}, {args.name},
+              {args.avatar})
 
         delete:
           help: Delete a user login association.
-          sql: CALL jmpapi.UserAssociationDelete(%(args.id)u, %(args.provider)S)
+          sql: CALL jmpapi.UserAssociationDelete({args.id}, {args.provider})
 
       /groups:
         allow: [$admin]
 
         get:
           return: list
-          sql: CALL jmpapi.UserGroupList(%(args.id)u)
+          sql: CALL jmpapi.UserGroupList({args.id})
           help: Get the list of groups with user membership.
 
         /{group}:
           put:
-            sql: CALL jmpapi.UserGroupAdd(%(args.id)u, %(args.group)S)
+            sql: CALL jmpapi.UserGroupAdd({args.id}, {args.group})
             help: Add a user to a group.
 
           delete:
-            sql: CALL jmpapi.UserGroupDelete(%(args.id)u, %(args.group)S)
+            sql: CALL jmpapi.UserGroupDelete({args.id}, {args.group})
             help: Remove a user from a group.
 
   /groups:
@@ -162,21 +162,21 @@ endpoints:
         group: {help: The group name.}
 
       put:
-        sql: CALL jmpapi.GroupAdd(%(args.group)S)
+        sql: CALL jmpapi.GroupAdd({args.group})
         help: Create a new group.
 
       delete:
-        sql: CALL jmpapi.GroupDelete(%(args.group)S)
+        sql: CALL jmpapi.GroupDelete({args.group})
         help: Delete a group.
 
       /members:
         get:
           return: list
-          sql: CALL jmpapi.GroupMemberList(%(args.group)S)
+          sql: CALL jmpapi.GroupMemberList({args.group})
           help: Returns a list of members of a group.
 
       /nonmembers:
         get:
           return: list
-          sql: CALL jmpapi.GroupNonmemberList(%(args.group)S)
+          sql: CALL jmpapi.GroupNonmemberList({args.group})
           help: Returns a list of nonmembers of a group.

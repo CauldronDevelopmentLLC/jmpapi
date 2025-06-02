@@ -27,14 +27,17 @@
 
 #include "SimpleWithTmpl.h"
 
+#include <jmpapi/ContextResolver.h>
+
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
 
-void SimpleWithTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void SimpleWithTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   JSON::ValuePtr result = resolver->select(ctx);
 
-  if (child.isSet()) child->apply(resolver->makeChild(result), done);
+  if (child.isSet())
+    child->apply(new ContextResolver(resolver, result), done);
   else done(HTTP_OK, result);
 }

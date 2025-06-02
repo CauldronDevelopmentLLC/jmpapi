@@ -37,7 +37,7 @@ namespace JmpAPI {
     cb::SmartPointer<Template> elseTmpl;
 
   public:
-    IfTmpl(const cb::SmartPointer<Template> &ifTmpl,
+    IfTmpl(API &api, const cb::SmartPointer<Template> &ifTmpl,
            const cb::SmartPointer<Template> &thenTmpl,
            const cb::SmartPointer<Template> &elseTmpl);
 

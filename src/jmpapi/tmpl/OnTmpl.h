@@ -38,8 +38,8 @@ namespace JmpAPI {
     cb::SmartPointer<Template> child;
 
   public:
-    OnTmpl(const cb::JSON::ValuePtr &config,
-           const cb::SmartPointer<Template> &child);
+    OnTmpl(API &api, const cb::JSON::ValuePtr &config,
+      const cb::SmartPointer<Template> &child);
 
     void add(const cb::JSON::Value &status);
 

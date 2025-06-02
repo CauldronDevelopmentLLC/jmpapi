@@ -27,6 +27,9 @@
 
 #include "RequestTmpl.h"
 
+#include <jmpapi/API.h>
+#include <jmpapi/ContextResolver.h>
+
 #include <cbang/api/API.h>
 #include <cbang/http/Client.h>
 #include <cbang/json/JSON.h>
@@ -52,15 +55,15 @@ namespace {
 }
 
 
-RequestTmpl::RequestTmpl(const JSON::ValuePtr &config) :
-  url(config->getString("url")),
+RequestTmpl::RequestTmpl(API &api, const JSON::ValuePtr &config) :
+  Template(api), url(config->getString("url")),
   method(HTTP::Method::parse(config->getString("method", "GET"))),
   headers(config->get("request-headers", 0)),
   dataTmpl(Template::parse(config->get("data", 0))),
   child(Template::parse(config)) {}
 
 
-void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void RequestTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   auto error_cb =
     [done] (const string &msg, const JSON::ValuePtr &data) {
       JSON::ValuePtr err = new JSON::Dict;
@@ -97,7 +100,8 @@ void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
         }
 
         // Template response
-        if (child.isSet()) child->apply(resolver->makeChild(data), done);
+        if (child.isSet())
+          child->apply(new ContextResolver(resolver, data), done);
         else done(outReq.getResponseCode(), data);
 
       } catch (Exception &e) {
@@ -107,8 +111,7 @@ void RequestTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
       } catch (std::exception &e) {error_cb(e.what(), data);}
     };
 
-  auto &client = resolver->getAPI().getClient();
-  auto pr = client.call(resolver->format(url), method, cb);
+  auto pr = getAPI().getClient().call(resolver->resolve(url), method, cb);
   activeRequests[pr->getRequest().get()] = pr;
   headers.set(*pr->getRequest());
 

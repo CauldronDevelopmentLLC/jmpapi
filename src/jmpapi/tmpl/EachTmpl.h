@@ -36,7 +36,7 @@ namespace JmpAPI {
     bool flatten = false;
 
   public:
-    EachTmpl(const cb::JSON::ValuePtr &tmpl);
+    EachTmpl(API &api, const cb::JSON::ValuePtr &tmpl);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

@@ -36,9 +36,9 @@ namespace JmpAPI {
     cb::SmartPointer<Template> child;
 
   public:
-    SimpleWithTmpl(const std::string &ctx,
-                   const cb::SmartPointer<Template> child) :
-      ctx(ctx), child(child) {}
+    SimpleWithTmpl(API &api, const std::string &ctx,
+      const cb::SmartPointer<Template> child) :
+      Template(api), ctx(ctx), child(child) {}
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

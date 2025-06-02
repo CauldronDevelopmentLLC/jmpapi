@@ -27,6 +27,8 @@
 
 #include "EachTmpl.h"
 
+#include <jmpapi/ContextResolver.h>
+
 #include <cbang/json/List.h>
 
 using namespace std;
@@ -34,14 +36,14 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-EachTmpl::EachTmpl(const JSON::ValuePtr &tmpl) :
-  child(Template::parse(tmpl)) {
+EachTmpl::EachTmpl(API &api, const JSON::ValuePtr &tmpl) :
+  Template(api), child(Template::parse(tmpl)) {
   if (tmpl->has("flatten")) flatten = tmpl->get("flatten")->toBoolean();
 }
 
 
-void EachTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
-  auto ctx = resolver->getContext();
+void EachTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
+  auto ctx = resolver->select(".");
   if (ctx.isNull() || !ctx->size()) return done(HTTP_OK, 0);
 
   struct Result {
@@ -90,6 +92,6 @@ void EachTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
         }
       };
 
-    child->apply(resolver->makeChild(ctx->get(i)), cb);
+    child->apply(new ContextResolver(resolver, ctx->get(i)), cb);
   }
 }

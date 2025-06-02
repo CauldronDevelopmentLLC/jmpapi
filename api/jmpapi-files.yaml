@@ -5,16 +5,16 @@ hide: true
 endpoints:
   /favicon.ico:
     get:
-      path: '%(options.favicon)s'
+      path: '{options.favicon}'
 
   /.*:
     get:
-      path: '%(options.http-root)s'
+      path: '{options.http-root}'
       index: 'index.html'
 
   /admin/.*:
     get:
-      path: '%(options.http-root)s/admin/index.html'
+      path: '{options.http-root}/admin/index.html'
 
   /openapi-spec:
     get:

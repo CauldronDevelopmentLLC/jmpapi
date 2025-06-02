@@ -47,8 +47,8 @@ using namespace std;
 
 App::App() :
   ServerApplication("JmpAPI", App::_hasFeature), base(true),
-  client(base, PhonyPtr(&sslCtx)), procPool(base), server(*this),
-  api(options), config(new JSON::Dict) {
+  client(base, PhonyPtr(&sslCtx)), procPool(base), server(*this), api(options),
+  config(new JSON::Dict) {
 
   // Seed random number generator
   srand48(Time::now());
@@ -60,6 +60,7 @@ App::App() :
               )->setDefault("/usr/share/jmpapi/http");
   options.add("favicon", "Path to site icon."
               )->setDefault("/usr/share/jmpapi/http/favicon.ico");
+  options.add("timeseries-db", "Path to timeseries database.");
   options.popCategory();
 
   options.pushCategory("SSL");
@@ -80,12 +81,12 @@ App::App() :
   options["private-key-file"].clearDefault();
 
   // OAuth2
-  auto oauth2Providers = new OAuth2::Providers;
+  auto oauth2Providers = SmartPtr(new OAuth2::Providers);
   oauth2Providers->loadAll();
   oauth2Providers->addOptions(options);
 
   // DB
-  auto connector = new MariaDB::Connector(base);
+  auto connector = SmartPtr(new MariaDB::Connector(base));
   connector->addOptions(options);
 
   // Setup API
@@ -101,6 +102,10 @@ App::App() :
   // Handle exit signal
   (sigintEvent  = base.newSignal(SIGINT,  this, &App::signalEvent))->add();
   (sigtermEvent = base.newSignal(SIGTERM, this, &App::signalEvent))->add();
+}
+
+App::~App() {
+  if (threadPool.isSet()) threadPool->join();
 }
 
 
@@ -143,6 +148,16 @@ void App::afterCommandLineParse() {
     server.getSSLContext()->setCipherList(sslCipherList);
   }
 
+  // Open timeseries DB
+  auto &tsdbOpt = options["timeseries-db"];
+  if (tsdbOpt.hasValue()) {
+    threadPool = new Event::ConcurrentPool(base, 1);
+    threadPool->start();
+    auto timeseriesDB = SmartPtr(new EventLevelDB(threadPool));
+    timeseriesDB->open(tsdbOpt, LevelDB::CREATE_IF_MISSING);
+    api.setTimeseriesDB(timeseriesDB);
+  }
+
   // Load API
   api.load(config);
 
@@ -154,6 +169,7 @@ void App::run() {
   try {
     base.dispatch();
     procPool.shutdown();
+    if (threadPool.isSet()) threadPool->join();
     LOG_INFO(1, "Clean exit");
   } CATCH_ERROR;
 }

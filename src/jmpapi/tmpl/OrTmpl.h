@@ -37,7 +37,7 @@ namespace JmpAPI {
     std::vector<cb::SmartPointer<Template> > children;
 
   public:
-    OrTmpl(const cb::JSON::ValuePtr &config);
+    OrTmpl(API &api, const cb::JSON::ValuePtr &config);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;

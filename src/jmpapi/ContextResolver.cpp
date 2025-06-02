@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2024, Cauldron Development LLC
+                 Copyright (c) 2014-2025, Cauldron Development Oy
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -25,45 +25,33 @@
 
 \******************************************************************************/
 
-#include "OnTmpl.h"
-
-#include <cbang/json/True.h>
-#include <cbang/json/False.h>
+#include "ContextResolver.h"
 
 using namespace std;
 using namespace cb;
 using namespace JmpAPI;
 
+ContextResolver::ContextResolver(
+  const API::ResolverPtr &parent, const JSON::ValuePtr &ctx) :
+  parent(parent), ctx(ctx) {
 
-OnTmpl::OnTmpl(API &api, const JSON::ValuePtr &config,
-  const SmartPointer<Template> &child) : Template(api), child(child) {
-  if (config->isString() || config->isNumber()) add(*config);
-
-  else if (config->isList())
-    for (auto &item: *config) add(*item);
-
-  else THROW("Invalid template: " << *config);
+  if (parent.isInstance<ContextResolver>())
+    root = parent.cast<ContextResolver>()->root;
+  else root = parent;
 }
 
 
-void OnTmpl::add(const JSON::Value &status) {
-  if (status.isString())
-    on.insert(HTTP::Status::parse(status.getString()));
+JSON::ValuePtr ContextResolver::select(const string &name) const {
+  if (name == ".") return ctx;
 
-  else if (status.isNumber())
-    on.insert((HTTP::Status::enum_t)status.getNumber());
+  if (name == "..") return parent->select(".");
+  if (String::startsWith(name, "../")) {
+    if (parent.isSet()) return parent->select(name.substr(3));
+    return 0;
+  }
 
-  else THROW("Invalid 'on' status: " << status);
-}
+  if (String::startsWith(name, "./")) return ctx->select(name.substr(2), 0);
 
-
-void OnTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
-  auto cb =
-    [this, done] (HTTP::Status status, const JSON::ValuePtr &data) {
-      if (on.find(status) == on.end())
-        done(HTTP_OK, JSON::False::instancePtr());
-      else done(HTTP_OK, JSON::True::instancePtr());
-    };
-
-  child->apply(resolver, cb);
+  auto result = root->select(name);
+  return result.isSet() ? result : ctx->select(name, 0);
 }

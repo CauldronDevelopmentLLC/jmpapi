@@ -37,7 +37,7 @@ using namespace cb;
 using namespace JmpAPI;
 
 
-EqualTmpl::EqualTmpl(const JSON::ValuePtr &config) {
+EqualTmpl::EqualTmpl(API &api, const JSON::ValuePtr &config) : Template(api) {
   if (!config->isList() || !config->size())
     THROW("Invalid 'equal' template, must be an non-empty list");
 
@@ -49,7 +49,7 @@ EqualTmpl::EqualTmpl(const JSON::ValuePtr &config) {
 }
 
 
-void EqualTmpl::apply(const API::ResolverPtr &resolver, cb_t done) {
+void EqualTmpl::apply(const cb::API::ResolverPtr &resolver, cb_t done) {
   struct Result {
     size_t total;
     size_t count;

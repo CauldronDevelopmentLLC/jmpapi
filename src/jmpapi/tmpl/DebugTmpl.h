@@ -36,7 +36,7 @@ namespace JmpAPI {
     cb::SmartPointer<Template> child;
 
   public:
-    DebugTmpl(const cb::JSON::ValuePtr &config,
+    DebugTmpl(API &api, const cb::JSON::ValuePtr &config,
               const cb::SmartPointer<Template> child);
 
     // From Template

@@ -36,15 +36,22 @@
 
 
 namespace JmpAPI {
+  class API;
+
   class Template : public cb::HTTP::Enum {
+    API &api;
+
   public:
+    Template(API &api) : api(api) {}
     virtual ~Template() {}
+
+    API &getAPI() const {return api;}
 
     typedef std::function<void (
     cb::HTTP::Status status, const cb::JSON::ValuePtr &data)> cb_t;
 
     virtual void apply(const cb::API::ResolverPtr &resolver, cb_t done) = 0;
 
-    static cb::SmartPointer<Template> parse(const cb::JSON::ValuePtr &tmpl);
+    cb::SmartPointer<Template> parse(const cb::JSON::ValuePtr &tmpl);
   };
 }

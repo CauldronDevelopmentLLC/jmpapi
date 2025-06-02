@@ -37,7 +37,7 @@ namespace JmpAPI {
     cb::SmartPointer<Template> child;
 
   public:
-    NotTmpl(const cb::JSON::ValuePtr &config);
+    NotTmpl(API &api, const cb::JSON::ValuePtr &config);
 
     // From Template
     void apply(const cb::API::ResolverPtr &resolver, cb_t done) override;
