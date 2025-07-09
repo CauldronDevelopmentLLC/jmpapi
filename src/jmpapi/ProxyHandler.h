@@ -27,14 +27,14 @@
 
 #pragma once
 
-#include <cbang/http/RequestHandler.h>
+#include <cbang/api/Handler.h>
 
 
 namespace JmpAPI {
   class API;
   class Template;
 
-  class ProxyHandler : public cb::HTTP::RequestHandler {
+  class ProxyHandler : public cb::API::Handler {
     API &api;
     cb::SmartPointer<Template> tmpl;
 
@@ -42,6 +42,6 @@ namespace JmpAPI {
     ProxyHandler(API &api, const cb::JSON::ValuePtr &config);
 
     // From HTTP::RequestHandler
-    bool operator()(cb::HTTP::Request &req) override;
+    bool operator()(const cb::API::CtxPtr &ctx) override;
   };
 }

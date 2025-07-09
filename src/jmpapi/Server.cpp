@@ -51,5 +51,4 @@ Server::Server(App &app) :
 void Server::init() {
   HTTP::Server::init(app.getOptions());
   addHandler(PhonyPtr(&app.getAPI()));
-  addHandler(new cb::API::StatusHandler(HTTP_NOT_FOUND));
 }

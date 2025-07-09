@@ -43,19 +43,13 @@ ProxyHandler::ProxyHandler(API &api, const JSON::ValuePtr &config) :
   api(api), tmpl(new RequestTmpl(api, config)) {}
 
 
-bool ProxyHandler::operator()(HTTP::Request &req) {
-  auto cb =
-    [&req] (HTTP::Status status, const JSON::ValuePtr &data) {
-      if (data.isSet()) {
-        if (!req.outHas("Content-Type"))
-          req.outSet("Content-Type", "application/json");
-        req.send(data->toString());
-      }
+bool ProxyHandler::operator()(const cb::API::CtxPtr &ctx) {
+  auto cb = [ctx] (HTTP::Status status, const JSON::ValuePtr &data) {
+    if (data.isSet()) ctx->reply(status, data);
+    else ctx->reply(status);
+  };
 
-      req.reply(status);
-    };
-
-  tmpl->apply(new cb::API::Resolver(api, req), cb);
+  tmpl->apply(ctx->getResolver(), cb);
 
   return true;
 }
