@@ -4,6 +4,7 @@ NAME=jmpapi
 ETC=/etc/$NAME
 LOG=/var/log/$NAME
 DOC=/usr/share/doc/$NAME
+HOME_DIR=/var/lib/$NAME
 
 case "$1" in
   reconfigure|configure)
@@ -18,6 +19,9 @@ case "$1" in
 
     # Create log dir
     test -d $LOG || mkdir -m 775 $LOG && chgrp $NAME $LOG
+
+    # Create home dir
+    test -d $HOME_DIR || mkdir -m 770 $HOME_DIR && chgrp $NAME $HOME_DIR
 
     # Install the service
     for SERVICE in jmpapi.service jmpapi@.service; do

@@ -6,6 +6,7 @@ After=network.target
 User=jmpapi
 Type=forking
 ExecStart=/usr/bin/jmpapi-run
+WorkingDirectory=/var/lib/jmpapi
 Restart=always
 StandardOutput=null
 UMask=0002
