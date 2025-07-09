@@ -36,4 +36,4 @@ ARGS+=" --log $LOG --log-rotate --log-rotate-dir=/var/log/jmpapi"
 
 export PATH=$HOME/bin:$PATH
 
-/usr/bin/jmpapi $ARGS &
+exec /usr/bin/jmpapi $ARGS

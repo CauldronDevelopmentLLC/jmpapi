@@ -4,7 +4,6 @@ After=network.target
 
 [Service]
 User=jmpapi
-Type=forking
 ExecStart=/usr/bin/jmpapi-run
 WorkingDirectory=/var/lib/jmpapi
 Restart=always
