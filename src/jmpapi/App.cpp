@@ -46,7 +46,7 @@ using namespace std;
 
 
 App::App() :
-  ServerApplication("JmpAPI", App::_hasFeature), base(true),
+  ServerApplication("JmpAPI", App::_hasFeature), base(true, 10),
   client(base, PhonyPtr(&sslCtx)), procPool(base), server(*this), api(options),
   config(new JSON::Dict) {
 
