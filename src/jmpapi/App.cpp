@@ -152,7 +152,7 @@ void App::afterCommandLineParse() {
   auto &tsdbOpt = options["timeseries-db"];
   if (tsdbOpt.hasValue()) {
     LOG_INFO(3, "Opening Timeseries DB " << tsdbOpt);
-    threadPool = new Event::ConcurrentPool(base, 1);
+    threadPool = new Event::ConcurrentPool(base, 10);
     threadPool->start();
     auto timeseriesDB = SmartPtr(new EventLevelDB(threadPool));
     timeseriesDB->open(tsdbOpt, LevelDB::CREATE_IF_MISSING);
