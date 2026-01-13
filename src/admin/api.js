@@ -2,7 +2,7 @@
 
                            This file is part of JmpAPI.
 
-                Copyright (c) 2014-2024, Cauldron Development LLC
+                 Copyright (c) 2014-2026, Cauldron Development Oy
                                All rights reserved.
 
            The JmpAPI Webserver is free software: you can redistribute
@@ -24,7 +24,6 @@
                           joseph@cauldrondevelopment.com
 
 \******************************************************************************/
-
 
 function trimif(s) {
   s = s == undefined ? '' : s.trim()
