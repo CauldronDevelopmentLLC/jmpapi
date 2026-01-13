@@ -6,12 +6,12 @@ login.
 # Prerequisites
   - [C!](https://github.com/CauldronDevelopmentLLC/cbang)
 
-In Debian Linux, after installing C!, you can install the packaged prerequsites
-as follows:
+In Debian Linux, after installing C!, you can install the packaged prerequisites as follows:
 
     sudo apt-get update
-    sudo apt-get install -y libmariadb-dev libmariadb-dev-compat mariadb-server \
-      python3-pymysql libssl-dev ssl-cert npm build-essential scons
+    sudo apt-get install -y libmariadb-dev libmariadb-dev-compat \
+    mariadb-server python3-pymysql libssl-dev ssl-cert npm build-essential \
+    scons
 
 # Build
 
