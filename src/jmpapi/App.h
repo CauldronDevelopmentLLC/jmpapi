@@ -71,7 +71,5 @@ namespace JmpAPI {
     // From cb::Application
     void afterCommandLineParse() override;
     void run() override;
-
-    void signalEvent(cb::Event::Event &e, int signal, unsigned flags);
   };
 }

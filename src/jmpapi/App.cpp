@@ -100,8 +100,9 @@ App::App() :
   Event::Event::enableLogging(3);
 
   // Handle exit signal
-  (sigintEvent  = base.newSignal(SIGINT,  this, &App::signalEvent))->add();
-  (sigtermEvent = base.newSignal(SIGTERM, this, &App::signalEvent))->add();
+  auto exitCB = [this] {base.loopExit();};
+  (sigintEvent  = base.newSignal(SIGINT,  exitCB))->add();
+  (sigtermEvent = base.newSignal(SIGTERM, exitCB))->add();
 }
 
 App::~App() {
@@ -173,9 +174,4 @@ void App::run() {
     if (threadPool.isSet()) threadPool->join();
     LOG_INFO(1, "Clean exit");
   } CATCH_ERROR;
-}
-
-
-void App::signalEvent(Event::Event &e, int signal, unsigned flags) {
-  base.loopExit();
 }
