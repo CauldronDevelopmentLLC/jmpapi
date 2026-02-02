@@ -9,6 +9,7 @@ WorkingDirectory=/var/lib/jmpapi
 Restart=always
 StandardOutput=null
 UMask=0002
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
