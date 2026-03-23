@@ -46,7 +46,7 @@ using namespace std;
 
 
 App::App() :
-  ServerApplication("JmpAPI", App::_hasFeature), base(true, 10),
+  Application("JmpAPI"), base(true, 10),
   client(base, PhonyPtr(&sslCtx)), procPool(base), server(*this), api(options),
   config(new JSON::Dict) {
 
@@ -110,12 +110,6 @@ App::~App() {
 }
 
 
-bool App::_hasFeature(int feature) {
-  if (feature == FEATURE_SIGNAL_HANDLER) return false;
-  return ServerApplication::_hasFeature(feature);
-}
-
-
 void App::beforeDroppingPrivileges() {
   // Libevent debugging
   if (options["debug-libevent"].toBoolean()) Event::Event::enableDebugLogging();
@@ -163,7 +157,7 @@ void App::afterCommandLineParse() {
   // Load API
   api.load(config);
 
-  ServerApplication::afterCommandLineParse();
+  Application::afterCommandLineParse();
 }
 
 

@@ -30,7 +30,7 @@
 #include "Server.h"
 #include "API.h"
 
-#include <cbang/ServerApplication.h>
+#include <cbang/Application.h>
 
 #include <cbang/event/Base.h>
 #include <cbang/event/Event.h>
@@ -41,7 +41,7 @@
 
 
 namespace JmpAPI {
-  class App : public cb::ServerApplication {
+  class App : public cb::Application {
     cb::Event::Base base;
     cb::SSLContext sslCtx;
 
@@ -58,17 +58,13 @@ namespace JmpAPI {
     App();
     ~App();
 
-    static bool _hasFeature(int feature);
-
     cb::SSLContext &getSSLContext() {return sslCtx;}
     API &getAPI() {return api;}
     cb::Event::Base &getEventBase() {return base;}
     Server &getServer() {return server;}
 
-    // From cb::ServerApplication
-    void beforeDroppingPrivileges() override;
-
     // From cb::Application
+    void beforeDroppingPrivileges() override;
     void afterCommandLineParse() override;
     void run() override;
   };
