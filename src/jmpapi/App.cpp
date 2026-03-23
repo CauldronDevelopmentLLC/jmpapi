@@ -110,7 +110,15 @@ App::~App() {
 }
 
 
-void App::beforeDroppingPrivileges() {
+int App::init(int argc, char *argv[]) {
+  int ret = Application::init(argc, argv);
+  if (ret == -1) return ret;
+  server.init();
+  return ret;
+}
+
+
+void App::afterCommandLineParse() {
   // Libevent debugging
   if (options["debug-libevent"].toBoolean()) Event::Event::enableDebugLogging();
 
@@ -118,11 +126,6 @@ void App::beforeDroppingPrivileges() {
   MariaDB::DB::libraryInit();
   MariaDB::DB::threadInit();
 
-  server.init();
-}
-
-
-void App::afterCommandLineParse() {
   // Load config
   const vector<string> &configs = cmdLine.getPositionalArgs();
   for (unsigned i = 0; i < configs.size(); i++) {

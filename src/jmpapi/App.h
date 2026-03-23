@@ -64,7 +64,7 @@ namespace JmpAPI {
     Server &getServer() {return server;}
 
     // From cb::Application
-    void beforeDroppingPrivileges() override;
+    int init(int argc, char *argv[]) override;
     void afterCommandLineParse() override;
     void run() override;
   };
