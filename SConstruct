@@ -7,10 +7,6 @@ except Exception as e:
   raise Exception('CBANG_HOME not set?\n' + str(e))
 
 env.CBLoadTools('compiler cbang dist build_info packager')
-
-# Override variables
-env.CBAddVariables(('cxxstd', 'Set C++ language standard', 'c++11'))
-
 conf = env.CBConfigure()
 
 # Settings
