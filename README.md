@@ -1,71 +1,125 @@
 JmpAPI
-===========
-A high performance JSON over HTTP API server with MariaDB built-in federated
-login.
+======
+A high performance JSON-over-HTTP(S) API server. JmpAPI builds an API
+from YAML config files: URL endpoints map to MariaDB stored procedures,
+OAuth2 logins, file serving, websockets, or upstream HTTP proxies.
+
+Features:
+
+  - YAML-driven endpoints — no code required for a typical CRUD API.
+  - MariaDB-backed sessions and OAuth2 federated login (Google, GitHub,
+    Facebook).
+  - Optional password login via a stored procedure.
+  - Periodic timeseries with websocket subscription.
+  - Auto-generated OpenAPI 3.1 spec.
+  - HTTPS with ACME2 (Let's Encrypt) certificate acquisition.
+
+# Documentation
+
+Configuration reference is in [doc/](doc/):
+
+  - [doc/README.md](doc/README.md) — overview and links
+  - [doc/configuration.md](doc/configuration.md) — top-level config
+  - [doc/endpoints.md](doc/endpoints.md) — endpoint structure
+  - [doc/handlers.md](doc/handlers.md) — handler types
+  - [doc/args.md](doc/args.md) — argument validation
+  - [doc/sql.md](doc/sql.md) — SQL queries and interpolation
+  - [doc/access-control.md](doc/access-control.md) — allow/deny rules
+  - [doc/auth.md](doc/auth.md) — OAuth2 and password login
+  - [doc/timeseries.md](doc/timeseries.md) — periodic data + websockets
+
+Working example configs live in [api/](api/).
 
 # Prerequisites
+
   - [C!](https://github.com/CauldronDevelopmentLLC/cbang)
 
-In Debian Linux, after installing C!, you can install the packaged prerequisites as follows:
+On Debian/Ubuntu, install the rest with:
 
-    sudo apt-get update
-    sudo apt-get install -y libmariadb-dev libmariadb-dev-compat \
-    mariadb-server python3-pymysql libssl-dev ssl-cert npm build-essential \
-    scons
+```sh
+sudo apt-get update
+sudo apt-get install -y scons libmariadb-dev libmariadb-dev-compat \
+  mariadb-server python3-pymysql libssl-dev ssl-cert npm build-essential
+```
 
 # Build
 
-    export CBANG_HOME=/path/to/cbang
-    scons
+```sh
+export CBANG_HOME=/path/to/cbang
+scons
+```
 
 # Install
 
-    scons package
-    sudo dpkg -i jmpapi_0.2.5_amd64.deb
+```sh
+scons package
+sudo dpkg -i jmpapi_*_amd64.deb
+```
 
-Next edit or install the API configuration files in ``/etc/jmpapi/``.
+The package creates the `jmpapi` system user, installs the systemd
+units, and drops example configs into `/etc/jmpapi/`:
 
-# Create the DB and user
+  - `jmpapi.yaml` — top-level config (copy of `api/jmpapi-example.yaml`).
+  - `local.yaml` — local secrets and addresses (copy of
+    `api/local-example.yaml`, **root-readable only**).
+  - `jmpapi-auth.yaml` — auth API (symlink to the packaged file).
 
-    mysql -u root -p
-    CREATE DATABASE jmpapi;
-    CREATE USER 'jmpapi'@'localhost' IDENTIFIED BY '<password>';
-    GRANT EXECUTE, SELECT, UPDATE, INSERT, DELETE ON jmpapi.* TO
-      'jmpapi'@'localhost';
-    exit
-    ./scripts/update_db.py
+# Create the database
 
+```sh
+mysql -u root -p
+```
 
-# Start the API server
+```sql
+CREATE DATABASE jmpapi;
+CREATE USER 'jmpapi'@'localhost' IDENTIFIED BY '<password>';
+GRANT EXECUTE, SELECT, UPDATE, INSERT, DELETE ON jmpapi.* TO
+  'jmpapi'@'localhost';
+```
 
-    sudo service jmpapi start
+Then load the schema and stored procedures:
 
-# OAuth2 Setup
+```sh
+./scripts/update_db.py
+```
 
-JmpAPI can use OAuth2 logins provided other sites such as Google, Facebook or
-GitHub.  OAuth2 configuration requires three configuration options per provider:
+`update_db.py` reads `src/sql/schema.sql` and `src/sql/procedures.sql`
+on a fresh DB, or applies `update-*.sql` migrations on an existing one.
 
-  1. ``<provider>-client-secret``.  The OAuth2 client secret.
-  2. ``<provider>-client-id``.  The OAuth2 client ID.
-  3. ``<provider>-redirect-base``.  The base URL login redirects.
+# Configure
 
-You must obtain the OAuth2 client secret and id from the provider in a provider
-specfic way.  Most providers require that you also configure the allowed
-redirect URL.  This is the URL they will redirect logins to get user back to
-your site.
+Edit `/etc/jmpapi/local.yaml` with your DB credentials, listen
+addresses, SSL certificate, and any OAuth2 client IDs and secrets:
 
-The OAuth2 secret must be protected so make sure that the JmpAPI configuration
-file which contains the secrets is readable only by ``root``.
+```yaml
+options:
+  https-addresses: [0.0.0.0:443]
+  db-user: jmpapi
+  db-pass: "..."
+  google-client-id:     "..."
+  google-client-secret: "..."
+  google-redirect-base: https://example.com
+```
 
-## GitHub
+See [doc/configuration.md](doc/configuration.md) for the full options
+list and [doc/auth.md](doc/auth.md) for OAuth2 provider setup.
 
-To obtain OAuth2 credentials from GitHub.  Login in and either go to your
-personal settings or organization settings.  Then under ``Developer Settings``
-select ``OAuth Apps`` and click ``New OAuth App``.  Set the client ID and
-secret from this page as ``github-client-id`` and ``github-client-secret``.
+# Run
 
-## Facebook
-TODO
+```sh
+sudo systemctl start jmpapi
+sudo systemctl enable jmpapi   # start on boot
+```
 
-## Google
-TODO
+For multiple independent API instances on one host, use the templated
+unit:
+
+```sh
+sudo systemctl start jmpapi@<instance>
+```
+
+Logs are written to `journalctl -u jmpapi`.
+
+# License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE).
