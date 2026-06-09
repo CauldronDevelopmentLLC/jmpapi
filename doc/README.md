@@ -2,12 +2,13 @@
 
 JmpAPI builds a JSON-over-HTTP API from one or more YAML files. Each file
 declares URL endpoints that map HTTP methods to SQL queries, login flows,
-file serving, websockets, or HTTP proxies.
+file serving, websockets, HTTP proxies, external programs, and conditional
+pipelines.
 
 A minimal config:
 
 ```yaml
-jmpapi: 1.1.0
+jmpapi: 1.2.0
 
 info:
   title: Example
@@ -27,6 +28,8 @@ Run with `jmpapi config.yaml`.
   - [configuration.md](configuration.md) — top-level keys, includes, options
   - [endpoints.md](endpoints.md) — paths, methods, nesting, common keys
   - [handlers.md](handlers.md) — handler types and their config
+  - [exec.md](exec.md) — run an external program as a pipeline step
+  - [conditions.md](conditions.md) — `if`/`then`/`else` control flow
   - [args.md](args.md) — argument validation, types, inheritance
   - [sql.md](sql.md) — SQL queries, interpolation, return types, fields
   - [access-control.md](access-control.md) — `allow`/`deny`, groups, sessions

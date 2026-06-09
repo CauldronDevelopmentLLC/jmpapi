@@ -14,7 +14,7 @@ root-only file separate from the public API definition.
 
 | Key      | Purpose                                                       |
 |----------|---------------------------------------------------------------|
-| `jmpapi` | Required. Minimum config version. Must be `>= 1.1.0`.         |
+| `jmpapi` | Required. Minimum config version. Must be `>= 1.2.0`.         |
 | `info`   | OpenAPI `info` block (`title`, `version`, `description`, …).  |
 | `apis`   | Map of named sub-APIs, usually included from other files.     |
 | `options`| Runtime options (addresses, DB, OAuth2, paths, …).            |
