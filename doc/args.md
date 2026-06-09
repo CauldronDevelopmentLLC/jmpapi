@@ -1,8 +1,11 @@
 # Arguments
 
-Args are URL path captures, query-string parameters, or JSON body
-fields. They are validated, type-coerced, and made available as
-`{args.<name>}` for interpolation.
+Args are URL path captures, query-string parameters, JSON body fields, or the
+plain (non-file) fields of a `multipart/form-data` body. They are validated,
+type-coerced, and made available as `{args.<name>}` for interpolation.
+
+Binary inputs — a raw body or multipart file parts — are not args; they use the
+`{body}` and `{files.*}` roots instead. See [binary.md](binary.md).
 
 ```yaml
 endpoints:
@@ -15,7 +18,8 @@ endpoints:
       return: list
 ```
 
-Args are checked in this order: path captures, query string, JSON body.
+Args are checked in this order: path captures, query string, then the body
+(JSON fields, or multipart plain fields).
 
 ## Types
 

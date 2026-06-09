@@ -35,6 +35,13 @@ Modifiers:
 Inside SQL, strings are auto-quoted with MariaDB escaping; numbers and
 booleans are inserted raw; missing values become `NULL`.
 
+## Binary parameters
+
+The binary roots `{body}` and `{files.<name>}` are not interpolated into the
+SQL text — they are bound as real statement parameters, which is binary-safe at
+any size. See [binary.md](binary.md). Everything else is interpolated as
+described above.
+
 ## Typed values
 
 Inside SQL, values are always formatted into the statement (above). Elsewhere —
@@ -70,6 +77,7 @@ Set `return:` on the method.
 | `list`   | All rows as a list (of values if 1 column, else objects). |
 | `hlist`  | List with a header row of column names first.            |
 | `fields` | Multi-result-set merge into a dict. See below.           |
+| `binary` | First column of row 1 as the raw response body. See [binary.md](binary.md). |
 
 ## `fields`
 

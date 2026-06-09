@@ -32,6 +32,7 @@ Run with `jmpapi config.yaml`.
   - [conditions.md](conditions.md) — `if`/`then`/`else` control flow
   - [args.md](args.md) — argument validation, types, inheritance
   - [sql.md](sql.md) — SQL queries, interpolation, return types, fields
+  - [binary.md](binary.md) — binary bodies, multipart uploads, BLOBs
   - [access-control.md](access-control.md) — `allow`/`deny`, groups, sessions
   - [auth.md](auth.md) — OAuth2 setup and password-based login
   - [timeseries.md](timeseries.md) — periodic SQL data and websocket streams

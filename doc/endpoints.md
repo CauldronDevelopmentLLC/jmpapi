@@ -51,6 +51,9 @@ inherit from parent keys for `args` and `allow`/`deny`.
 | `headers`    | Response headers, as a map.                            |
 | `return`     | Query return shape. See [sql.md](sql.md).              |
 | `fields`     | Field layout when `return: fields`. See [sql.md](sql.md). |
+| `body`       | Raw binary request body. See [binary.md](binary.md).   |
+| `files`      | Multipart file-part declarations. See [binary.md](binary.md). |
+| `content-type` | Response `Content-Type` for `return: binary`. See [binary.md](binary.md). |
 | `help`       | Description used in the OpenAPI spec.                  |
 | `hide`       | If true, omit from the OpenAPI spec.                   |
 | `exec` | Run an external program as a step. See [exec.md](exec.md). |
