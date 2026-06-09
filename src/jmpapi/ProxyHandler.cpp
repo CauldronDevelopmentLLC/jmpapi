@@ -43,13 +43,12 @@ ProxyHandler::ProxyHandler(API &api, const JSON::ValuePtr &config) :
   api(api), tmpl(new RequestTmpl(api, config)) {}
 
 
-bool ProxyHandler::operator()(const cb::API::CtxPtr &ctx) {
+void ProxyHandler::operator()(
+  const cb::API::CtxPtr &ctx, const cb::API::Cont &next) {
   auto cb = [ctx] (HTTP::Status status, const JSON::ValuePtr &data) {
     if (data.isSet()) ctx->reply(status, data);
     else ctx->reply(status);
   };
 
   tmpl->apply(ctx->getResolver(), cb);
-
-  return true;
 }

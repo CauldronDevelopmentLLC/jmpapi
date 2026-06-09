@@ -157,9 +157,9 @@ The proxy can also template the response — see the `proxy` source
 files for `with`, `each`, `if`, `and`, `or`, `not`, `equal`, `literal`,
 `dict`, `on`, `debug`, `status`.
 
-## subprocess
+## exec
 
 Not a handler but a statement: runs an external program as a step in the
 pipeline, exchanging a JSON metadata envelope. It can modify args, set the
-response, or short-circuit. See [subprocess.md](subprocess.md). To run one
+response, or short-circuit. See [exec.md](exec.md). To run one
 conditionally, see [conditions.md](conditions.md).

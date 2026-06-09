@@ -53,7 +53,7 @@ inherit from parent keys for `args` and `allow`/`deny`.
 | `fields`     | Field layout when `return: fields`. See [sql.md](sql.md). |
 | `help`       | Description used in the OpenAPI spec.                  |
 | `hide`       | If true, omit from the OpenAPI spec.                   |
-| `subprocess` | Run an external program as a step. See [subprocess.md](subprocess.md). |
+| `exec` | Run an external program as a step. See [exec.md](exec.md). |
 | `if` / `then` / `else` | Conditional execution. See [conditions.md](conditions.md). |
 | `path`       | File path. Implies `handler: file`.                    |
 | `index`      | Index filename for `handler: file` directories.        |

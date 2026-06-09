@@ -1,27 +1,27 @@
-# Subprocesses
+# Exec
 
-jmpapi pushes dynamic logic to the DB in stored procedures. Subprocesses are
-the deliberate exception: when work doesn't belong in SQL — resizing an image,
+jmpapi pushes dynamic logic to the DB in stored procedures. `exec` is the
+deliberate exception: when work doesn't belong in SQL — resizing an image,
 shelling out to a tool, touching the filesystem — an endpoint can run an
 external program as a step in its pipeline.
 
-A subprocess exchanges a metadata envelope with jmpapi and may modify args, set
-the response, or short-circuit with a status code. Downstream handlers consume
-`args`, so modifying `args` is how a subprocess feeds data forward.
+An `exec` step exchanges a metadata envelope with jmpapi and may modify args,
+set the response, or short-circuit with a status code. Downstream handlers
+consume `args`, so modifying `args` is how `exec` feeds data forward.
 
-To run a subprocess only under some condition (a missing file, a DB result),
-wrap it in a conditional — see [conditions.md](conditions.md).
+To run a program only under some condition (a missing file, a DB result), wrap
+it in a conditional — see [conditions.md](conditions.md).
 
 ## Pipeline model
 
 A method endpoint runs a sequence of statements ending in one terminal
 **handler** — the thing that replies (`path`, `resource`, a replying `query`,
-…, per [handlers.md](handlers.md)). A subprocess is one such statement. A
+…, per [handlers.md](handlers.md)). An `exec` is one such statement. A
 sequence is written as a YAML list: statements run in order, and each either
 replies (ending the request) or passes to the next.
 
-A subprocess is async: like a DB query it interrupts synchronous processing,
-runs off the event loop, and resumes when it completes. On completion it either
+`exec` is async: like a DB query it interrupts synchronous processing, runs off
+the event loop, and resumes when it completes. On completion it either
 
   - **short-circuits** — sends the reply itself and stops, or
   - **feeds forward** — applies its result to the request and passes to the
@@ -33,7 +33,7 @@ runs off the event loop, and resumes when it completes. On completion it either
     if:   {exists: '{options.cache-root}/{args.size}/{args.path}'}
     then: {path: '{options.cache-root}'}            # cache hit: serve it
     else:                                           # miss: resize, then serve
-      - subprocess:
+      - exec:
           cmd:   resize-image
           input: {src:  '{options.src-root}/{args.path}',
                   dst:  '{options.cache-root}/{args.size}/{args.path}',
@@ -41,7 +41,7 @@ runs off the event loop, and resumes when it completes. On completion it either
       - path: '{options.cache-root}'
 ```
 
-## The subprocess protocol
+## The exec protocol
 
 The program reads a JSON **request envelope** on stdin and writes a JSON
 **result** on stdout. stderr is logged (prefixed with the PID).
@@ -71,9 +71,9 @@ A JSON dict. Every field is optional:
 | `error`            | Logged; included in an error reply.                          |
 | `args` (or `data`) | Merged into the request args, visible to later `{args.*}`.   |
 | `headers`          | Response headers to set.                                     |
-| `response`         | Reply body. If present, the subprocess replies and stops.    |
+| `response`         | Reply body. If present, `exec` replies and stops.            |
 
-Continuation rule: if `code` is 2xx and there is no `response`, the subprocess
+Continuation rule: if `code` is 2xx and there is no `response`, `exec`
 **continues** to the next statement; otherwise it **replies and stops**.
 
 ### Errors
@@ -83,13 +83,13 @@ A non-zero exit, empty or unparseable stdout, or a thrown exception replies
 
 ## Configuration
 
-A subprocess statement:
+An `exec` statement:
 
 ```yaml
-subprocess: resize-image            # string: shell-parsed command
+exec: resize-image                  # string: shell-parsed command
 ```
 ```yaml
-subprocess:
+exec:
   cmd:   [resize-image, --fast]     # string or argv list
   input: { ... }                    # optional; default {args: {args}}
 ```

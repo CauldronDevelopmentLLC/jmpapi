@@ -2,7 +2,7 @@
 
 General control flow for an endpoint pipeline. Conditions are independent of
 any handler: they wrap a **statement** — a step like
-[`subprocess`](subprocess.md) or `query`, a terminal handler such as `path`, a
+[`exec`](exec.md) or `query`, a terminal handler such as `path`, a
 nested conditional, or a sequence of these.
 
 ```yaml
@@ -11,7 +11,7 @@ nested conditional, or a sequence of these.
     if:   {exists: '{options.cache-root}/{args.size}/{args.path}'}
     then: {path: '{options.cache-root}'}            # cache hit: serve it
     else:                                           # miss: resize, then serve
-      - subprocess: {cmd: resize-image, input: {...}}
+      - exec: {cmd: resize-image, input: {...}}
       - path: '{options.cache-root}'
 ```
 
@@ -72,23 +72,23 @@ when their operands are async `sql`/`cmd` conditions — those run in order.
 numbers as numbers (see [Typed values](sql.md#typed-values)). Truthiness
 follows the usual rule: set and not false/empty/zero/null.
 
-`sql` and `cmd` are asynchronous — like any query or subprocess they interrupt
+`sql` and `cmd` are asynchronous — like any query or `exec` they interrupt
 synchronous processing and resume when complete; branch evaluation continues on
 completion. This is why a DB- or process-driven condition needs no separate
 "run a query, store a flag, then test it" plumbing.
 
 `cmd` judges only the exit status (0 → true); its stdout is ignored and stderr
-is logged. A subprocess that must *return data* is a body (`subprocess`), not a
+is logged. An `exec` that must *return data* is a body (`exec`), not a
 condition.
 
 ## Bodies
 
 A body is any statement:
 
-  - a step — `subprocess`, `query`, ...
+  - a step — `exec`, `query`, ...
   - a terminal handler — `path`, `resource`, `redirect`, ...
   - a nested `if`
   - a list of statements, run in order
 
-A list runs its statements in order; an async statement (a subprocess, a
+A list runs its statements in order; an async statement (an `exec`, a
 `query`) passes to the next when it completes.

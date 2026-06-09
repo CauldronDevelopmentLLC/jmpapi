@@ -38,7 +38,7 @@ booleans are inserted raw; missing values become `NULL`.
 ## Typed values
 
 Inside SQL, values are always formatted into the statement (above). Elsewhere —
-in JSON value positions such as a [subprocess](subprocess.md) `input` template,
+in JSON value positions such as an [exec](exec.md) `input` template,
 a [condition](conditions.md) operand, or a response — a *lone* reference (a
 quoted string that is exactly one `{ref}` with no `:fmt`) resolves to the
 value's native JSON type. An embedded reference, or one with a `:fmt`, stays a

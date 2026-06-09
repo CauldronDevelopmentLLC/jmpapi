@@ -41,7 +41,8 @@ namespace JmpAPI {
   public:
     ProxyHandler(API &api, const cb::JSON::ValuePtr &config);
 
-    // From HTTP::RequestHandler
-    bool operator()(const cb::API::CtxPtr &ctx) override;
+    // From cb::API::Handler
+    void operator()(
+      const cb::API::CtxPtr &ctx, const cb::API::Cont &next) override;
   };
 }
