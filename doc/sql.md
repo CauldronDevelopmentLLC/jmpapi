@@ -35,6 +35,26 @@ Modifiers:
 Inside SQL, strings are auto-quoted with MariaDB escaping; numbers and
 booleans are inserted raw; missing values become `NULL`.
 
+## Typed values
+
+Inside SQL, values are always formatted into the statement (above). Elsewhere —
+in JSON value positions such as a [subprocess](subprocess.md) `input` template,
+a [condition](conditions.md) operand, or a response — a *lone* reference (a
+quoted string that is exactly one `{ref}` with no `:fmt`) resolves to the
+value's native JSON type. An embedded reference, or one with a `:fmt`, stays a
+string.
+
+```yaml
+size: '{args.size}'      # → 800       (number)
+on:   '{args.enabled}'   # → true      (boolean)
+who:  '{session}'        # → { ... }   (object)
+text: 'hi {args.name}'   # → "hi Bob"  (embedded → string)
+```
+
+The quotes are needed only because YAML reads a leading `{` as a mapping; the
+resolver sees the post-parse string, so a lone `'{ref}'` is written exactly like
+any other interpolation today.
+
 ## Return types
 
 Set `return:` on the method.

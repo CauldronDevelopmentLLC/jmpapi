@@ -1,0 +1,1 @@
+{"root": {"args": {"a": 1}, "options": {"x": "opt"}}, "ctx": {"b": 2, "nested": {"c": 3}}, "queries": ["args.a", "options.x", "./b", "./nested.c", "..", "../args.a", "missing", "./missing"]}

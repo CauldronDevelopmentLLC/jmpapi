@@ -1,0 +1,29 @@
+import os
+
+env = Environment(ENV = os.environ,
+                  TARGET_ARCH = os.environ.get('TARGET_ARCH', 'x86'))
+
+cbang_home = os.environ.get('CBANG_HOME')
+if cbang_home is None: raise Exception('CBANG_HOME not set')
+
+env.Tool('config', toolpath = [cbang_home])
+env.CBLoadTools('compiler cbang', paths = [cbang_home])
+conf = env.CBConfigure()
+
+if not env.GetOption('clean'):
+    conf.CBConfig('compiler')
+    conf.CBConfig('cbang')
+    env.CBDefine('USING_CBANG')
+
+# jmpapi headers and the built library
+env.Append(CPPPATH = ['#/../src'])
+jmpapi_lib = File('#/../build/libjmpapi.a')
+
+Export('env jmpapi_lib')
+tests = []
+for test in Glob('*Tests'):
+    script = str(test) + '/SConscript'
+    if os.path.exists(script): tests.append(SConscript(script))
+
+conf.Finish()
+Default(tests)

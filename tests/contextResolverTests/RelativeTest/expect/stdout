@@ -1,0 +1,8 @@
+args.a = 1
+options.x = "opt"
+./b = 2
+./nested.c = 3
+.. = <error: JSON Path cannot be empty>
+../args.a = 1
+missing = <null>
+./missing = <null>
