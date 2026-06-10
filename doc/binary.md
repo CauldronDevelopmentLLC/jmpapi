@@ -5,9 +5,9 @@ binary BLOBs in the database, and return raw binary responses.
 
 Binary values do not live in the JSON `args` namespace — JSON has no byte type.
 They are exposed through two interpolation roots, `{body}` and `{files.*}`,
-which may be used only where binary is meaningful: bound into a SQL query, or
-written back as the response. Their byte content is never interpolated into a
-string.
+which may be used only where binary is meaningful: bound into a SQL query,
+passed to an [exec](exec.md) as a temporary file, or written back as the
+response. Their byte content is never interpolated into a string.
 
 ## Receiving a raw body
 
@@ -73,6 +73,14 @@ A binary ref is only valid standing alone as a whole value. Embedding it in a
 larger string (`'x-{body}'`) is an error — there is nothing sensible to
 interpolate bytes into.
 
+## Binary in exec
+
+An [exec](exec.md) step exchanges binary with the process through temporary
+files: a binary ref in its `input:` is written to a file and the path is
+sent in the envelope, and files the process returns become new
+`{files.<name>}` values — storable, transformable, and servable like any
+upload. See [Temporary files](exec.md#temporary-files-and-binary-data).
+
 ## Returning a blob
 
 `return: binary` writes a single value from the query result as the raw
@@ -94,6 +102,10 @@ The response `Content-Type` is taken from, in order:
   3. `application/octet-stream`.
 
 If the query returns no row, the response is `404`.
+
+Any binary value — a captured `return: binary` result or an exec-returned
+file — can also be served directly with [`reply:`](handlers.md#reply), e.g.
+`reply: '{files.thumb}'`.
 
 Blobs are not emitted by the JSON return types (`dict`, `list`, …) — a BLOB
 column there would be corrupted by JSON string escaping. Select a blob only

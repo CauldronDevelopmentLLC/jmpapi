@@ -25,6 +25,8 @@ but any SQL works.
 | `group.*`   | Booleans for each group on the session (e.g. `{group.admin}`). |
 | `options.*` | Server options. See [configuration.md](configuration.md). |
 | `msg.*`     | Incoming websocket message (in websocket handlers).     |
+| `body`, `files.*` | Binary request data. See [binary.md](binary.md).  |
+| *`<name>`*  | A result captured by an earlier statement's `into:`. See [Capturing results](#capturing-results). |
 
 Modifiers:
 
@@ -78,6 +80,7 @@ Set `return:` on the method.
 | `hlist`  | List with a header row of column names first.            |
 | `fields` | Multi-result-set merge into a dict. See below.           |
 | `binary` | First column of row 1 as the raw response body. See [binary.md](binary.md). |
+| `pass`   | Run the query, discard the results, and continue to the next statement. |
 
 ## `fields`
 
@@ -95,6 +98,38 @@ get:
   - `"name"` — insert as a list under `name`.
 
 `return:` defaults to `fields` whenever `fields` is set.
+
+## Capturing results
+
+By default a query statement replies and ends the request. `into: <name>`
+stores the result instead — shaped by `return:` as usual — and continues to
+the next statement in the sequence. The captured result is available to
+later statements as the interpolation root `{<name>}`:
+
+```yaml
+/user/{id}/notify:
+  args: {id: {type: u32}}
+  put:
+    - sql: "CALL UserGet({args.id})"
+      return: dict
+      into: user
+    - exec:
+        cmd:   notify-user
+        input: {user: '{user}', email: '{user.email}'}
+    - reply: '{user}'
+```
+
+A lone `'{<name>}'` passes the whole result with its native type; dotted
+paths select into it. A captured `return: binary` value is binary — usable
+anywhere `{body}` is (bound into SQL, passed to an [exec](exec.md) as a
+file, or replied with [`reply:`](handlers.md#reply)).
+
+Query errors are unaffected by `into:` — they reply immediately and the
+rest of the chain never runs. There is no carried status: the statement
+that finally replies chooses the response code.
+
+Use `return: pass` instead of `into:` when the result doesn't matter
+(e.g. an audit log call).
 
 ## Reusable queries
 

@@ -17,8 +17,23 @@ it in a conditional — see [conditions.md](conditions.md).
 A method endpoint runs a sequence of statements ending in one terminal
 **handler** — the thing that replies (`path`, `resource`, a replying `query`,
 …, per [handlers.md](handlers.md)). An `exec` is one such statement. A
-sequence is written as a YAML list: statements run in order, and each either
-replies (ending the request) or passes to the next.
+sequence is a `steps:` list: statements run in order, and each either
+replies (ending the request) or passes to the next. A method body that is a
+bare YAML list is shorthand for `{steps: [...]}` — use the explicit form
+when the method also declares keys like `args` or `help`:
+
+```yaml
+get:
+  args: {q: {min: 2, optional: true}}
+  steps:
+    - sql: "CALL LogSearch({session.user}, {args.q})"
+      return: pass
+    - sql: "CALL Search({args.q})"
+      return: list
+```
+
+`steps` cannot be combined with a handler-implying key (`sql`, `path`, …)
+in the same statement — a statement is either a pipeline or a handler.
 
 `exec` is async: like a DB query it interrupts synchronous processing, runs off
 the event loop, and resumes when it completes. On completion it either
@@ -41,6 +56,27 @@ the event loop, and resumes when it completes. On completion it either
       - path: '{options.cache-root}'
 ```
 
+An `exec` can also run *after* a query: a query statement with
+[`into:`](sql.md#capturing-results) captures its result and continues
+(`return: pass` discards and continues), so an exec can consume — or
+transform — what SQL produced, and a later statement replies:
+
+```yaml
+/image/{id}/{size}:
+  args: {id: {type: u64}, size: {type: u32}}
+  get:
+    - sql: "CALL ImageGet({args.id})"     # fetch the original blob
+      return: binary
+      into: original
+    - exec:
+        cmd:   'resize --size {args.size}'
+        input: {src: '{original}'}        # bytes land in a temp file
+      # returns {"files": {"out": {"path": ..., "type": "image/png"}}}
+    - sql: "CALL ImageSetSize({args.id}, {args.size}, {files.out})"
+      return: pass                        # cache it, keep going
+    - reply: '{files.out}'                # serve the resized image
+```
+
 ## The exec protocol
 
 The program reads a JSON **request envelope** on stdin and writes a JSON
@@ -61,6 +97,29 @@ object, `'{args.size}'` a number (see [Typed values](sql.md#typed-values)).
 `input` replaces the whole envelope, so include `{args}` explicitly if the
 program still needs it.
 
+### Temporary files and binary data
+
+Each `exec` step gets a private temporary directory, exported to the process
+as `TMPDIR` and removed when the step completes. Standard temp-file tooling
+(`mktemp`, Python's `tempfile`) lands in it automatically.
+
+A *binary* ref in `input:` — `{body}`, `{files.<name>}`, or a captured
+binary result — is written to a file in that directory and its **path** is
+substituted into the envelope as a string:
+
+```yaml
+exec:
+  cmd:   resize-image
+  input: {src: '{files.photo}', type: '{files.photo.type}'}
+```
+
+```json
+{"src": "/tmp/jmpapi-1a2b/src", "type": "image/png"}
+```
+
+Metadata refs (`.size`, `.type`, `.filename`) resolve as plain values, as
+everywhere else.
+
 ### Result (stdout)
 
 A JSON dict. Every field is optional:
@@ -71,10 +130,27 @@ A JSON dict. Every field is optional:
 | `error`            | Logged; included in an error reply.                          |
 | `args` (or `data`) | Merged into the request args, visible to later `{args.*}`.   |
 | `headers`          | Response headers to set.                                     |
+| `files`            | Files the program wrote, returned as binary values.  See below. |
 | `response`         | Reply body. If present, `exec` replies and stops.            |
 
 Continuation rule: if `code` is 2xx and there is no `response`, `exec`
 **continues** to the next statement; otherwise it **replies and stops**.
+
+### Returning files
+
+`files` maps names to files the program wrote — typically under `$TMPDIR`:
+
+```json
+{"files": {"out": {"path": "/tmp/jmpapi-1a2b/resized.png",
+                   "type": "image/png"}}}
+```
+
+A bare path string is shorthand for `{"path": ...}`. Each file is read and
+becomes a binary value under `{files.<name>}` — exactly like an uploaded
+multipart part (a returned name shadows an uploaded part) — so later
+statements can bind it into SQL, pass it to another `exec`, or serve it with
+[`reply:`](handlers.md#reply). Optional `type` and `filename` fill the
+`.type` / `.filename` metadata.
 
 ### Errors
 

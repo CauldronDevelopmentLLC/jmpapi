@@ -15,6 +15,7 @@ A handler decides what a method endpoint does. Set explicitly with
 | `resource`   | `resource:`    | Serve a compiled-in resource.            |
 | `redirect`   | explicit       | HTTP redirect.                           |
 | `status`     | explicit       | Return a fixed status code + body.       |
+| `reply`      | `reply:`       | Reply with a resolved value (JSON or binary). |
 | `cors`       | explicit       | Apply CORS headers; reply to OPTIONS.    |
 | `spec`       | explicit       | Serve the generated OpenAPI spec.        |
 | `websocket`  | explicit       | Upgrade to websocket; route messages.    |
@@ -111,6 +112,23 @@ Keys: `origins` (literal list), `patterns` (regex list), `methods`,
 /down:
   get: {handler: status, code: 503, text: Maintenance}
 ```
+
+## reply
+
+Replies with a value resolved against the request — typically a result
+captured with [`into:`](sql.md#capturing-results) or a file returned by an
+[exec](exec.md). A binary value is sent as the raw response body with its
+`Content-Type`; anything else as JSON.
+
+```yaml
+- reply: '{files.out}'                        # binary
+- reply: {user: '{user}', teams: '{teams}'}   # shaped JSON
+- {reply: '{user}', code: 201}                # explicit status code
+```
+
+The `reply:` value is always the response body; a sibling `code:` sets the
+status (default `200`). Statuses are never carried between statements — the
+statement that replies chooses the code.
 
 ## spec
 

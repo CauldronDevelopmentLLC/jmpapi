@@ -50,6 +50,9 @@ inherit from parent keys for `args` and `allow`/`deny`.
 | `allow` / `deny` | Access rules. See [access-control.md](access-control.md). |
 | `headers`    | Response headers, as a map.                            |
 | `return`     | Query return shape. See [sql.md](sql.md).              |
+| `into`       | Capture a query result and continue. See [sql.md](sql.md#capturing-results). |
+| `reply`      | Reply with a resolved value. See [handlers.md](handlers.md#reply). |
+| `steps`      | List of statements run in order. A bare list body is shorthand. See [exec.md](exec.md). |
 | `fields`     | Field layout when `return: fields`. See [sql.md](sql.md). |
 | `body`       | Raw binary request body. See [binary.md](binary.md).   |
 | `files`      | Multipart file-part declarations. See [binary.md](binary.md). |
