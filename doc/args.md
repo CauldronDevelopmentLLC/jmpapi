@@ -42,7 +42,7 @@ Args are checked in this order: path captures, query string, then the body
 
 | Key          | Applies to             | Effect                              |
 |--------------|------------------------|-------------------------------------|
-| `optional`   | any                    | Allow missing value.                |
+| `optional`   | any                    | Allow missing value; reference it as `{~args.<name>}`. |
 | `default`    | any                    | Default value (implies optional).   |
 | `min` / `max`| numbers, strings, uri, email | Numeric range or string length. |
 | `pattern`    | strings                | RE2 regex the value must match.     |

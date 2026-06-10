@@ -59,19 +59,18 @@ A `multipart/form-data` request is split by each part's form-field `name`:
 
 ## Storing blobs
 
-A binary reference used in a query — `{body}` or `{files.<name>}` — is **bound
-as a real statement parameter**, not interpolated into the SQL text. Binding is
-binary-safe (NUL bytes and arbitrary content are preserved) at any size.
-Ordinary text and number refs interpolate as before (see
-[sql.md](sql.md#interpolation)); the two mix freely in one statement.
+A binary reference used in a query — `{body}` or `{files.<name>}` — binds its
+bytes as a statement parameter, exactly like every other ref (see
+[sql.md](sql.md#variables)). Binding is binary-safe (NUL bytes and arbitrary
+content are preserved) at any size.
 
 ```yaml
 sql: CALL StoreImage({args.id}, {files.image})
 ```
 
-A binary ref is only valid standing alone as a whole value. Embedding it in a
-larger string (`'x-{body}'`) is an error — there is nothing sensible to
-interpolate bytes into.
+Like any ref, a binary ref must stand alone as a whole value — embedding it
+in a string literal (`'x-{body}'`) is an error. A rendition that may be
+absent binds NULL with `{~files.<name>}`.
 
 ## Binary in exec
 

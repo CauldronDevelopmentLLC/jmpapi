@@ -1,7 +1,8 @@
-# SQL & Interpolation
+# SQL & Variables
 
-A `sql:` key on a method makes it a SQL query handler. The string is
-run against MariaDB after variables are interpolated.
+A `sql:` key on a method makes it a SQL query handler. Variable references
+in the string are bound as statement parameters and the query is run
+against MariaDB as a prepared statement.
 
 ```yaml
 /user/{id}:
@@ -14,9 +15,12 @@ run against MariaDB after variables are interpolated.
 The server expects MariaDB stored procedures for non-trivial queries,
 but any SQL works.
 
-## Interpolation
+## Variables
 
-`{path.to.value}` is replaced before the SQL is sent. Available roots:
+Each `{path.to.value}` in the SQL becomes a bound `?` parameter — the value
+is never spliced into the SQL text, so quoting, escaping and SQL injection
+are structurally impossible, and binary data is safe at any size. Available
+roots:
 
 | Root        | Source                                                  |
 |-------------|---------------------------------------------------------|
@@ -28,30 +32,37 @@ but any SQL works.
 | `body`, `files.*` | Binary request data. See [binary.md](binary.md).  |
 | *`<name>`*  | A result captured by an earlier statement's `into:`. See [Capturing results](#capturing-results). |
 
-Modifiers:
+A missing ref is a request-time error. Mark a ref optional with `~`:
+`{~x.y}` binds SQL `NULL` (elsewhere JSON `null`) when missing. This is
+how optional args reach the database:
 
-  - `{~x.y}` — return JSON `null` if missing instead of erroring.
-  - `{x.y:S}` — force SQL-string quoting (default for strings).
-  - `{x.y:fmt}` — pass `fmt` to the value's formatter.
+```yaml
+args: {alt_text: {optional: true, max: 512}}
+sql:  CALL AssetSave({args.id}, {~args.alt_text})
+```
 
-Inside SQL, strings are auto-quoted with MariaDB escaping; numbers and
-booleans are inserted raw; missing values become `NULL`.
+Strings, numbers and booleans bind with their native values (booleans as
+`1`/`0`); binary values ([binary.md](binary.md)) bind their bytes. A
+`{ref:fmt}` format spec formats the value first and binds the resulting
+string (e.g. `{args.pi:d}` binds `'3'`). Because
+a parameter is a whole value, a ref cannot sit inside a string literal —
+`LIKE '%{args.q}%'` is an error. Assemble such strings in SQL instead:
 
-## Binary parameters
+```sql
+... WHERE name LIKE CONCAT('%', {args.q}, '%')
+```
 
-The binary roots `{body}` and `{files.<name>}` are not interpolated into the
-SQL text — they are bound as real statement parameters, which is binary-safe at
-any size. See [binary.md](binary.md). Everything else is interpolated as
-described above.
+Trusted SQL *fragments* (table names, etc.) can come only from
+`{options.*}` refs, which resolve into the config at server start, before
+any request.
 
 ## Typed values
 
-Inside SQL, values are always formatted into the statement (above). Elsewhere —
-in JSON value positions such as an [exec](exec.md) `input` template,
-a [condition](conditions.md) operand, or a response — a *lone* reference (a
-quoted string that is exactly one `{ref}` with no `:fmt`) resolves to the
-value's native JSON type. An embedded reference, or one with a `:fmt`, stays a
-string.
+Outside SQL — in JSON value positions such as an [exec](exec.md) `input`
+template, a [condition](conditions.md) operand, or a response — a *lone*
+reference (a quoted string that is exactly one `{ref}` with no `:fmt`)
+resolves to the value's native JSON type. An embedded reference, or one
+with a `:fmt` format spec, stays a string.
 
 ```yaml
 size: '{args.size}'      # → 800       (number)

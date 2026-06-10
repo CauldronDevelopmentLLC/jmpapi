@@ -40,8 +40,9 @@ Run with `jmpapi config.yaml`.
 ## Conventions
 
   - `{name}` in a URL is a path parameter, available as `{args.name}`.
-  - `{x.y}` inside a string interpolates from the resolver
-    (see [sql.md](sql.md)).
+  - `{x.y}` inside a string references a request value: bound as a
+    parameter in SQL, interpolated elsewhere (see [sql.md](sql.md)).
+    A missing ref is an error; `{~x.y}` resolves null when missing.
   - Keys starting with `/` are nested child paths.
   - HTTP methods are lower-case (`get`, `put`, `post`, `delete`); combine
     with `|` (e.g. `get|put`); use `any` to match all methods.
