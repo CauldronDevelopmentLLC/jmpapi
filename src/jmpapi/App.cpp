@@ -99,11 +99,15 @@ App::App() :
   // Enable libevent logging
   Event::Event::enableLogging(3);
 
+  // Short log levels
+  Logger::instance().setLogShortLevel(true);
+
   // Handle exit signal
   auto exitCB = [this] {base.loopExit();};
   (sigintEvent  = base.newSignal(SIGINT,  exitCB))->add();
   (sigtermEvent = base.newSignal(SIGTERM, exitCB))->add();
 }
+
 
 App::~App() {
   if (threadPool.isSet()) threadPool->join();
