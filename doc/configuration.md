@@ -76,9 +76,32 @@ options:
   timeseries-db: /var/lib/jmpapi/timeseries
   session-timeout:  3600
   session-lifetime: 2592000
+
+  http-trusted-proxies: [127.0.0.0/8, ::1]
 ```
 
 Options are referenced from configs as `{options.<name>}` — see
 [sql.md](sql.md).
 
 Run `jmpapi --help` for the full list.
+
+## Behind a reverse proxy
+
+By default the client address used in logs, access control, sessions, and
+`{request.ip}` is the connecting socket's address. Behind a reverse proxy that
+is the proxy, not the caller. `http-trusted-proxies` (a list of addresses or
+CIDR ranges, default `[127.0.0.0/8, ::1]`) fixes this: when a request arrives
+from a trusted proxy, the client address is taken from the `X-Forwarded-For`
+(right-most entry that is not itself trusted) or `X-Real-IP` header.
+
+Requests from any address **not** in the list keep their socket address and
+their `X-Forwarded-For`/`X-Real-IP` headers are ignored, so a direct client
+cannot spoof its IP. Set `http-trusted-proxies: []` to never trust the headers.
+
+A matching nginx config:
+
+```nginx
+proxy_set_header Host            $host;
+proxy_set_header X-Real-IP       $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+```

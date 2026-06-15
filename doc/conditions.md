@@ -62,6 +62,24 @@ A condition is a dict with one of:
 | `sql: <query>`     | the query returns a truthy scalar (**async**)    |
 | `cmd: <command>`   | the process exits 0 (**async**)                  |
 
+A condition may also be a **bare scalar** — a ref or literal rather than a dict
+— which is a *truthiness test*: true when the value is set and not `false`, `0`,
+`''`, or `null`.
+
+```yaml
+if:   '{~session.uid}'          # true when logged in (uid set and non-zero)
+then: {...}
+
+if:   {not: '{~session.uid}'}   # true when anonymous
+then: {...}
+```
+
+Use `{~ref}` (not `{ref}`) so a missing value resolves to `null` (falsy) instead
+of erroring. A lone `'{ref}'` keeps its native type, so an integer `0` is falsy
+and a missing id is `null`. To test specifically for null — distinct from `0` —
+compare against it: `{=: ['{~session.uid}', null]}` (which `0` does *not*
+satisfy, since the compare is type-aware).
+
 Each comparison operator takes a list of exactly two values; comparison follows
 C!'s JSON value compare rules. There is no `>` or `>=` — swap the operands.
 `and`/`or` short-circuit (stop at the first false / first true), which matters
