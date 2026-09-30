@@ -21,6 +21,48 @@ endpoints:
 Args are checked in this order: path captures, query string, then the body
 (JSON fields, or multipart plain fields).
 
+## Everything must be declared
+
+`{args.*}` holds exactly the args declared by `args:` blocks on the method and
+the paths above it — nothing else. Anything the client sends that is not
+declared is dropped, and so is a **URL path capture that is never declared**:
+
+```yaml
+/user/{id}:
+  get:
+    sql: CALL UserGet({args.id})   # error: 'id' is captured but not declared
+```
+
+The capture puts `id` in the URL match, but with no `args:` block there is no
+`args` root at all, so `{args.id}` fails to resolve. Declaring it fixes both:
+
+```yaml
+/user/{id}:
+  args: {id: {type: u32}}          # now {args.id} resolves
+  get:
+    sql: CALL UserGet({args.id})
+```
+
+A declared arg with no constraints is written `{}` — that is a required
+string. Note the generated OpenAPI spec lists undeclared URL captures as path
+parameters even though they are unusable, so the spec is not a check on this.
+
+## Optional args need `{~ref}`
+
+A missing optional arg is absent from `{args.*}`, and referencing a missing
+value is a request-time error. An arg declared `optional: true` must therefore
+be referenced as `{~args.<name>}`, which resolves null (SQL `NULL`) when it was
+not supplied. See [sql.md](sql.md#variables).
+
+```yaml
+args:
+  date: {type: date, optional: true}
+sql: CALL SetWeight({args.user}, {~args.date}, {args.weight})
+```
+
+An arg with a `default:` is always present, so it is referenced without the
+`~`.
+
 ## Types
 
 | Type    | Notes                                                  |

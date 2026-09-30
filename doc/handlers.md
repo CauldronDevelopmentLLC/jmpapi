@@ -165,6 +165,7 @@ incoming message is bound to `{msg.*}`.
 
 ```yaml
 /upstream/{path}:
+  args: {path: {}}
   get:
     url: https://api.example.com/v1/{args.path}
     method: GET

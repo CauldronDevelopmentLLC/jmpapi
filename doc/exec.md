@@ -26,9 +26,9 @@ when the method also declares keys like `args` or `help`:
 get:
   args: {q: {min: 2, optional: true}}
   steps:
-    - sql: "CALL LogSearch({session.user}, {args.q})"
+    - sql: "CALL LogSearch({session.user}, {~args.q})"
       return: pass
-    - sql: "CALL Search({args.q})"
+    - sql: "CALL Search({~args.q})"
       return: list
 ```
 
@@ -44,6 +44,7 @@ the event loop, and resumes when it completes. On completion it either
 
 ```yaml
 /images/{size}/{path}:
+  args: {size: {type: u32}, path: {}}
   get:
     if:   {exists: '{options.cache-root}/{args.size}/{args.path}'}
     then: {path: '{options.cache-root}'}            # cache hit: serve it

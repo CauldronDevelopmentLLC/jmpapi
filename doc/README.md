@@ -39,7 +39,8 @@ Run with `jmpapi config.yaml`.
 
 ## Conventions
 
-  - `{name}` in a URL is a path parameter, available as `{args.name}`.
+  - `{name}` in a URL is a path parameter, available as `{args.name}`
+    once declared in an `args:` block.
   - `{x.y}` inside a string references a request value: bound as a
     parameter in SQL, interpolated elsewhere (see [sql.md](sql.md)).
     A missing ref is an error; `{~x.y}` resolves null when missing.

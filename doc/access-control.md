@@ -13,6 +13,7 @@ args with the same keys.
 
   /{id}:
     allow: [$admin, $manager]  # admins or managers
+    args:  {id: {type: u32}}
     get:
       sql: CALL UserGet({args.id})
 ```

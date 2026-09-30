@@ -7,6 +7,7 @@ nested conditional, or a sequence of these.
 
 ```yaml
 /images/{size}/{path}:
+  args: {size: {type: u32}, path: {}}
   get:
     if:   {exists: '{options.cache-root}/{args.size}/{args.path}'}
     then: {path: '{options.cache-root}'}            # cache hit: serve it

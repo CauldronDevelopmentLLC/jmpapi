@@ -53,6 +53,51 @@ endpoints:
 Set `hide: true` on a sub-API or endpoint to keep it out of the
 generated OpenAPI spec.
 
+Sub-APIs are matched in the order they are listed, so put cross-cutting
+ones — CORS, then the `session` handler — ahead of the APIs they apply to.
+
+`api:` (singular) is **removed**. It used to name a single unnamed API, and
+when `apis:` was absent its contents were loaded as that API; the fallback is
+now the root config itself, so `endpoints:` at the top level plays that role.
+An old `api:` block is no longer read at all — move its contents to the top
+level, or list its entries under `apis:`.
+
+Keys other than `args`, `queries`, `timeseries`, `endpoints`, `help` and
+`hide` are ignored, including `title`, and nothing rejects an unrecognized
+key. A stale `api:` therefore registers no endpoints and reports no error.
+
+## Other YAML directives
+
+`!include-raw` reads a file as a plain string rather than parsing it, which
+keeps a long query in its own `.sql` file:
+
+```yaml
+queries:
+  report:
+    sql: !include-raw report.sql
+    return: list
+```
+
+Standard YAML anchors, aliases and merge keys work throughout, which is
+useful for a pattern reused across endpoints:
+
+```yaml
+aliases:
+  - &base64 "[a-zA-Z0-9+/]+={0,2}"
+
+endpoints:
+  /keyring/{name}:
+    args:
+      name: {max: 32}
+    put:
+      args:
+        salt:   {pattern: *base64}
+        secret: {pattern: *base64}
+```
+
+Paths in `!include` and `!include-raw` resolve relative to the including
+file.
+
 ## Options
 
 Set via the top-level `options:` block. Common ones:

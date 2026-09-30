@@ -47,6 +47,9 @@ endpoints:
       sql: CALL jmpapi.ConfigList()
 
     /{name}:
+      args:
+        name: {help: The config value name.}
+
       get:
         return: one
         sql: CALL jmpapi.ConfigGet({args.name})
@@ -80,8 +83,8 @@ endpoints:
         enabled: {type: bool, default: true}
 
       sql: >
-        CALL jmpapi.UserAdd({args.provider}, {args.provider_id},
-          {args.email}, {args.name}, {args.avatar}, {args.enabled});
+        CALL jmpapi.UserAdd({args.provider}, {~args.provider_id},
+          {args.email}, {~args.name}, {~args.avatar}, {args.enabled});
         SELECT @uid;
 
     /{id}:
@@ -103,8 +106,8 @@ endpoints:
           avatar: {optional: true, type: uri}
           enabled: {allow: [$admin], optional: true, type: bool}
         sql: >
-          CALL jmpapi.UserSet({args.id}, {args.email}, {args.name},
-            {args.avatar}, {args.enabled})
+          CALL jmpapi.UserSet({args.id}, {~args.email}, {~args.name},
+            {~args.avatar}, {~args.enabled})
 
       delete:
         help: Delete an existing user.
@@ -125,8 +128,8 @@ endpoints:
             avatar: {optional: true, type: uri}
           sql: >
             CALL jmpapi.UserAssociationAdd({args.id}, {args.provider},
-              {args.provider_id}, {args.email}, {args.name},
-              {args.avatar})
+              {~args.provider_id}, {~args.email}, {~args.name},
+              {~args.avatar})
 
         delete:
           help: Delete a user login association.
@@ -141,6 +144,9 @@ endpoints:
           help: Get the list of groups with user membership.
 
         /{group}:
+          args:
+            group: {help: The group name.}
+
           put:
             sql: CALL jmpapi.UserGroupAdd({args.id}, {args.group})
             help: Add a user to a group.

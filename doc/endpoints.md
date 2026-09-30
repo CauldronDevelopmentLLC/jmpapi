@@ -7,7 +7,9 @@ paths; keys naming HTTP methods are method handlers at the current path.
 endpoints:
   /users:
     get:  {sql: CALL UserList(), return: list}
-    post: {sql: CALL UserAdd({args.name})}
+    post:
+      args: {name: {min: 2, max: 100}}
+      sql:  CALL UserAdd({args.name})
 
     /{id}:
       args: {id: {type: u32}}
@@ -21,6 +23,10 @@ endpoints:
   - `/{name}` — capture into `args.name`.
   - `/regex.*` — paths are regexes (RE2). Capture groups with `{name}`
     become args.
+
+Patterns match the whole path, so sibling paths never shadow each other.
+A capture must also be declared in an `args:` block to be usable as
+`{args.name}` — see [args.md](args.md#everything-must-be-declared).
 
 ## Methods
 

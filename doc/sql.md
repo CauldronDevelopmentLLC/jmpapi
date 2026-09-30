@@ -24,11 +24,12 @@ roots:
 
 | Root        | Source                                                  |
 |-------------|---------------------------------------------------------|
-| `args.*`    | Validated request args. See [args.md](args.md).         |
+| `args.*`    | Validated request args — **declared args only**. See [args.md](args.md). |
 | `session.*` | Logged-in session fields (`id`, `user`, `uid`, `provider`, `name`, `avatar`, …). |
 | `group.*`   | Booleans for each group on the session (e.g. `{group.admin}`). |
 | `options.*` | Server options. See [configuration.md](configuration.md). |
-| `request.*` | Request metadata: `method`, `host`, `path`, `ip`.        |
+| `request.*` | Request metadata: `method`, `host`, `path`, `ip`, and `headers.<name>` for any request header. |
+| `info.*`    | Application, build and system metadata as `{info.<category>.<key>}`, e.g. `{info.Build.Version}`. |
 | `msg.*`     | Incoming websocket message (in websocket handlers).     |
 | `body`, `files.*` | Binary request data. See [binary.md](binary.md).  |
 | *`<name>`*  | A result captured by an earlier statement's `into:`. See [Capturing results](#capturing-results). |
