@@ -33,6 +33,7 @@
 #include <cbang/log/Logger.h>
 #include <cbang/event/Event.h>
 #include <cbang/db/maria/Connector.h>
+#include <cbang/db/clickhouse/Client.h>
 #include <cbang/json/JSON.h>
 
 #include <algorithm>
@@ -61,6 +62,9 @@ App::App() :
   options.add("favicon", "Path to site icon."
               )->setDefault("/usr/share/jmpapi/http/favicon.ico");
   options.add("timeseries-db", "Path to timeseries database.");
+  options.add("bearer-public-keys", "Path to a PEM file of RSA public keys "
+              "which verify bearer tokens, JWTs signed with RS256.  It holds "
+              "both keys during a key rotation.");
   options.popCategory();
 
   options.pushCategory("SSL");
@@ -89,11 +93,19 @@ App::App() :
   auto connector = SmartPtr(new MariaDB::Connector(base));
   connector->addOptions(options);
 
+  // ClickHouse, for clickhouse and clickhouse-insert endpoints
+  auto clickHouse = SmartPtr(new ClickHouse::Client(PhonyPtr(&client)));
+  clickHouse->addOptions(options);
+
+  // Sessions, and bearer tokens signed by the bearer-public-keys
+  sessionManager = new HTTP::BearerSessionManager;
+
   // Setup API
   api.setClient(PhonyPtr(&client));
   api.setOAuth2Providers(oauth2Providers);
-  api.setSessionManager(new HTTP::SessionManager);
+  api.setSessionManager(sessionManager);
   api.setDBConnector(connector);
+  api.setClickHouse(clickHouse);
   api.setProcPool(PhonyPtr(&procPool));
 
   // Enable libevent logging
@@ -149,6 +161,10 @@ void App::afterCommandLineParse() {
     sslCtx.setCipherList(sslCipherList);
     server.getSSLContext()->setCipherList(sslCipherList);
   }
+
+  // Bearer token keys
+  auto &keysOpt = options["bearer-public-keys"];
+  if (keysOpt.hasValue()) sessionManager->readPublicKeys(keysOpt);
 
   // Open timeseries DB
   auto &tsdbOpt = options["timeseries-db"];

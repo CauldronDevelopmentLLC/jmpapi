@@ -37,6 +37,7 @@
 #include <cbang/event/SubprocessPool.h>
 #include <cbang/event/ConcurrentPool.h>
 #include <cbang/http/Client.h>
+#include <cbang/http/BearerSessionManager.h>
 #include <cbang/openssl/SSLContext.h>
 
 
@@ -48,6 +49,7 @@ namespace JmpAPI {
     cb::HTTP::Client client;
     cb::Event::SubprocessPool procPool;
     cb::SmartPointer<cb::Event::ConcurrentPool> threadPool;
+    cb::SmartPointer<cb::HTTP::BearerSessionManager> sessionManager;
     Server server;
     API api;
     cb::JSON::ValuePtr config;
